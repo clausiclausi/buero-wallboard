@@ -44,7 +44,7 @@ const DEFAULT_LOANS = [
   { id: 'l3', type: 'Smartphones', icon: 'phone', avail: 0, total: 0 },
   { id: 'l4', type: 'Headsets', icon: 'box', avail: 0, total: 0 },
 ];
-let db = Object.assign({ tasks: [], events: [], scans: [], loans: DEFAULT_LOANS, incident: null, settings: {} }, readJson(DB_FILE, {}));
+let db = Object.assign({ tasks: [], events: [], scans: [], loans: DEFAULT_LOANS, incident: null, settings: {}, people: [], absences: [] }, readJson(DB_FILE, {}));
 db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings);
 
 // Passwort zum Entsperren des Besuchermodus (nur als Hash gespeichert, Standard: 123)
@@ -87,7 +87,10 @@ function cleanup() {
   const before = db.tasks.length + db.events.length;
   db.tasks = db.tasks.filter(t => t.date >= today);
   db.events = db.events.filter(e => e.date >= today);
-  if (db.tasks.length + db.events.length !== before) save();
+  // Abwesenheiten nur so lange aufheben, wie sie im Monatskalender noch zu sehen sind
+  const keep = localDate(-62), nAbs = db.absences.length;
+  db.absences = db.absences.filter(a => a.to >= keep);
+  if (db.tasks.length + db.events.length !== before || db.absences.length !== nAbs) save();
 }
 
 /* ---------- Eingaben prüfen (Allowlist) ---------- */
@@ -118,6 +121,17 @@ const schemas = {
       note: clean(b.note, 200), done: !!b.done,
     };
   },
+  // Personen nur als Kürzel mit Farbe, keine Klarnamen
+  people: b => {
+    const short = clean(b.short, 4).toUpperCase().replace(/[^A-Z0-9ÄÖÜ]/g, '');
+    if (!short || !/^#[0-9a-fA-F]{6}$/.test(b.color || '')) return null;
+    return { short, color: b.color };
+  },
+  // Urlaub oder allgemeine Abwesenheit (bewusst keine Krankheit: Gesundheitsdaten gehören nicht aufs Board)
+  absences: b => {
+    if (!db.people.some(x => x.id === b.person) || !isDate(b.from) || !isDate(b.to) || b.to < b.from) return null;
+    return { person: b.person, from: b.from, to: b.to, kind: oneOf(b.kind, ['urlaub', 'abwesend'], 'urlaub') };
+  },
   loans: b => {
     const total = Math.max(0, Math.min(999, parseInt(b.total, 10) || 0));
     return { type: clean(b.type, 24) || 'Geräte', icon: oneOf(b.icon, ICONS, 'box'), total, avail: Math.max(0, Math.min(total, parseInt(b.avail, 10) || 0)) };
@@ -127,6 +141,7 @@ const schemas = {
 const patchable = {
   tasks: ['title', 'time', 'remind', 'done'], events: ['title', 'meta', 'time', 'date'],
   scans: ['type', 'inv', 'serial', 'condition', 'location', 'note', 'done'], loans: ['type', 'icon', 'avail', 'total'],
+  people: ['short', 'color'], absences: ['person', 'from', 'to', 'kind'],
 };
 
 function sanitizeSettings(b) {
@@ -155,6 +170,7 @@ function boardView() {
     scans: db.scans.filter(s => !s.done || Date.now() - s.created < 86400000).slice(-12)
       .map(s => ({ id: s.id, type: s.type, inv: s.inv, location: s.location, created: s.created, done: s.done })),
     loans: db.loans, incident: db.incident, settings: db.settings, mobileUrl: mobileUrl(),
+    people: db.people, absences: db.absences,
     version: VERSION, changelog: CHANGELOG, lastUpdate: readJson(path.join(DATA, 'last-update.json'), null), display: display.view(),
     update: { available: update.available, notes: update.notes, changes: update.changes, error: update.error, checked: update.checked, busy: update.busy },
   };
@@ -428,8 +444,13 @@ const server = http.createServer(async (req, res) => {
         save(); return send(res, 200, db.incident);
       }
     }
-    if ((m = p.match(/^\/api\/(tasks|events|scans|loans)(?:\/([a-z0-9]{1,16}))?$/))) {
+    if ((m = p.match(/^\/api\/(tasks|events|scans|loans|people|absences)(?:\/([a-z0-9]{1,16}))?$/))) {
       const [, coll, id] = m;
+      // Urlaube am Board nur mit Passwort ändern; am Handy reicht die PIN
+      if ((coll === 'people' || coll === 'absences') && isLocal(req)) {
+        let pw = ''; try { pw = decodeURIComponent(req.headers['x-wallboard-passwort'] || ''); } catch {}
+        if (!checkPw(pw)) return send(res, 403, { error: 'Passwort nötig' });
+      }
       if (req.method === 'POST' && !id) {
         const b = await readBody(req, coll === 'scans' ? 8_000_000 : 5000);
         const item = schemas[coll](b);
@@ -453,7 +474,9 @@ const server = http.createServer(async (req, res) => {
       }
       if (req.method === 'DELETE') {
         if (item.photo) fs.rm(path.join(PHOTOS, item.photo), () => {});
-        db[coll] = db[coll].filter(x => x !== item); save();
+        db[coll] = db[coll].filter(x => x !== item);
+        if (coll === 'people') db.absences = db.absences.filter(a => a.person !== item.id);
+        save();
         return send(res, 200, { ok: true });
       }
     }

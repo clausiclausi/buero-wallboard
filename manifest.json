@@ -1,19 +1,19 @@
 {
-  "version": "1.3.0",
-  "notes": "Monatskalender statt Security-Tipp: ganzer Monat mit Kalenderwochen links, heute und die laufende Woche hervorgehoben, Feiertage in Niedersachsen markiert.",
+  "version": "1.4.0",
+  "notes": "Urlaub im Monatskalender: Kalender antippen, Personen mit Kürzel und Farbe anlegen, Urlaub oder Abwesenheit von–bis eintragen. Farbige Balken zeigen, wer an welchem Tag fehlt.",
   "changes": [
-    "Monatskalender statt Security-Tipp: ganzer Monat mit Kalenderwochen links, heute und die laufende Woche hervorgehoben, Feiertage in Niedersachsen markiert.",
-    "Besuchermodus mit Passwort: Einen verwischten Eintrag antippen, Passwort eingeben (anfangs 123), dann ist alles 2 Minuten lesbar und sperrt sich danach von selbst.",
-    "„Jetzt sperren“ unten in der Mitte verwischt sofort wieder.",
-    "Besuchermodus ausschalten geht nur noch mit Passwort. Einschalten geht jederzeit.",
-    "Passwort ändern unter Einstellungen > Datenschutz."
+    "Urlaub im Monatskalender: Kalender antippen, Personen mit Kürzel und Farbe anlegen, Urlaub oder Abwesenheit von–bis eintragen. Farbige Balken zeigen, wer an welchem Tag fehlt.",
+    "Übersicht unter dem Kalender: wer als Nächstes weg ist, „in X Tagen“ bzw. „bis …“, mit Anzahl Arbeitstagen (ohne Wochenenden und Feiertage).",
+    "Warnung, wenn in den nächsten zwei Wochen an einem Arbeitstag nur noch eine Person im Büro ist.",
+    "Im Kalender blättern mit ‹ ›, nach einer Minute springt er zurück auf heute.",
+    "Eintragen am Board nur mit Passwort, am Handy unter „Termine“. Im Besuchermodus sind Urlaube verwischt."
   ],
   "files": {
-    "changelog.json": "0392e4e099e5dacaf598d5a3afd15c58a3d9b8bcfba0a7f0c62684d1efbb40a6",
+    "changelog.json": "a747127a48050627ce61e895b0d868a1bbf29328e5716665e2e8dbe903da3b95",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
-    "public/board.html": "355b881f864252f411397fb56ffd0ebe97b9f9165f26dac7e521d7b14a2f5fa7",
-    "public/m.html": "c2c2ce7891b9eaba9a9e5e3e0fe9dab13d6ccbf5f3eb3efd7b90441d66d71f45",
-    "server.js": "0ce0fb8d42ce822dbe7e2665f74f0afc0c1a002163aa4fda302ffe478d6dedbc",
-    "version.json": "95b960d12ef2e2722946881cb95401468db2dee9eb7f5b23f43a79d4a9bc9252"
+    "public/board.html": "62909006de04016a99cff11f603e13b52432561f756c7021156759c39e56c4d1",
+    "public/m.html": "4853107b37f944ddff2d40e7e89fdebf2bc37140b85b2c202c4be22447fa3de7",
+    "server.js": "77142f5a37e76da0e7fc62e7c9b628890f4be7b00321c1159556acb505dd1a6a",
+    "version.json": "601d72ee0786aab31d94e76b2476cc481408d50b92094067da906ff716d3e737"
   }
 }

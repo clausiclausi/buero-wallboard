@@ -133,6 +133,31 @@ nav button[aria-current="page"] { color: var(--text); }
     </form>
     <h2>Kommende Termine</h2>
     <div class="list" id="evList"></div>
+
+    <h1 style="margin-top:28px">Urlaub &amp; Abwesenheit</h1>
+    <form class="card" id="abForm" autocomplete="off">
+      <div class="row">
+        <label class="f">Wer <select id="aPerson"></select></label>
+        <label class="f">Art <select id="aKind"><option value="urlaub">Urlaub</option><option value="abwesend">Abwesend</option></select></label>
+      </div>
+      <div class="row">
+        <label class="f">von <input id="aFrom" type="date" required></label>
+        <label class="f">bis <input id="aTo" type="date" required></label>
+      </div>
+      <p class="hint">Keine Krankheitstage eintragen: Gesundheitsdaten gehören nicht aufs Board.</p>
+      <button class="btn primary" type="submit">Eintragen</button>
+    </form>
+    <div class="list" id="abList" style="margin-top:10px"></div>
+    <h2>Personen (Kürzel und Farbe)</h2>
+    <div class="list" id="pList"></div>
+    <form class="card" id="pForm" autocomplete="off" style="margin-top:10px">
+      <div class="row" style="align-items:flex-end">
+        <label class="f">Kürzel <input id="pShort" maxlength="4" placeholder="z. B. TB" style="text-transform:uppercase"></label>
+        <label class="f" style="flex:0 0 72px">Farbe <input id="pColor" type="color" value="#5EA8FF" style="height:46px;padding:4px"></label>
+      </div>
+      <p class="hint">Nur Kürzel, keine vollen Namen: das Board sehen auch Besucher.</p>
+      <button class="btn" type="submit">Person hinzufügen</button>
+    </form>
   </section>
 
   <!-- Störung -->
@@ -383,7 +408,45 @@ nav button[aria-current="page"] { color: var(--text); }
   $('#dOff').onclick = () => { if (confirm('Board dauerhaft schließen? Zurück über „Wieder anzeigen“ hier oder das Desktop-Symbol am Notebook.')) setDisplay('off', null, 'Board geschlossen'); };
   document.querySelectorAll('#dPause button').forEach(b => b.onclick = () => setDisplay('pause', b.dataset.min, 'Board vorübergehend geschlossen'));
 
-  function renderAll() { renderTasks(); renderEvents(); renderIncident(); renderDisplay(); renderLoans(); renderScans(); }
+  /* ---------- Urlaub & Abwesenheit ---------- */
+  const PALETTE = ['#5EA8FF', '#FF8A65', '#C792EA', '#4DD0E1', '#F06292', '#AED581', '#FFB74D', '#90A4AE', '#E57373', '#7986CB'];
+  const fmtD = (k) => { const [y, m, d] = k.split('-'); return `${+d}.${+m}.`; };
+  $('#aFrom').value = $('#aTo').value = dayKey(0);
+  $('#aFrom').onchange = () => { if ($('#aTo').value < $('#aFrom').value) $('#aTo').value = $('#aFrom').value; };
+  $('#abForm').onsubmit = (e) => {
+    e.preventDefault();
+    if (!$('#aPerson').value) return toast('Zuerst unten eine Person anlegen', true);
+    run(api('POST', '/api/absences', { person: $('#aPerson').value, kind: $('#aKind').value, from: $('#aFrom').value, to: $('#aTo').value }), 'Eingetragen');
+  };
+  $('#pForm').onsubmit = (e) => {
+    e.preventDefault();
+    run(api('POST', '/api/people', { short: $('#pShort').value, color: $('#pColor').value }).then(() => { $('#pShort').value = ''; }), 'Person angelegt');
+  };
+  function renderAbsences() {
+    const people = S.people || [], byId = Object.fromEntries(people.map(p => [p.id, p]));
+    const sel = $('#aPerson'), cur = sel.value;
+    sel.innerHTML = people.map(p => `<option value="${p.id}">${esc(p.short)}</option>`).join('');
+    if (people.some(p => p.id === cur)) sel.value = cur;
+    const free = PALETTE.find(c => !people.some(p => p.color.toLowerCase() === c.toLowerCase()));
+    if (free && document.activeElement !== $('#pColor') && !$('#pShort').value) $('#pColor').value = free;
+    const list = (S.absences || []).filter(a => byId[a.person] && a.to >= dayKey(0)).sort((a, b) => a.from.localeCompare(b.from));
+    $('#abList').innerHTML = list.length ? '' : '<div class="empty">Nichts eingetragen.</div>';
+    list.forEach(a => {
+      const p = byId[a.person], n = document.createElement('div'); n.className = 'item';
+      n.innerHTML = `<span style="width:14px;height:14px;border-radius:4px;background:${p.color};flex:none"></span><div class="main"><b>${esc(p.short)} · ${a.kind === 'abwesend' ? 'Abwesend' : 'Urlaub'}</b><small>${fmtD(a.from)}${a.to !== a.from ? ' – ' + fmtD(a.to) : ''}</small></div><button class="icon-btn" title="Löschen">✕</button>`;
+      n.querySelector('button').onclick = () => run(api('DELETE', `/api/absences/${a.id}`), 'Gelöscht');
+      $('#abList').append(n);
+    });
+    $('#pList').innerHTML = people.length ? '' : '<div class="empty">Noch niemand angelegt.</div>';
+    people.forEach(p => {
+      const n = document.createElement('div'); n.className = 'item';
+      n.innerHTML = `<span style="width:22px;height:22px;border-radius:6px;background:${p.color};flex:none"></span><div class="main"><b>${esc(p.short)}</b></div><button class="icon-btn" title="Entfernen">✕</button>`;
+      n.querySelector('button').onclick = () => { if (confirm(`${p.short} und alle Einträge entfernen?`)) run(api('DELETE', `/api/people/${p.id}`), 'Entfernt'); };
+      $('#pList').append(n);
+    });
+  }
+
+  function renderAll() { renderTasks(); renderEvents(); renderIncident(); renderDisplay(); renderLoans(); renderScans(); renderAbsences(); }
   let es = null;
   function start() {
     $('#login').hidden = true; $('#app').hidden = false; $('#nav').hidden = false;

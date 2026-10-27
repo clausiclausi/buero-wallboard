@@ -203,6 +203,32 @@ main {
 .mgrid .d.hol::after { content: ""; position: absolute; bottom: 3px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--warn); }
 .mgrid .curw { background: var(--surface-2); }
 .mgrid .d.today { background: var(--text); color: var(--bg); font-weight: 800; }
+.month h3 { gap: 8px; letter-spacing: 1px; white-space: nowrap; }
+.month h3 #monthTitle { overflow: hidden; text-overflow: ellipsis; }
+.month h3 .badge { white-space: nowrap; font-size: 18px; padding: 3px 10px; }
+.month h3 .mnav { margin-left: auto; display: flex; gap: 6px; flex: none; }
+.month h3 .mnav + .badge { margin-left: 0; }
+.month h3 .mnav button { width: 36px; height: 32px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font-size: 20px; line-height: 1; padding: 0; }
+.mgrid .d .bars { position: absolute; left: 4px; right: 4px; bottom: 2px; display: flex; gap: 2px; height: 5px; }
+.mgrid .d .bars i { flex: 1; border-radius: 3px; }
+.mgrid .d.hol::after { top: 4px; bottom: auto; left: auto; right: 6px; margin-left: 0; }
+.month { cursor: pointer; }
+.vac-list { display: flex; flex-direction: column; gap: 2px; font-size: 17px; }
+.vac-list .vl { display: flex; align-items: center; gap: 10px; white-space: nowrap; overflow: hidden; }
+.vac-list .vl b { font-family: var(--font-mono); min-width: 3.2em; }
+.vac-list .vl .when { margin-left: auto; color: var(--muted); }
+.vac-list .vl.warn { color: var(--warn); font-weight: 600; }
+.chipc { display: inline-block; width: 14px; height: 14px; border-radius: 4px; flex: none; }
+.vac-dlg { width: 860px; max-height: 960px; }
+.vac-dlg table { width: 100%; border-collapse: collapse; font-size: 20px; }
+.vac-dlg td { padding: 8px 6px; border-bottom: 1px solid var(--line); }
+.vac-dlg td:last-child { text-align: right; }
+.vac-dlg .x { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--muted); font-size: 18px; }
+.vac-dlg .formrow { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.vac-dlg .formrow select, .vac-dlg .formrow input { font: inherit; font-size: 20px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; }
+.vac-dlg .pal { display: flex; gap: 6px; }
+.vac-dlg .pal button { width: 34px; height: 34px; border-radius: 9px; border: 2px solid transparent; }
+.vac-dlg .pal button[aria-pressed="true"] { border-color: var(--text); }
 .month-foot { font-size: 16px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 2px 16px; min-height: 1.3em; }
 .month-foot span { white-space: nowrap; }
 .month-foot i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--warn); margin-right: 6px; vertical-align: middle; }
@@ -433,8 +459,9 @@ footer .sp { margin-left: auto; }
     </section>
 
     <section class="card month" aria-label="Monatskalender">
-      <h3><svg class="icon"><use href="#i-calendar"/></svg><span id="monthTitle"></span><span class="badge" id="monthKw"></span></h3>
+      <h3><svg class="icon"><use href="#i-calendar"/></svg><span id="monthTitle"></span><span class="mnav"><button id="mPrev" title="Vorheriger Monat">‹</button><button id="mNext" title="Nächster Monat">›</button></span><span class="badge" id="monthKw"></span></h3>
       <div class="mgrid" id="mgrid"></div>
+      <div class="vac-list private" id="vacList"></div>
       <div class="month-foot" id="monthFoot"></div>
     </section>
 
@@ -466,8 +493,8 @@ footer .sp { margin-left: auto; }
     get(k, d) { try { const v = localStorage.getItem('wb.' + k); return v ? JSON.parse(v) : d; } catch { return d; } },
     set(k, v) { try { localStorage.setItem('wb.' + k, JSON.stringify(v)); } catch {} }
   };
-  async function api(method, url, body) {
-    const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+  async function api(method, url, body, extra) {
+    const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json', ...extra }, body: body ? JSON.stringify(body) : undefined });
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.status);
     return r.json();
   }
@@ -809,17 +836,34 @@ footer .sp { margin-left: auto; }
       [new Date(y, 9, 31), 'Reformationstag'], [new Date(y, 11, 25), '1. Weihnachtstag'], [new Date(y, 11, 26), '2. Weihnachtstag']];
     return new Map(list.map(([d, n]) => [d.toDateString(), n]));
   }
-  let monthKey = '';
+  /* Urlaub und Abwesenheit: Personen nur als Kürzel mit Farbe */
+  const PALETTE = ['#5EA8FF', '#FF8A65', '#C792EA', '#4DD0E1', '#F06292', '#AED581', '#FFB74D', '#90A4AE', '#E57373', '#7986CB'];
+  const dkey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const parseD = (k) => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
+  const fmtD = (k) => { const d = parseD(k); return `${d.getDate()}.${d.getMonth() + 1}.`; };
+  const person = (id) => (S.people || []).find(p => p.id === id);
+  let holCache = { y: 0, map: new Map() };
+  function holMap(y) { if (holCache.y !== y) holCache = { y, map: new Map([...holidays(y - 1), ...holidays(y), ...holidays(y + 1)]) }; return holCache.map; }
+  const isWorkday = (d) => d.getDay() !== 0 && d.getDay() !== 6 && !holMap(d.getFullYear()).has(d.toDateString());
+  function workdays(from, to) { let n = 0; for (const d = parseD(from); d <= parseD(to); d.setDate(d.getDate() + 1)) if (isWorkday(d)) n++; return n; }
+  const absentOn = (k) => (S.absences || []).filter(a => a.from <= k && a.to >= k && person(a.person));
+
+  let monthOffset = 0, monthBack = null;
+  $('#mPrev').onclick = (e) => { e.stopPropagation(); shiftMonth(-1); };
+  $('#mNext').onclick = (e) => { e.stopPropagation(); shiftMonth(1); };
+  function shiftMonth(n) {
+    monthOffset += n; renderMonth();
+    clearTimeout(monthBack); monthBack = setTimeout(() => { monthOffset = 0; renderMonth(); }, 60000);
+  }
   function renderMonth() {
-    const now = new Date(), key = now.toDateString();
-    if (key === monthKey) return;
-    monthKey = key;
-    const y = now.getFullYear(), mo = now.getMonth();
-    const hol = new Map([...holidays(y - 1), ...holidays(y), ...holidays(y + 1)]);
-    const first = new Date(y, mo, 1), start = new Date(first); start.setDate(1 - ((first.getDay() + 6) % 7));
+    const now = new Date(), key = now.toDateString(), todayK = dkey(now);
+    const view = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+    const y = view.getFullYear(), mo = view.getMonth();
+    const hol = holMap(y);
+    const start = new Date(view); start.setDate(1 - ((view.getDay() + 6) % 7));
     const last = new Date(y, mo + 1, 0), curW = isoWeek(now);
-    const monday = new Date(y, mo, now.getDate() - ((now.getDay() + 6) % 7));
-    $('#monthTitle').textContent = now.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
+    $('#monthTitle').textContent = view.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
     $('#monthKw').textContent = `KW ${curW}`;
     let html = '<div class="hd">KW</div>' + ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(d => `<div class="hd">${d}</div>`).join('');
     const d = new Date(start), inMonth = [];
@@ -829,13 +873,99 @@ footer .sp { margin-left: auto; }
       for (let i = 0; i < 7; i++) {
         const h2 = hol.get(d.toDateString()), out = d.getMonth() !== mo;
         if (h2 && !out) inMonth.push(`${d.getDate()}. ${h2}`);
+        const abs = absentOn(dkey(d)).slice(0, 4);
         const cls = ['d', i >= 5 ? 'we' : '', out ? 'out' : '', h2 ? 'hol' : '', cw ? 'curw' : '', d.toDateString() === key ? 'today' : ''].join(' ');
-        html += `<div class="${cls}"${h2 ? ` title="${esc(h2)}"` : ''}>${d.getDate()}</div>`;
+        const bars = abs.length ? `<span class="bars private">${abs.map(a => `<i style="background:${person(a.person).color}"></i>`).join('')}</span>` : '';
+        html += `<div class="${cls}"${h2 ? ` title="${esc(h2)}"` : ''}>${d.getDate()}${bars}</div>`;
         d.setDate(d.getDate() + 1);
       }
     }
     $('#mgrid').innerHTML = html;
+
+    // Übersicht: Besetzungswarnung (nur Zahl), laufende und nächste Abwesenheiten
+    const lines = [], people = S.people || [];
+    if (people.length >= 2) {
+      for (let i = 0, dd = new Date(now); i < 14; i++, dd.setDate(dd.getDate() + 1)) {
+        if (!isWorkday(dd)) continue;
+        const present = people.length - new Set(absentOn(dkey(dd)).map(a => a.person)).size;
+        if (present <= 1) { lines.push(`<div class="vl warn">⚠ ${i === 0 ? 'Heute' : fmtD(dkey(dd))}: nur ${present} ${present === 1 ? 'Person' : 'Personen'} im Büro</div>`); break; }
+      }
+    }
+    const upcoming = (S.absences || []).filter(a => a.to >= todayK && person(a.person) && parseD(a.from) - now < 60 * 864e5).sort((a, b) => a.from.localeCompare(b.from));
+    const MAX = 3 - lines.length;
+    for (const a of upcoming.slice(0, MAX)) {
+      const p = person(a.person), days = Math.round((parseD(a.from) - parseD(todayK)) / 864e5);
+      const span = a.from === a.to ? fmtD(a.from) : `${fmtD(a.from)}–${fmtD(a.to)}`;
+      const when = a.from <= todayK ? `bis ${fmtD(a.to)}` : days === 1 ? 'morgen' : `in ${days} Tagen`;
+      lines.push(`<div class="vl"><span class="chipc" style="background:${p.color}"></span><b>${esc(p.short)}</b><span>${a.kind === 'abwesend' ? 'Abwesend' : 'Urlaub'} ${span} · ${workdays(a.from, a.to)} AT</span><span class="when">${when}</span></div>`);
+    }
+    if (upcoming.length > MAX && MAX > 0) lines.push(`<div class="vl" style="color:var(--muted)">+ ${upcoming.length - MAX} weitere · antippen</div>`);
+    $('#vacList').innerHTML = lines.join('');
+    const footRoom = lines.length < 3;
+    $('#monthFoot').hidden = !footRoom;
     $('#monthFoot').innerHTML = inMonth.length ? inMonth.map(t => `<span><i></i>${esc(t)}</span>`).join('') : '<span>Keine Feiertage in diesem Monat (Niedersachsen)</span>';
+    if (!people.length && footRoom) $('#monthFoot').innerHTML += '<span>· Antippen, um Urlaub einzutragen</span>';
+  }
+
+  /* Passwort für Änderungen 2 Minuten merken (nur im Speicher) */
+  let editPw = '', editPwUntil = 0;
+  function rememberPw(pw) { editPw = pw; editPwUntil = Date.now() + UNLOCK_MS; }
+  function withPw(fn) {
+    if (editPw && Date.now() < editPwUntil) return fn(editPw);
+    askPassword('Kalender bearbeiten', (pw) => { rememberPw(pw); fn(pw); });
+  }
+  const pwApi = (method, url, body) => new Promise((res, rej) => withPw(pw => api(method, url, body, { 'X-Wallboard-Passwort': encodeURIComponent(pw) }).then(res, rej)));
+
+  $('.month').addEventListener('click', () => {
+    // Im Besuchermodus erst entsperren, dann öffnen
+    if (stage.classList.contains('visitor')) return unlockTemporarily(openVacation);
+    openVacation();
+  });
+  function openVacation() {
+    const scrim = h(`<div class="scrim center"><div class="panel dialog vac-dlg" role="dialog" aria-label="Urlaub und Abwesenheit">
+      <h2>Urlaub &amp; Abwesenheit <button class="tool" id="vClose" title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
+      <div><h4>Wer hat welche Farbe</h4><table id="vPeople"></table>
+        <div class="formrow" style="margin-top:12px"><input id="vShort" maxlength="4" placeholder="Kürzel, z. B. TB" style="width:190px;text-transform:uppercase"><div class="pal" id="vPal"></div><button class="btn" id="vAddP">Person hinzufügen</button></div>
+        <p class="hint" style="margin-top:8px">Nur Kürzel, keine vollen Namen: das Board sehen auch Besucher.</p></div>
+      <div><h4>Eintragen</h4>
+        <div class="formrow"><select id="vPerson"></select><select id="vKind"><option value="urlaub">Urlaub</option><option value="abwesend">Abwesend (Schulung, Reise)</option></select>
+        <label>von <input type="date" id="vFrom"></label><label>bis <input type="date" id="vTo"></label><button class="btn primary" id="vAdd">Eintragen</button></div>
+        <p class="hint" style="margin-top:8px">Bitte keine Krankheitstage eintragen: Gesundheitsdaten gehören nicht auf eine Anzeige.</p></div>
+      <div><h4>Eingetragen</h4><table id="vList"></table></div>
+      <p class="hint" id="vErr" style="color:var(--crit)"></p>
+    </div></div>`);
+    const q = (sel) => scrim.querySelector(sel);
+    let color = PALETTE.find(c => !(S.people || []).some(p => p.color === c)) || PALETTE[0];
+    const fail = (e) => { q('#vErr').textContent = 'Hat nicht geklappt: ' + e.message; };
+    function draw() {
+      const people = S.people || [];
+      q('#vPeople').innerHTML = people.length ? people.map(p => `<tr><td><span class="chipc" style="background:${p.color}"></span></td><td><b>${esc(p.short)}</b></td><td>${((n) => `${n} ${n === 1 ? 'Eintrag' : 'Einträge'}`)((S.absences || []).filter(a => a.person === p.id && a.to >= dkey(new Date())).length)}</td><td><button class="x" data-del-p="${p.id}" title="Person entfernen">✕</button></td></tr>`).join('') : '<tr><td class="hint">Noch niemand angelegt.</td></tr>';
+      q('#vPal').innerHTML = PALETTE.map(c => `<button style="background:${c}" data-c="${c}" aria-pressed="${c === color}" title="${c}"></button>`).join('');
+      q('#vPerson').innerHTML = people.map(p => `<option value="${p.id}">${esc(p.short)}</option>`).join('');
+      const list = (S.absences || []).filter(a => person(a.person)).sort((a, b) => a.from.localeCompare(b.from));
+      q('#vList').innerHTML = list.length ? list.map(a => { const p = person(a.person); return `<tr><td><span class="chipc" style="background:${p.color}"></span> <b>${esc(p.short)}</b></td><td>${a.kind === 'abwesend' ? 'Abwesend' : 'Urlaub'}</td><td>${fmtD(a.from)}${a.to !== a.from ? '–' + fmtD(a.to) : ''}</td><td>${workdays(a.from, a.to)} Arbeitstage</td><td><button class="x" data-del-a="${a.id}" title="Eintrag löschen">✕</button></td></tr>`; }).join('') : '<tr><td class="hint">Noch nichts eingetragen.</td></tr>';
+      scrim.querySelectorAll('#vPal button').forEach(b => b.onclick = () => { color = b.dataset.c; draw(); });
+      scrim.querySelectorAll('[data-del-p]').forEach(b => b.onclick = () => { if (confirm('Person und alle ihre Einträge entfernen?')) pwApi('DELETE', '/api/people/' + b.dataset.delP).then(refresh, fail); });
+      scrim.querySelectorAll('[data-del-a]').forEach(b => b.onclick = () => pwApi('DELETE', '/api/absences/' + b.dataset.delA).then(refresh, fail));
+    }
+    // Neuer Stand kommt per Live-Verbindung, kurz warten und neu zeichnen
+    const refresh = () => { q('#vErr').textContent = ''; setTimeout(draw, 300); };
+    q('#vFrom').value = q('#vTo').value = dkey(new Date());
+    q('#vFrom').onchange = () => { if (q('#vTo').value < q('#vFrom').value) q('#vTo').value = q('#vFrom').value; };
+    q('#vAddP').onclick = () => {
+      const short = q('#vShort').value.trim();
+      if (!short) return fail(new Error('Bitte ein Kürzel eingeben'));
+      pwApi('POST', '/api/people', { short, color }).then(() => { q('#vShort').value = ''; color = PALETTE.find(c => c !== color && !(S.people || []).some(p => p.color === c)) || color; refresh(); }, fail);
+    };
+    q('#vAdd').onclick = () => {
+      if (!q('#vPerson').value) return fail(new Error('Zuerst oben eine Person anlegen'));
+      pwApi('POST', '/api/absences', { person: q('#vPerson').value, kind: q('#vKind').value, from: q('#vFrom').value, to: q('#vTo').value }).then(refresh, fail);
+    };
+    const close = () => scrim.remove();
+    scrim.onclick = (e) => { if (e.target === scrim) close(); };
+    q('#vClose').onclick = close;
+    draw();
+    $('#overlayHost').append(scrim);
   }
 
   /* ---------- Störungsmeldung ---------- */
@@ -942,7 +1072,7 @@ footer .sp { margin-left: auto; }
     </div></div>`);
     const inp = scrim.querySelector('#pIn'), close = () => scrim.remove();
     const submit = async () => {
-      try { await api('POST', '/api/unlock', { password: inp.value }); close(); ok(); }
+      try { await api('POST', '/api/unlock', { password: inp.value }); close(); ok(inp.value); }
       catch (e) { scrim.querySelector('#pErr').textContent = e.message; inp.value = ''; inp.focus(); }
     };
     scrim.querySelectorAll('.keypad button').forEach(b => b.onclick = () => {
@@ -955,9 +1085,11 @@ footer .sp { margin-left: auto; }
     scrim.querySelector('#pClose').onclick = close;
     $('#overlayHost').append(scrim); inp.focus();
   }
-  function unlockTemporarily() {
-    askPassword('Inhalte entsperren', () => {
+  function unlockTemporarily(then) {
+    askPassword('Inhalte entsperren', (pw) => {
+      rememberPw(pw);
       unlockedUntil = Date.now() + UNLOCK_MS; clearTimeout(relockTimer); relockTimer = setTimeout(relock, UNLOCK_MS + 50); applyToggles();
+      if (typeof then === 'function') then();
     });
   }
   // Besuchermodus einschalten geht immer, ausschalten nur mit Passwort
@@ -969,6 +1101,8 @@ footer .sp { margin-left: auto; }
   // Antippen eines verwischten Eintrags fragt das Passwort ab, statt ihn zu bearbeiten
   stage.addEventListener('click', (e) => {
     if (!stage.classList.contains('visitor')) return;
+    if (e.target.closest('.month .mnav')) return;
+    if (e.target.closest('.month')) { e.preventDefault(); e.stopPropagation(); return unlockTemporarily(openVacation); }
     const hit = e.target.closest('.private, .task, .ev');
     if (!hit || !hit.querySelector('.private') && !hit.classList.contains('private')) return;
     e.preventDefault(); e.stopPropagation(); unlockTemporarily();
@@ -1174,7 +1308,7 @@ footer .sp { margin-left: auto; }
   });
 
   /* ---------- Verbindung zum Server ---------- */
-  function renderAll() { applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderScans(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); }
+  function renderAll() { applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderScans(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); }
   function connect() {
     const es = new EventSource('/api/stream');
     es.onopen = () => { connected = true; };
