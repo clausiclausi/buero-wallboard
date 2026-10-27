@@ -170,6 +170,18 @@ nav button[aria-current="page"] { color: var(--text); }
       <div class="seg" id="dPause"><button type="button" data-min="15">15 Min. aus</button><button type="button" data-min="60">1 Std. aus</button><button type="button" data-min="morning">aus bis Bürobeginn</button></div>
       <div class="row"><button class="btn" id="dMin">Minimieren</button><button class="btn danger" id="dOff">Dauerhaft schließen</button></div>
     </div>
+    <h2>Zugriff von unterwegs</h2>
+    <div class="card">
+      <div class="inc" id="tunNow"></div>
+      <p class="hint" id="tunInfo"></p>
+      <p id="tunLinks"></p>
+      <div id="tunForm">
+        <label class="f">Zugangsschlüssel aus Tailscale <textarea id="tunToken" rows="2" autocomplete="off" spellcheck="false" placeholder="tskey-auth-…"></textarea></label>
+        <p class="hint">Der Schlüssel wird nur einmal zum Anmelden des Notebooks benutzt und nicht gespeichert. Nicht per Chat oder Mail verschicken.</p>
+        <button class="btn primary" id="tunGo">Verbinden</button>
+      </div>
+      <div class="row" id="tunBtns"><button class="btn" id="tunRetry">Nochmal versuchen</button><button class="btn danger" id="tunOff">Fernzugang ausschalten</button></div>
+    </div>
     <h2>Störung</h2>
     <div id="incNow"></div>
     <h2>Melden oder ändern</h2>
@@ -408,6 +420,40 @@ nav button[aria-current="page"] { color: var(--text); }
   $('#dOff').onclick = () => { if (confirm('Board dauerhaft schließen? Zurück über „Wieder anzeigen“ hier oder das Desktop-Symbol am Notebook.')) setDisplay('off', null, 'Board geschlossen'); };
   document.querySelectorAll('#dPause button').forEach(b => b.onclick = () => setDisplay('pause', b.dataset.min, 'Board vorübergehend geschlossen'));
 
+  /* ---------- Zugriff von unterwegs ---------- */
+  const viaTunnel = /\.ts\.net$/.test(location.hostname);
+  function renderTunnel() {
+    const t = S.tunnel || {}, el = $('#tunNow');
+    let txt, cls = 'warn';
+    if (!t.supported) txt = 'Nur auf dem Windows-Notebook verfügbar';
+    else if (t.busy) txt = (t.step || 'Wird eingerichtet') + ' …';
+    else if (t.funnel) { txt = 'Aktiv: von unterwegs erreichbar'; cls = 'none'; }
+    else if (t.running) txt = 'Angemeldet, feste Adresse noch nicht frei';
+    else if (t.installed) txt = 'Ausgeschaltet';
+    else { txt = 'Aus: nur im Büro-WLAN erreichbar'; cls = ''; }
+    el.className = 'inc ' + cls; el.textContent = txt;
+    $('#tunInfo').textContent = t.error ? t.error : (viaTunnel ? 'Ändern geht nur im Büro-WLAN.' : '');
+    const links = $('#tunLinks'); links.textContent = '';
+    const link = (href, label) => { const a = document.createElement('a'); a.href = href; a.target = '_blank'; a.rel = 'noopener'; a.textContent = label; a.className = 'btn'; a.style.cssText = 'display:block;text-align:center;margin-top:8px;text-decoration:none'; links.append(a); };
+    if (t.funnel && t.url) link(t.url, 'Adresse für unterwegs: ' + t.url.replace(/^https:\/\//, ''));
+    if (t.approveUrl && !t.busy) link(t.approveUrl, 'Im Tailscale-Konto erlauben');
+    const idle = !viaTunnel && t.supported && !t.busy;
+    $('#tunForm').hidden = !idle || t.funnel || t.running;
+    $('#tunRetry').hidden = !idle || t.funnel || !t.installed;
+    $('#tunOff').hidden = !idle || !(t.running || t.funnel);
+    $('#tunBtns').hidden = $('#tunRetry').hidden && $('#tunOff').hidden;
+    $('#tunInfo').hidden = !$('#tunInfo').textContent;
+    links.hidden = !links.childElementCount;
+  }
+  $('#tunGo').onclick = () => {
+    const token = $('#tunToken').value.trim();
+    if (!token) return toast('Bitte zuerst den Schlüssel einfügen', true);
+    $('#tunGo').disabled = true;
+    run(api('POST', '/api/tunnel', { token }).then(() => { $('#tunToken').value = ''; }), 'Wird eingerichtet, das dauert 1 bis 3 Minuten').finally(() => $('#tunGo').disabled = false);
+  };
+  $('#tunRetry').onclick = () => run(api('POST', '/api/tunnel', { token: '' }), 'Wird erneut versucht');
+  $('#tunOff').onclick = () => { if (confirm('Fernzugang ausschalten? Danach ist das Board nur noch im Büro-WLAN erreichbar.')) run(api('DELETE', '/api/tunnel'), 'Fernzugang ausgeschaltet'); };
+
   /* ---------- Urlaub & Abwesenheit ---------- */
   const PALETTE = ['#5EA8FF', '#FF8A65', '#C792EA', '#4DD0E1', '#F06292', '#AED581', '#FFB74D', '#90A4AE', '#E57373', '#7986CB'];
   const fmtD = (k) => { const [y, m, d] = k.split('-'); return `${+d}.${+m}.`; };
@@ -446,7 +492,7 @@ nav button[aria-current="page"] { color: var(--text); }
     });
   }
 
-  function renderAll() { renderTasks(); renderEvents(); renderIncident(); renderDisplay(); renderLoans(); renderScans(); renderAbsences(); }
+  function renderAll() { renderTasks(); renderEvents(); renderIncident(); renderDisplay(); renderTunnel(); renderLoans(); renderScans(); renderAbsences(); }
   let es = null;
   function start() {
     $('#login').hidden = true; $('#app').hidden = false; $('#nav').hidden = false;

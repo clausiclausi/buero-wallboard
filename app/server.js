@@ -23,6 +23,7 @@ const config = Object.assign({
   pin: '000000',
   lat: 52.3705, lon: 9.7550, ort: 'Hannover',
   updateRepo: 'clausiclausi/buero-wallboard', updateBranch: 'main', updateToken: '',
+  externalPort: 8081,
 }, readJson(CONFIG_FILE, {}));
 const VERSION = readJson(path.join(__dirname, 'version.json'), { version: '0.0.0' }).version;
 const CHANGELOG = readJson(path.join(__dirname, 'changelog.json'), []);
@@ -177,7 +178,7 @@ function boardView() {
   };
 }
 function fullView() {
-  return { ...boardView(), tasks: db.tasks, events: db.events, scans: db.scans.map(s => ({ ...s, photo: !!s.photo })) };
+  return { ...boardView(), tasks: db.tasks, events: db.events, scans: db.scans.map(s => ({ ...s, photo: !!s.photo })), tunnel: tunnel.status() };
 }
 function mobileUrl() {
   const ips = Object.values(os.networkInterfaces()).flat().filter(i => i && i.family === 'IPv4' && !i.internal).map(i => i.address);
@@ -189,8 +190,9 @@ const sessions = new Map(Object.entries(readJson(path.join(DATA, 'sessions.json'
 const attempts = new Map();
 const LOOPBACK = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
 // Anfragen über den Cloudflare-Tunnel kommen ebenfalls von localhost, gelten aber als Zugriff von außen
-const PROXY_HEADERS = ['cf-connecting-ip', 'cf-ray', 'cf-access-jwt-assertion', 'x-forwarded-for', 'forwarded'];
-function viaProxy(req) { return PROXY_HEADERS.some(h => h in req.headers); }
+// Der Fernzugang (Tailscale Funnel) leitet auf einen eigenen Port nur für localhost, dort gilt alles als extern
+const PROXY_HEADERS = ['cf-connecting-ip', 'cf-ray', 'cf-access-jwt-assertion', 'x-forwarded-for', 'forwarded', 'tailscale-funnel-request'];
+function viaProxy(req) { return req.socket.localPort === config.externalPort || PROXY_HEADERS.some(h => h in req.headers); }
 function isLocal(req) { return LOOPBACK.includes(req.socket.remoteAddress || '') && !viaProxy(req); }
 function clientIp(req) {
   const a = req.socket.remoteAddress || '';
@@ -203,14 +205,21 @@ function authed(req) {
   const t = cookies(req).wb;
   return !!t && sessions.has(t);
 }
+// Von außen zählen Fehlversuche zusätzlich insgesamt: nach 30 in einer Stunde ist die Anmeldung von außen 1 Stunde gesperrt
+const extFails = { n: 0, t: Date.now() };
 function login(req, res, body) {
+  const ext = viaProxy(req);
+  if (ext) {
+    if (Date.now() - extFails.t > 3600000) { extFails.n = 0; extFails.t = Date.now(); }
+    if (extFails.n >= 30) return send(res, 429, { error: 'Zu viele Fehlversuche von außen. Bitte in einer Stunde erneut versuchen.' });
+  }
   const ip = clientIp(req);
   const a = attempts.get(ip) || { n: 0, t: Date.now() };
   if (Date.now() - a.t > 60000) { a.n = 0; a.t = Date.now(); }
   if (a.n >= 5) return send(res, 429, { error: 'Zu viele Versuche. Bitte eine Minute warten.' });
   const ok = typeof body.pin === 'string' && body.pin.length === config.pin.length &&
     crypto.timingSafeEqual(Buffer.from(body.pin), Buffer.from(config.pin));
-  if (!ok) { a.n++; attempts.set(ip, a); return send(res, 401, { error: 'PIN stimmt nicht.' }); }
+  if (!ok) { a.n++; attempts.set(ip, a); if (ext) extFails.n++; return send(res, 401, { error: 'PIN stimmt nicht.' }); }
   const t = crypto.randomBytes(24).toString('hex');
   sessions.set(t, Date.now());
   fs.writeFileSync(path.join(DATA, 'sessions.json'), JSON.stringify(Object.fromEntries(sessions)));
@@ -226,6 +235,7 @@ function broadcast() {
 
 /* ---------- Anzeige am Notebook (minimieren, schließen) ---------- */
 const display = require('./display')({ ROOT, DATA, config, log, broadcast: () => broadcast(), officeStart: () => db.settings.officeStart });
+const tunnel = require('./tunnel')({ ROOT, config, log, broadcast: () => broadcast() });
 
 /* ---------- Wetter vom DWD über Bright Sky ---------- */
 let weather = { ok: false, updated: 0 };
@@ -393,6 +403,7 @@ const server = http.createServer(async (req, res) => {
   const p = url.pathname;
   try {
     // Seiten
+    if (req.method === 'GET' && p === '/' && viaProxy(req)) { res.writeHead(302, { Location: '/m' }); return res.end(); }
     if (req.method === 'GET' && (p === '/' || p === '/board')) return serveFile(res, path.join(PUBLIC, 'board.html'));
     if (req.method === 'GET' && p === '/m') return serveFile(res, path.join(PUBLIC, 'm.html'));
     if (req.method === 'GET' && p.startsWith('/static/')) {
@@ -436,6 +447,15 @@ const server = http.createServer(async (req, res) => {
       const b = { ...Object.fromEntries(url.searchParams), ...await readBody(req, 1000) };
       try { return send(res, 200, display.set(String(b.mode), b.minutes)); }
       catch (e) { return send(res, 400, { error: e.message }); }
+    }
+    if (p === '/api/tunnel') {
+      if (req.method === 'GET') { await tunnel.refresh(); return send(res, 200, tunnel.status()); }
+      // Einrichten und Entfernen nur im Büro-WLAN, nicht über den Tunnel selbst
+      if (viaProxy(req)) return send(res, 403, { error: 'Nur im Büro-WLAN möglich' });
+      try {
+        if (req.method === 'POST') return send(res, 200, await tunnel.install((await readBody(req, 4000)).token));
+        if (req.method === 'DELETE') return send(res, 200, await tunnel.remove());
+      } catch (e) { return send(res, 400, { error: e.message }); }
     }
     if (req.method === 'POST' && p === '/api/unlock') {
       const b = await readBody(req, 1000), ip = 'unlock:' + clientIp(req);
@@ -511,6 +531,8 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+// Eingang für den Fernzugang: nur von diesem Rechner aus erreichbar
+http.createServer(server.listeners('request')[0]).on('error', e => log('Fernzugang-Port nicht verfügbar:', e.message)).listen(config.externalPort, '127.0.0.1');
 server.listen(config.port, () => {
   log(`Wallboard ${VERSION} läuft auf http://localhost:${config.port}  ·  Handy: ${mobileUrl()}`);
   // Nach einer Minute stabilem Lauf gilt ein frisches Update als gelungen

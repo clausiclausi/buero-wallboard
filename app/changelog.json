@@ -1,5 +1,14 @@
 [
   {
+    "version": "1.6.0",
+    "date": "2026-10-27",
+    "changes": [
+      "Zugriff von unterwegs: Auf der Handy-Seite unter „Board“ lässt sich ein Fernzugang einschalten. Danach ist die Handy-Seite unter einer festen Adresse erreichbar, ohne eigene Domain.",
+      "Von außen braucht jeder die PIN. Nach 30 Fehlversuchen in einer Stunde ist die Anmeldung von außen eine Stunde gesperrt.",
+      "Einrichten und Ausschalten geht nur im Büro-WLAN."
+    ]
+  },
+  {
     "version": "1.5.1",
     "date": "2026-10-27",
     "changes": [
