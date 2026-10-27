@@ -1,60 +1,30 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-import type { ContextInfo, Weather } from '../types'
+import type { ContextInfo } from '../types'
 
-const weather = atom({ plugin: 'wetterleiste', key: 'weather' } as const, null)
 const context = atom({ plugin: 'wetterleiste', key: 'context' } as const, null)
 const history = atom({ plugin: 'wetterleiste', key: 'history' } as const, [])
+const isCompacting = atom({ plugin: 'wetterleiste', key: 'isCompacting' } as const, false)
 
-// Hannover, Hans-Böckler-Allee
-const WEATHER_URL =
-  'https://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=9.76&current=temperature_2m,weather_code&timezone=Europe%2FBerlin'
-const WEATHER_EVERY_MS = 30 * 60 * 1000
 const HISTORY_LENGTH = 12
 const BARS = '▁▂▃▄▅▆▇█'
-
-function weatherLabel(code: number): string {
-  if (code === 0) return 'Sonnig'
-  if (code <= 2) return 'Heiter'
-  if (code === 3) return 'Bewölkt'
-  if (code <= 48) return 'Nebel'
-  if (code <= 57) return 'Niesel'
-  if (code <= 67) return 'Regen'
-  if (code <= 77) return 'Schnee'
-  if (code <= 82) return 'Schauer'
-  if (code <= 86) return 'Schneeschauer'
-  return 'Gewitter'
+// Das "Wetter" ist die Kontext-Auslastung: je voller, desto stürmischer
+function contextWeather(percent: number): { icon: string; label: string; color: string } {
+  if (percent < 25) return { icon: '☀', label: 'Sonnig', color: '#e0a800' }
+  if (percent < 45) return { icon: '⛅', label: 'Heiter', color: '#2a9fd6' }
+  if (percent < 65) return { icon: '☁', label: 'Bewölkt', color: '#2a9fd6' }
+  if (percent < 80) return { icon: '🌧', label: 'Regnerisch', color: '#e07b00' }
+  return { icon: '⛈', label: 'Gewitter', color: '#d9534f' }
 }
 
-async function refreshWeather($: EngineInterface) {
-  try {
-    const res = await $.http.fetch(WEATHER_URL)
-    if (!res.ok) return
-    const data = JSON.parse(res.text)
-    const next: Weather = {
-      label: weatherLabel(Number(data.current.weather_code)),
-      temp: Math.round(Number(data.current.temperature_2m)),
-    }
-    await update($, weather, () => next)
-    await refreshStatus($)
-  } catch {
-    // Wetterdienst nicht erreichbar: Leiste zeigt dann einfach kein Wetter
-  }
-}
-
-// Statuszeile unter der Eingabe: Ersatz für Oberflächen ohne Band (Web, Handy)
 async function refreshStatus($: EngineInterface) {
-  const w = await read($, weather)
   const c = await read($, context)
-  const parts: string[] = []
-  if (w !== null) parts.push(`☁ ${w.label} ${w.temp}°`)
-  if (c !== null) {
-    parts.push(`${c.percent} % vom Kontext (${formatTokens(c.tokens)} / ${formatTokens(c.window)})`)
-    parts.push(`Auto-Compact: ${c.isAutoCompact ? 'an' : 'aus'}`)
-    parts.push(`um ${clockTime(c.at)}`)
-  }
-  $.ui.status(parts.length > 0 ? parts.join(' · ') : undefined)
+  if (c === null) return $.ui.status(undefined)
+  const w = contextWeather(c.percent)
+  $.ui.status(
+    `${w.icon} ${w.label} · ${c.percent} % vom Kontext (${formatTokens(c.tokens)} / ${formatTokens(c.window)}) · Auto-Compact: ${c.isAutoCompact ? 'an' : 'aus'} · um ${clockTime(c.at)}`,
+  )
 }
 
 async function refreshContext($: EngineInterface, isNewTurn: boolean) {
@@ -73,6 +43,25 @@ async function refreshContext($: EngineInterface, isNewTurn: boolean) {
     await update($, history, h => [...h, next.tokens].slice(-HISTORY_LENGTH))
   }
   await refreshStatus($)
+}
+
+async function compactNow($: EngineInterface) {
+  if (await read($, isCompacting)) return
+  await update($, isCompacting, () => true)
+  try {
+    const result = await $.session.compact()
+    if (result.skip !== undefined) {
+      $.ui.toast(`Kompaktieren übersprungen: ${result.skip}`)
+    } else {
+      $.ui.toast('Kontext kompaktiert')
+      await update($, history, () => [])
+      await update($, context, () => null)
+    }
+  } catch {
+    $.ui.toast('Kompaktieren geht erst, wenn Claude mit der Antwort fertig ist')
+  } finally {
+    await update($, isCompacting, () => false)
+  }
 }
 
 function formatTokens(n: number): string {
@@ -102,8 +91,6 @@ function clockTime(ms: number): string {
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     const result = await next(e)
-    await refreshWeather($)
-    $.clock.every(WEATHER_EVERY_MS, () => refreshWeather($))
     await refreshContext($, false)
     return result
   })
@@ -117,46 +104,53 @@ export const register: Register = on => {
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     if (e.props.hasSurvey) return next(e)
 
-    const w = await read($, weather)
     const c = await read($, context)
-    const h = await read($, history)
-    if (w === null && c === null) return next(e)
+    const hist = await read($, history)
+    const busy = await read($, isCompacting)
+    const { Box, Button, Text } = $.ui.resolve(e)
 
-    const { Box, Text } = $.ui.resolve(e)
-    const [prev, last] = h.slice(-2)
+    if (c === null) {
+      return (
+        <Box flexDirection="row" gap={1}>
+          <Text dimColor>☀ Kontext wird nach der nächsten Antwort gemessen</Text>
+        </Box>
+      )
+    }
+
+    const w = contextWeather(c.percent)
+    const [prev, last] = hist.slice(-2)
     const delta = prev !== undefined && last !== undefined ? last - prev : null
 
     return (
       <Box flexDirection="row" gap={1}>
-        {w !== null && (
-          <Text color="#2a9fd6" bold>
-            ☁ {w.label} {w.temp}°
-          </Text>
-        )}
-        {c !== null && (
-          <>
-            <Text bold>{c.percent} % vom Kontext</Text>
-            <Text dimColor>
-              {formatTokens(c.tokens)} / {formatTokens(c.window)}
-            </Text>
-          </>
-        )}
-        {h.length > 0 && (
+        <Text color={w.color} bold>
+          {w.icon} {w.label}
+        </Text>
+        <Text bold>{c.percent} % vom Kontext</Text>
+        <Text dimColor>
+          {formatTokens(c.tokens)} / {formatTokens(c.window)}
+        </Text>
+        {hist.length > 0 && (
           <>
             <Text dimColor>letzte Runden</Text>
-            <Text color="#2a9fd6">{sparkline(h)}</Text>
+            <Text color={w.color}>{sparkline(hist)}</Text>
           </>
         )}
         {delta !== null && (
           <Text dimColor>
-            {delta >= 0 ? '▲' : '▼'} {delta >= 0 ? '+' : '-'}
+            {delta >= 0 ? '▲ +' : '▼ -'}
             {formatTokens(Math.abs(delta))}
           </Text>
         )}
-        {c !== null && (
-          <Text inverse> Auto-Compact: {c.isAutoCompact ? 'an' : 'aus'} </Text>
-        )}
-        {c !== null && <Text dimColor>um {clockTime(c.at)}</Text>}
+        <Text inverse> Auto-Compact: {c.isAutoCompact ? 'an' : 'aus'} </Text>
+        <Button
+          key="compact"
+          label={busy ? 'Kompaktiere …' : 'Jetzt kompaktieren'}
+          variant={c.percent >= 65 ? 'primary' : 'secondary'}
+          dimColor={e.props.isWorking || busy}
+          onPress={() => compactNow($)}
+        />
+        <Text dimColor>um {clockTime(c.at)}</Text>
       </Box>
     )
   })

@@ -1,14 +1,14 @@
 # Wetterleiste
 
-Eine schmale Leiste über dem Eingabefeld von Claude Code. Sie zeigt das aktuelle
-Wetter in Hannover, wie voll das Kontextfenster des Gesprächs ist (Prozent und
-Tokens), einen kleinen Verlauf der letzten Runden mit der Änderung zur vorigen
-Runde, ob Auto-Compact an ist, und die Uhrzeit der letzten Messung. Wo die
-Oberfläche keine Leiste zeichnen kann, steht dieselbe Info als Statuszeile unter
-der Eingabe.
+Eine schmale Leiste über dem Eingabefeld von Claude Code, die zeigt, wie voll das
+Kontextfenster des Gesprächs ist. Das „Wetter“ steht für die Auslastung: Sonnig
+unter 25 %, Heiter, Bewölkt, Regnerisch ab 65 % und Gewitter ab 80 %. Dazu kommen
+Prozent und Tokens, ein kleiner Verlauf der letzten Runden mit der Änderung zur
+vorigen Runde, ob Auto-Compact an ist, die Uhrzeit der letzten Messung und eine
+Taste „Jetzt kompaktieren“, die dasselbe macht wie `/compact`. Wo die Oberfläche
+keine Leiste zeichnen kann, steht dieselbe Info als Statuszeile unter der Eingabe.
 
-Das Wetter kommt von Open-Meteo (kostenlos, ohne Schlüssel) und wird alle
-30 Minuten aktualisiert.
+Es wird nichts ins Internet geschickt.
 
 ## Installieren
 

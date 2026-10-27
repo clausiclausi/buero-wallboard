@@ -1,4 +1,3 @@
-export type Weather = { label: string; temp: number }
 export type ContextInfo = {
   tokens: number
   window: number
@@ -10,9 +9,9 @@ export type ContextInfo = {
 declare module 'claude-code' {
   interface PluginState {
     wetterleiste: {
-      weather: Weather | null
       context: ContextInfo | null
       history: number[]
+      isCompacting: boolean
     }
   }
 }

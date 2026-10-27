@@ -1,7 +1,7 @@
 {
   "name": "wetterleiste",
-  "version": "0.1.0",
-  "description": "Leiste über der Eingabe: Wetter Hannover, Kontext-Auslastung, Verlauf, Auto-Compact, Uhrzeit",
+  "version": "0.2.0",
+  "description": "Kontext-Wetter über der Eingabe: wie voll das Gespräch ist, Verlauf, Auto-Compact und eine Taste zum Kompaktieren",
   "license": "MIT",
   "types": "./types/index.d.ts"
 }
