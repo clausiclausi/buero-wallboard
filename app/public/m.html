@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0E2A1F">
+<title>Wallboard eintragen</title>
+<style>
+:root {
+  --bg: #0E2A1F; --surface: #143627; --surface-2: #1C4533; --text: #F3F7F4; --muted: #A7BAB0; --line: rgba(255,255,255,.12);
+  --ok: #7FE0AE; --warn: #F4C152; --crit: #FF6F61;
+  --font: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 17px; line-height: 1.45; }
+body { padding: env(safe-area-inset-top) max(16px, env(safe-area-inset-right)) calc(84px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+h1 { font-size: 24px; margin: 18px 0 4px; }
+h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin: 22px 0 8px; }
+p.hint { color: var(--muted); font-size: 14px; margin: 6px 0 0; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+label.f { display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--muted); font-weight: 600; }
+input, select, textarea { font: inherit; font-size: 17px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; width: 100%; }
+textarea { min-height: 70px; resize: vertical; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 3px solid var(--ok); outline-offset: 1px; }
+.row { display: flex; gap: 10px; }
+.row > * { flex: 1; min-width: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.btn { font-weight: 700; padding: 13px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); }
+.btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+.btn.danger { border-color: var(--crit); color: var(--crit); background: transparent; }
+.btn.small { padding: 8px 12px; font-size: 15px; }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg button { padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); font-size: 15px; }
+.seg button[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 700; }
+.item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; background: var(--bg); }
+.item .main { flex: 1; min-width: 0; }
+.item .main b { display: block; overflow-wrap: anywhere; }
+.item .main small { color: var(--muted); display: block; overflow-wrap: anywhere; }
+.item.done { opacity: .5; }
+.time { font-family: var(--mono); font-weight: 700; min-width: 3.2em; }
+.icon-btn { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); flex: none; font-size: 18px; }
+.list { display: flex; flex-direction: column; gap: 8px; }
+.empty { color: var(--muted); font-size: 15px; padding: 6px 2px; }
+nav { position: fixed; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(6, 1fr); background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); z-index: 5; }
+nav button { border: 0; background: none; padding: 10px 2px 12px; font-size: 12px; font-weight: 600; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 3px; }
+nav button svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+nav button[aria-current="page"] { color: var(--text); }
+.toast { position: fixed; left: 16px; right: 16px; bottom: calc(90px + env(safe-area-inset-bottom)); background: var(--text); color: var(--bg); padding: 12px 14px; border-radius: 12px; font-weight: 700; z-index: 9; }
+.toast.err { background: var(--crit); color: #fff; }
+.photo-prev { width: 100%; max-height: 220px; object-fit: contain; border-radius: 12px; background: #000; }
+.thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; flex: none; background: var(--surface-2); }
+.badge { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; }
+.badge.open { color: var(--warn); }
+.badge.ok { color: var(--ok); }
+.inc { padding: 14px; border-radius: 12px; font-size: 20px; font-weight: 800; }
+.inc.crit { box-shadow: inset 0 0 0 2px var(--crit); color: var(--crit); }
+.inc.warn { box-shadow: inset 0 0 0 2px var(--warn); color: var(--warn); }
+.inc.none { color: var(--ok); }
+.stepper { display: flex; align-items: center; gap: 6px; }
+.stepper b { min-width: 2.2em; text-align: center; font-size: 20px; }
+.login { max-width: 360px; margin: 18vh auto 0; display: flex; flex-direction: column; gap: 14px; text-align: center; }
+.login input { font-size: 28px; letter-spacing: 8px; text-align: center; font-family: var(--mono); }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<section id="login" class="login" hidden>
+  <h1>Büro-Wallboard</h1>
+  <p class="hint">Bitte die PIN eingeben. Sie steht in PIN.txt auf dem Board-Notebook.</p>
+  <input id="pin" inputmode="numeric" autocomplete="one-time-code" maxlength="8" aria-label="PIN">
+  <button class="btn primary" id="pinGo">Anmelden</button>
+  <p class="hint" id="pinErr"></p>
+</section>
+
+<main id="app" hidden>
+  <!-- Scannen -->
+  <section data-tab="scan">
+    <h1>Gerät erfassen</h1>
+    <p class="hint">Auf dem Board erscheinen nur Gerätetyp, Inventarnummer und Ablageort. Foto, Seriennummer, Zustand und Notiz sieht nur das Team hier.</p>
+    <h2>Foto und Barcode</h2>
+    <div class="card">
+      <img id="sPrev" class="photo-prev" alt="Foto vom Gerät" hidden>
+      <div class="row">
+        <label class="btn" style="text-align:center">Foto aufnehmen<input id="sPhoto" type="file" accept="image/*" capture="environment" hidden></label>
+      </div>
+      <p class="hint" id="sCodeHint">Ist ein Barcode auf dem Foto, wird die Nummer automatisch eingetragen (je nach Handy).</p>
+    </div>
+    <h2>Angaben</h2>
+    <form class="card" id="scanForm" autocomplete="off">
+      <label class="f">Gerätetyp
+        <select id="sType"><option>Notebook</option><option>Monitor</option><option>Smartphone</option><option>Tablet</option><option>Drucker</option><option>Dockingstation</option><option>Headset</option><option>Lieferung</option><option>Sonstiges</option></select></label>
+      <label class="f">Inventarnummer <input id="sInv" maxlength="30" placeholder="z. B. INV-24-0815"></label>
+      <label class="f">Seriennummer <input id="sSerial" maxlength="40" placeholder="optional"></label>
+      <div class="f" style="display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted);font-weight:600">Zustand
+        <div class="seg" id="sCond"><button type="button" data-v="neu">neu</button><button type="button" data-v="gebraucht">gebraucht</button><button type="button" data-v="defekt">defekt</button></div></div>
+      <label class="f">Wohin / Ablageort (sichtbar auf dem Board) <input id="sLoc" maxlength="40" placeholder="z. B. Lager 2.14, Fach B"></label>
+      <label class="f">Notiz (nur intern) <textarea id="sNote" maxlength="200" placeholder="optional"></textarea></label>
+      <p class="hint">Bitte keine Namen von Personen eintragen.</p>
+      <button class="btn primary" type="submit" id="sSave">Speichern</button>
+    </form>
+  </section>
+
+  <!-- Aufgaben -->
+  <section data-tab="tasks" hidden>
+    <h1>Aufgaben</h1>
+    <form class="card" id="taskForm" autocomplete="off">
+      <label class="f">Was <input id="tTitle" maxlength="60" required placeholder="z. B. Druckerwartung begleiten"></label>
+      <div class="row">
+        <label class="f">Tag <input id="tDate" type="date" required></label>
+        <label class="f">Uhrzeit <input id="tTime" type="time" required></label>
+      </div>
+      <label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="tRemind" checked style="width:auto"> Gong vorher</label>
+      <p class="hint">Sichtbar für Besucher: bitte keine Namen oder Kundendaten.</p>
+      <button class="btn primary" type="submit">Aufgabe eintragen</button>
+    </form>
+    <h2>Geplant</h2>
+    <div class="list" id="taskList"></div>
+  </section>
+
+  <!-- Termine -->
+  <section data-tab="events" hidden>
+    <h1>Termine</h1>
+    <form class="card" id="evForm" autocomplete="off">
+      <label class="f">Was <input id="eTitle" maxlength="40" required placeholder="z. B. Rollout Etage 2"></label>
+      <label class="f">Wo / Hinweis <input id="eMeta" maxlength="24" placeholder="optional"></label>
+      <div class="row">
+        <label class="f">Tag <input id="eDate" type="date" required></label>
+        <label class="f">Uhrzeit <input id="eTime" type="time" required></label>
+      </div>
+      <button class="btn primary" type="submit">Termin eintragen</button>
+    </form>
+    <h2>Kommende Termine</h2>
+    <div class="list" id="evList"></div>
+  </section>
+
+  <!-- Störung -->
+  <section data-tab="incident" hidden>
+    <h1>Board</h1>
+    <h2>Anzeige am Notebook</h2>
+    <div class="card">
+      <div class="inc" id="dispNow"></div>
+      <button class="btn primary" id="dShow">Wieder anzeigen</button>
+      <div class="seg" id="dPause"><button type="button" data-min="15">15 Min. aus</button><button type="button" data-min="60">1 Std. aus</button><button type="button" data-min="morning">aus bis Bürobeginn</button></div>
+      <div class="row"><button class="btn" id="dMin">Minimieren</button><button class="btn danger" id="dOff">Dauerhaft schließen</button></div>
+    </div>
+    <h2>Störung</h2>
+    <div id="incNow"></div>
+    <h2>Melden oder ändern</h2>
+    <form class="card" id="incForm">
+      <div class="seg" id="iArea"></div>
+      <div class="seg" id="iLevel"><button type="button" data-v="warn">Einschränkung</button><button type="button" data-v="crit" aria-pressed="true">Störung</button></div>
+      <label class="f">Kurzinfo <input id="iNote" maxlength="40" placeholder="optional, z. B. Techniker informiert"></label>
+      <p class="hint">Keine Gerätenamen, IP-Adressen oder Personen.</p>
+      <button class="btn primary" type="submit">Auf dem Board anzeigen</button>
+    </form>
+  </section>
+
+  <!-- Leihgeräte -->
+  <section data-tab="loans" hidden>
+    <h1>Leihgeräte</h1>
+    <p class="hint">Bestand (gesamt) und wie viele gerade frei sind. Gerätetypen mit Bestand 0 werden auf dem Board ausgeblendet.</p>
+    <div class="list" id="loanList" style="margin-top:12px"></div>
+    <h2>Neuer Gerätetyp</h2>
+    <form class="card" id="loanForm" autocomplete="off">
+      <div class="row"><label class="f">Bezeichnung <input id="lType" maxlength="24" required placeholder="z. B. Dockingstationen"></label>
+      <label class="f" style="flex:.5">Bestand <input id="lTotal" type="number" min="1" max="999" required></label></div>
+      <button class="btn primary" type="submit">Hinzufügen</button>
+    </form>
+  </section>
+
+  <!-- Inventarliste -->
+  <section data-tab="list" hidden>
+    <h1>Inventarliste</h1>
+    <div class="row" style="margin-top:10px"><input id="qList" placeholder="Suchen (Nummer, Typ, Ort)"><a class="btn small" href="/api/scans.csv" style="flex:none;text-decoration:none;display:grid;place-items:center;color:var(--text)">Export CSV</a></div>
+    <div class="list" id="scanList" style="margin-top:12px"></div>
+  </section>
+</main>
+
+<nav id="nav" hidden>
+  <button data-go="scan" aria-current="page"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M11 8v8M15 8v8M18 8v8"/></svg>Scannen</button>
+  <button data-go="tasks"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Aufgaben</button>
+  <button data-go="events"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Termine</button>
+  <button data-go="incident"><svg viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></svg>Board</button>
+  <button data-go="loans"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="11" rx="2"/><path d="M2 20h20"/></svg>Geräte</button>
+  <button data-go="list"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Liste</button>
+</nav>
+
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const pad = (n) => String(n).padStart(2, '0');
+  const dayKey = (off = 0) => { const d = new Date(); d.setDate(d.getDate() + off); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+  const fmtDate = (k) => { if (k === dayKey(0)) return 'Heute'; if (k === dayKey(1)) return 'Morgen'; const [y, m, d] = k.split('-'); return `${d}.${m}.`; };
+  let S = { tasks: [], events: [], scans: [], loans: [], incident: null };
+
+  function toast(msg, err) {
+    const n = document.createElement('div'); n.className = 'toast' + (err ? ' err' : ''); n.textContent = msg;
+    document.body.append(n); setTimeout(() => n.remove(), 2600);
+  }
+  async function api(method, url, body) {
+    const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+    const data = await r.json().catch(() => ({}));
+    if (r.status === 401) { showLogin(); throw new Error('PIN nötig'); }
+    if (!r.ok) throw new Error(data.error || 'Fehler ' + r.status);
+    return data;
+  }
+  const run = (p, ok) => p.then(() => ok && toast(ok)).catch(e => toast(e.message, true));
+
+  /* ---------- Anmeldung ---------- */
+  function showLogin() { $('#login').hidden = false; $('#app').hidden = true; $('#nav').hidden = true; $('#pin').focus(); }
+  async function doLogin() {
+    try {
+      await api('POST', '/api/login', { pin: $('#pin').value.trim() });
+      start();
+    } catch (e) { $('#pinErr').textContent = e.message; }
+  }
+  $('#pinGo').onclick = doLogin;
+  $('#pin').onkeydown = (e) => { if (e.key === 'Enter') doLogin(); };
+
+  /* ---------- Navigation ---------- */
+  function go(tab) {
+    document.querySelectorAll('main > section').forEach(s => s.hidden = s.dataset.tab !== tab);
+    document.querySelectorAll('nav button').forEach(b => b.dataset.go === tab ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
+    try { sessionStorage.setItem('tab', tab); } catch {}
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll('nav button').forEach(b => b.onclick = () => go(b.dataset.go));
+
+  /* ---------- Scannen ---------- */
+  let photoData = null, cond = '';
+  document.querySelectorAll('#sCond button').forEach(b => b.onclick = () => {
+    cond = cond === b.dataset.v ? '' : b.dataset.v;
+    document.querySelectorAll('#sCond button').forEach(x => x.setAttribute('aria-pressed', x.dataset.v === cond));
+  });
+  $('#sPhoto').onchange = async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const img = await createImageBitmap(file).catch(() => null);
+    if (!img) return toast('Foto konnte nicht gelesen werden', true);
+    // verkleinern, damit es schnell hochlädt
+    const s = Math.min(1, 1600 / Math.max(img.width, img.height));
+    const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    photoData = c.toDataURL('image/jpeg', 0.8);
+    $('#sPrev').src = photoData; $('#sPrev').hidden = false;
+    if ('BarcodeDetector' in window) {
+      try {
+        const codes = await new BarcodeDetector().detect(c);
+        if (codes.length) {
+          const v = codes[0].rawValue.trim();
+          if (!$('#sInv').value) $('#sInv').value = v.slice(0, 30); else if (!$('#sSerial').value) $('#sSerial').value = v.slice(0, 40);
+          $('#sCodeHint').textContent = `Barcode erkannt: ${v}`;
+        } else $('#sCodeHint').textContent = 'Kein Barcode erkannt. Bitte Nummer eintippen.';
+      } catch { $('#sCodeHint').textContent = 'Barcode-Erkennung nicht möglich. Bitte Nummer eintippen.'; }
+    } else $('#sCodeHint').textContent = 'Dieses Handy erkennt Barcodes nicht automatisch. Bitte Nummer eintippen.';
+  };
+  $('#scanForm').onsubmit = (e) => {
+    e.preventDefault();
+    if (!$('#sInv').value.trim() && !$('#sSerial').value.trim()) return toast('Bitte Inventar- oder Seriennummer angeben', true);
+    $('#sSave').disabled = true;
+    run(api('POST', '/api/scans', { type: $('#sType').value, inv: $('#sInv').value, serial: $('#sSerial').value, condition: cond, location: $('#sLoc').value, note: $('#sNote').value, photo: photoData })
+      .then(() => {
+        e.target.reset(); photoData = null; cond = ''; $('#sPrev').hidden = true; $('#sPhoto').value = '';
+        document.querySelectorAll('#sCond button').forEach(x => x.setAttribute('aria-pressed', false));
+        $('#sCodeHint').textContent = 'Ist ein Barcode auf dem Foto, wird die Nummer automatisch eingetragen (je nach Handy).';
+      }), 'Gespeichert, erscheint jetzt auf dem Board').finally(() => $('#sSave').disabled = false);
+  };
+
+  /* ---------- Aufgaben ---------- */
+  $('#taskForm').onsubmit = (e) => {
+    e.preventDefault();
+    run(api('POST', '/api/tasks', { title: $('#tTitle').value, date: $('#tDate').value, time: $('#tTime').value, remind: $('#tRemind').checked })
+      .then(() => { $('#tTitle').value = ''; }), 'Aufgabe eingetragen');
+  };
+  function renderTasks() {
+    const el = $('#taskList'); el.innerHTML = '';
+    const list = [...S.tasks].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+    if (!list.length) el.innerHTML = '<div class="empty">Keine Aufgaben geplant.</div>';
+    list.forEach(t => {
+      const n = document.createElement('div'); n.className = 'item' + (t.done ? ' done' : '');
+      n.innerHTML = `<span class="time">${esc(t.time)}</span><div class="main"><b>${esc(t.title)}</b><small>${fmtDate(t.date)}${t.remind ? ' · mit Gong' : ''}</small></div>
+        <button class="icon-btn" title="Erledigt">✓</button><button class="icon-btn" title="Löschen">✕</button>`;
+      const [d, x] = n.querySelectorAll('button');
+      d.onclick = () => run(api('PATCH', `/api/tasks/${t.id}`, { done: !t.done }));
+      x.onclick = () => run(api('DELETE', `/api/tasks/${t.id}`), 'Gelöscht');
+      el.append(n);
+    });
+  }
+
+  /* ---------- Termine ---------- */
+  $('#evForm').onsubmit = (e) => {
+    e.preventDefault();
+    run(api('POST', '/api/events', { title: $('#eTitle').value, meta: $('#eMeta').value, date: $('#eDate').value, time: $('#eTime').value })
+      .then(() => { $('#eTitle').value = ''; $('#eMeta').value = ''; }), 'Termin eingetragen');
+  };
+  function renderEvents() {
+    const el = $('#evList'); el.innerHTML = '';
+    const list = [...S.events].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+    if (!list.length) el.innerHTML = '<div class="empty">Keine Termine eingetragen.</div>';
+    list.forEach(ev => {
+      const n = document.createElement('div'); n.className = 'item';
+      n.innerHTML = `<span class="time">${esc(ev.time)}</span><div class="main"><b>${esc(ev.title)}</b><small>${fmtDate(ev.date)}${ev.meta ? ' · ' + esc(ev.meta) : ''}</small></div><button class="icon-btn" title="Löschen">✕</button>`;
+      n.querySelector('button').onclick = () => run(api('DELETE', `/api/events/${ev.id}`), 'Gelöscht');
+      el.append(n);
+    });
+  }
+
+  /* ---------- Störung ---------- */
+  const AREAS = ['Internet', 'WLAN', 'Telefonie', 'E-Mail', 'Drucker', 'Dateiablage', 'Strom / Gebäude', 'Sonstiges'];
+  let iArea = AREAS[0], iLevel = 'crit';
+  $('#iArea').innerHTML = AREAS.map(a => `<button type="button" data-v="${a}" aria-pressed="${a === iArea}">${a}</button>`).join('');
+  document.querySelectorAll('#iArea button').forEach(b => b.onclick = () => { iArea = b.dataset.v; document.querySelectorAll('#iArea button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+  document.querySelectorAll('#iLevel button').forEach(b => b.onclick = () => { iLevel = b.dataset.v; document.querySelectorAll('#iLevel button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+  $('#incForm').onsubmit = (e) => { e.preventDefault(); run(api('PUT', '/api/incident', { area: iArea, level: iLevel, note: $('#iNote').value }), 'Wird auf dem Board angezeigt'); };
+  function renderIncident() {
+    const i = S.incident, el = $('#incNow');
+    if (!i) { el.innerHTML = '<div class="inc none">Keine Störung gemeldet</div>'; return; }
+    const mins = Math.round((Date.now() - i.since) / 60000);
+    el.innerHTML = `<div class="inc ${i.level}">${i.level === 'crit' ? 'Störung' : 'Einschränkung'}: ${esc(i.area)}<div class="hint" style="font-weight:500">seit ${mins} min${i.note ? ' · ' + esc(i.note) : ''}</div></div>
+      <button class="btn" style="width:100%;margin-top:10px" id="incDone">Behoben, vom Board nehmen</button>`;
+    $('#incDone').onclick = () => run(api('DELETE', '/api/incident'), 'Störung beendet');
+  }
+
+  /* ---------- Leihgeräte ---------- */
+  function renderLoans() {
+    const el = $('#loanList'); el.innerHTML = '';
+    S.loans.forEach(l => {
+      const n = document.createElement('div'); n.className = 'card';
+      n.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><b>${esc(l.type)}</b><button class="icon-btn" title="Typ entfernen">✕</button></div>
+        <div class="row" style="align-items:center"><span>Frei</span><div class="stepper"><button class="icon-btn" data-a="-">−</button><b>${l.avail}</b><button class="icon-btn" data-a="+">+</button></div></div>
+        <div class="row" style="align-items:center"><span>Bestand</span><div class="stepper"><button class="icon-btn" data-t="-">−</button><b>${l.total}</b><button class="icon-btn" data-t="+">+</button></div></div>`;
+      const patch = (b) => run(api('PATCH', `/api/loans/${l.id}`, b));
+      n.querySelector('[data-a="-"]').onclick = () => patch({ avail: Math.max(0, l.avail - 1) });
+      n.querySelector('[data-a="+"]').onclick = () => patch({ avail: Math.min(l.total, l.avail + 1) });
+      n.querySelector('[data-t="-"]').onclick = () => patch({ total: Math.max(0, l.total - 1), avail: Math.min(l.avail, Math.max(0, l.total - 1)) });
+      n.querySelector('[data-t="+"]').onclick = () => patch({ total: l.total + 1 });
+      n.querySelector('[title="Typ entfernen"]').onclick = () => run(api('DELETE', `/api/loans/${l.id}`), 'Entfernt');
+      el.append(n);
+    });
+  }
+  $('#loanForm').onsubmit = (e) => {
+    e.preventDefault();
+    const total = +$('#lTotal').value;
+    run(api('POST', '/api/loans', { type: $('#lType').value, total, avail: total, icon: 'box' }).then(() => e.target.reset()), 'Hinzugefügt');
+  };
+
+  /* ---------- Inventarliste ---------- */
+  $('#qList').oninput = renderScans;
+  function renderScans() {
+    const q = $('#qList').value.toLowerCase(), el = $('#scanList'); el.innerHTML = '';
+    const list = [...S.scans].sort((a, b) => b.created - a.created)
+      .filter(s => !q || [s.inv, s.serial, s.type, s.location, s.note].join(' ').toLowerCase().includes(q));
+    if (!list.length) el.innerHTML = '<div class="empty">Noch keine Geräte erfasst.</div>';
+    list.forEach(s => {
+      const n = document.createElement('div'); n.className = 'item';
+      n.innerHTML = `${s.photo ? `<img class="thumb" loading="lazy" src="/api/photo/${s.id}" alt="">` : '<span class="thumb"></span>'}
+        <div class="main"><b>${esc(s.type)} · ${esc(s.inv || '–')}</b>
+          <small>${s.serial ? 'SN ' + esc(s.serial) + ' · ' : ''}${s.condition ? esc(s.condition) + ' · ' : ''}${esc(s.location || 'kein Ablageort')}</small>
+          ${s.note ? `<small>${esc(s.note)}</small>` : ''}
+          <small>${new Date(s.created).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })} · <span class="badge ${s.done ? 'ok' : 'open'}">${s.done ? 'in Liste' : 'offen'}</span></small></div>
+        <button class="icon-btn" title="${s.done ? 'Wieder öffnen' : 'In Liste übernehmen'}">✓</button><button class="icon-btn" title="Löschen">✕</button>`;
+      const [d, x] = n.querySelectorAll('button');
+      d.onclick = () => run(api('PATCH', `/api/scans/${s.id}`, { done: !s.done }));
+      x.onclick = () => { if (x.dataset.sure) run(api('DELETE', `/api/scans/${s.id}`), 'Gelöscht'); else { x.dataset.sure = 1; x.textContent = '?'; toast('Zum Löschen nochmal tippen'); setTimeout(() => { delete x.dataset.sure; x.textContent = '✕'; }, 3000); } };
+      el.append(n);
+    });
+  }
+
+  /* ---------- Start ---------- */
+  /* ---------- Anzeige am Notebook ---------- */
+  function renderDisplay() {
+    const d = S.display || { mode: 'show' }, el = $('#dispNow');
+    const until = d.until ? new Date(d.until).toLocaleString('de-DE', { weekday: 'short', hour: '2-digit', minute: '2-digit' }) + ' Uhr' : '';
+    el.className = 'inc ' + (d.mode === 'show' ? 'none' : 'warn');
+    el.textContent = { show: 'Wird angezeigt', minimize: `Minimiert${until ? ' (zurück spätestens ' + until + ')' : ''}`, pause: `Geschlossen bis ${until}`, off: 'Dauerhaft geschlossen' }[d.mode] || 'Unbekannt';
+    $('#dShow').disabled = d.mode === 'show';
+  }
+  const setDisplay = (mode, minutes, ok) => run(api('POST', '/api/display', { mode, minutes }), ok);
+  $('#dShow').onclick = () => setDisplay('show', null, 'Board wird wieder angezeigt');
+  $('#dMin').onclick = () => setDisplay('minimize', null, 'Board wird minimiert');
+  $('#dOff').onclick = () => { if (confirm('Board dauerhaft schließen? Zurück über „Wieder anzeigen“ hier oder das Desktop-Symbol am Notebook.')) setDisplay('off', null, 'Board geschlossen'); };
+  document.querySelectorAll('#dPause button').forEach(b => b.onclick = () => setDisplay('pause', b.dataset.min, 'Board vorübergehend geschlossen'));
+
+  function renderAll() { renderTasks(); renderEvents(); renderIncident(); renderDisplay(); renderLoans(); renderScans(); }
+  let es = null;
+  function start() {
+    $('#login').hidden = true; $('#app').hidden = false; $('#nav').hidden = false;
+    $('#tDate').value = dayKey(0); $('#eDate').value = dayKey(0);
+    const d = new Date(); d.setMinutes(Math.ceil(d.getMinutes() / 15) * 15 + 30);
+    $('#tTime').value = $('#eTime').value = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    let tab = 'scan'; try { tab = sessionStorage.getItem('tab') || 'scan'; } catch {}
+    go(tab);
+    if (es) es.close();
+    es = new EventSource('/api/stream?full=1');
+    es.onmessage = (e) => { S = JSON.parse(e.data); renderAll(); };
+  }
+  fetch('/api/me').then(r => r.json()).then(m => m.authed ? start() : showLogin()).catch(showLogin);
+})();
+</script>
+</body>
+</html>

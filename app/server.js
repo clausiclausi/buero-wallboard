@@ -1,0 +1,487 @@
+// Büro-Wallboard: kleiner lokaler Server ohne externe Abhängigkeiten (Node.js >= 20).
+// - liefert das Board (/) und die Handy-Seite (/m)
+// - speichert alles in data/db.json, Fotos in data/photos
+// - holt Wetter, Regenradar und Unwetterwarnungen vom DWD (über Bright Sky) und gibt nur Zahlen weiter
+// - Geräte aus dem WLAN brauchen die PIN, das Board selbst (localhost) nicht
+'use strict';
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const os = require('os');
+
+const ROOT = path.resolve(__dirname, '..');
+const DATA = path.join(ROOT, 'data');
+const PHOTOS = path.join(DATA, 'photos');
+const PUBLIC = path.join(__dirname, 'public');
+const CONFIG_FILE = path.join(ROOT, 'config.json');
+const DB_FILE = path.join(DATA, 'db.json');
+fs.mkdirSync(PHOTOS, { recursive: true });
+
+const config = Object.assign({
+  port: 8080,
+  pin: '000000',
+  lat: 52.3705, lon: 9.7550, ort: 'Hannover',
+  updateRepo: 'clausiclausi/buero-wallboard', updateBranch: 'main', updateToken: '',
+}, readJson(CONFIG_FILE, {}));
+const VERSION = readJson(path.join(__dirname, 'version.json'), { version: '0.0.0' }).version;
+const CHANGELOG = readJson(path.join(__dirname, 'changelog.json'), []);
+
+function readJson(file, fallback) {
+  try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return fallback; }
+}
+function log(...a) { console.log(new Date().toISOString(), ...a); }
+
+/* ---------- Datenhaltung ---------- */
+const DEFAULT_SETTINGS = {
+  theme: { preset: 'wald', colors: null },
+  muted: false, lead: 15, volume: 0.6, rainHours: [10, 12, 17],
+  visitor: false, officeStart: '06:00', officeEnd: '20:00',
+};
+const DEFAULT_LOANS = [
+  { id: 'l1', type: 'Notebooks', icon: 'laptop', avail: 0, total: 0 },
+  { id: 'l2', type: 'Monitore', icon: 'monitor', avail: 0, total: 0 },
+  { id: 'l3', type: 'Smartphones', icon: 'phone', avail: 0, total: 0 },
+  { id: 'l4', type: 'Headsets', icon: 'box', avail: 0, total: 0 },
+];
+let db = Object.assign({ tasks: [], events: [], scans: [], loans: DEFAULT_LOANS, incident: null, settings: {} }, readJson(DB_FILE, {}));
+db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings);
+
+// Passwort zum Entsperren des Besuchermodus (nur als Hash gespeichert, Standard: 123)
+const hashPw = (pw, salt) => crypto.scryptSync(String(pw), salt, 32).toString('hex');
+if (!db.unlock) { const salt = crypto.randomBytes(12).toString('hex'); db.unlock = { salt, hash: hashPw('123', salt) }; }
+function checkPw(pw) {
+  const h = Buffer.from(hashPw(pw, db.unlock.salt), 'hex');
+  return typeof pw === 'string' && pw.length <= 64 && crypto.timingSafeEqual(h, Buffer.from(db.unlock.hash, 'hex'));
+}
+
+let saveTimer = null;
+function save() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const tmp = DB_FILE + '.tmp';
+    fs.writeFileSync(tmp, JSON.stringify(db, null, 1));
+    fs.renameSync(tmp, DB_FILE);
+  }, 200);
+  broadcast();
+}
+
+// Tägliche Sicherung, 14 Tage aufbewahren
+function backup() {
+  try {
+    const dir = path.join(DATA, 'backup'); fs.mkdirSync(dir, { recursive: true });
+    const day = localDate(0);
+    fs.writeFileSync(path.join(dir, `db-${day}.json`), JSON.stringify(db));
+    for (const f of fs.readdirSync(dir).sort().slice(0, -14)) fs.unlinkSync(path.join(dir, f));
+  } catch (e) { log('Backup fehlgeschlagen', e.message); }
+}
+
+function localDate(offsetDays) {
+  const d = new Date(); d.setDate(d.getDate() + offsetDays);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// Alte Aufgaben und Termine aufräumen
+function cleanup() {
+  const today = localDate(0);
+  const before = db.tasks.length + db.events.length;
+  db.tasks = db.tasks.filter(t => t.date >= today);
+  db.events = db.events.filter(e => e.date >= today);
+  if (db.tasks.length + db.events.length !== before) save();
+}
+
+/* ---------- Eingaben prüfen (Allowlist) ---------- */
+const clean = (v, max) => String(v ?? '').replace(/[\u0000-\u001f\u007f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
+const isTime = v => /^([01]\d|2[0-3]):[0-5]\d$/.test(v);
+const isDate = v => /^\d{4}-\d{2}-\d{2}$/.test(v);
+const oneOf = (v, list, d) => list.includes(v) ? v : d;
+const newId = () => crypto.randomBytes(6).toString('hex');
+
+const DEVICE_TYPES = ['Notebook', 'Monitor', 'Smartphone', 'Tablet', 'Drucker', 'Dockingstation', 'Headset', 'Lieferung', 'Sonstiges'];
+const AREAS = ['Internet', 'WLAN', 'Telefonie', 'E-Mail', 'Drucker', 'Dateiablage', 'Strom / Gebäude', 'Sonstiges'];
+const ICONS = ['laptop', 'monitor', 'phone', 'box', 'printer'];
+
+const schemas = {
+  tasks: b => {
+    if (!clean(b.title, 60) || !isTime(b.time)) return null;
+    return { title: clean(b.title, 60), time: b.time, date: isDate(b.date) ? b.date : localDate(0), remind: b.remind !== false, done: !!b.done };
+  },
+  events: b => {
+    if (!clean(b.title, 40) || !isTime(b.time)) return null;
+    return { title: clean(b.title, 40), meta: clean(b.meta, 24), time: b.time, date: isDate(b.date) ? b.date : localDate(0) };
+  },
+  scans: b => {
+    if (!clean(b.inv, 30) && !clean(b.serial, 40)) return null;
+    return {
+      type: oneOf(b.type, DEVICE_TYPES, 'Sonstiges'), inv: clean(b.inv, 30), serial: clean(b.serial, 40),
+      condition: oneOf(b.condition, ['neu', 'gebraucht', 'defekt', ''], ''), location: clean(b.location, 40),
+      note: clean(b.note, 200), done: !!b.done,
+    };
+  },
+  loans: b => {
+    const total = Math.max(0, Math.min(999, parseInt(b.total, 10) || 0));
+    return { type: clean(b.type, 24) || 'Geräte', icon: oneOf(b.icon, ICONS, 'box'), total, avail: Math.max(0, Math.min(total, parseInt(b.avail, 10) || 0)) };
+  },
+};
+// Felder, die beim Ändern erlaubt sind
+const patchable = {
+  tasks: ['title', 'time', 'remind', 'done'], events: ['title', 'meta', 'time', 'date'],
+  scans: ['type', 'inv', 'serial', 'condition', 'location', 'note', 'done'], loans: ['type', 'icon', 'avail', 'total'],
+};
+
+function sanitizeSettings(b) {
+  const s = {};
+  if (b.theme && typeof b.theme === 'object') {
+    const colors = {};
+    for (const [k, v] of Object.entries(b.theme.colors || {})) if (/^[a-z-]{2,12}$/.test(k) && /^#[0-9a-fA-F]{6}$/.test(v)) colors[k] = v;
+    s.theme = { preset: clean(b.theme.preset, 12) || 'custom', colors: Object.keys(colors).length ? colors : null };
+  }
+  if ('muted' in b) s.muted = !!b.muted;
+  if ('visitor' in b) s.visitor = !!b.visitor;
+  if ('lead' in b) s.lead = oneOf(+b.lead, [5, 10, 15, 30], 15);
+  if ('volume' in b) s.volume = Math.max(0, Math.min(1, +b.volume || 0));
+  if (Array.isArray(b.rainHours)) s.rainHours = [...new Set(b.rainHours.map(Number).filter(h => h >= 0 && h <= 23))].slice(0, 12);
+  if (isTime(b.officeStart)) s.officeStart = b.officeStart;
+  if (isTime(b.officeEnd)) s.officeEnd = b.officeEnd;
+  return s;
+}
+
+// Was das Board sehen darf: keine Seriennummern, Fotos, Zustände oder internen Notizen
+function boardView() {
+  const today = localDate(0), tomorrow = localDate(1);
+  return {
+    tasks: db.tasks.filter(t => t.date === today),
+    events: db.events.filter(e => e.date === today || e.date === tomorrow),
+    scans: db.scans.filter(s => !s.done || Date.now() - s.created < 86400000).slice(-12)
+      .map(s => ({ id: s.id, type: s.type, inv: s.inv, location: s.location, created: s.created, done: s.done })),
+    loans: db.loans, incident: db.incident, settings: db.settings, mobileUrl: mobileUrl(),
+    version: VERSION, changelog: CHANGELOG, lastUpdate: readJson(path.join(DATA, 'last-update.json'), null), display: display.view(),
+    update: { available: update.available, notes: update.notes, changes: update.changes, error: update.error, checked: update.checked, busy: update.busy },
+  };
+}
+function fullView() {
+  return { ...boardView(), tasks: db.tasks, events: db.events, scans: db.scans.map(s => ({ ...s, photo: !!s.photo })) };
+}
+function mobileUrl() {
+  const ips = Object.values(os.networkInterfaces()).flat().filter(i => i && i.family === 'IPv4' && !i.internal).map(i => i.address);
+  return ips.length ? `http://${ips[0]}:${config.port}/m` : `http://${os.hostname()}:${config.port}/m`;
+}
+
+/* ---------- Zugang ---------- */
+const sessions = new Map(Object.entries(readJson(path.join(DATA, 'sessions.json'), {})));
+const attempts = new Map();
+function isLocal(req) { const a = req.socket.remoteAddress || ''; return a === '127.0.0.1' || a === '::1' || a === '::ffff:127.0.0.1'; }
+function cookies(req) { return Object.fromEntries((req.headers.cookie || '').split(';').map(c => c.trim().split('=')).filter(p => p[0])); }
+function authed(req) {
+  if (isLocal(req)) return true;
+  const t = cookies(req).wb;
+  return !!t && sessions.has(t);
+}
+function login(req, res, body) {
+  const ip = req.socket.remoteAddress;
+  const a = attempts.get(ip) || { n: 0, t: Date.now() };
+  if (Date.now() - a.t > 60000) { a.n = 0; a.t = Date.now(); }
+  if (a.n >= 5) return send(res, 429, { error: 'Zu viele Versuche. Bitte eine Minute warten.' });
+  const ok = typeof body.pin === 'string' && body.pin.length === config.pin.length &&
+    crypto.timingSafeEqual(Buffer.from(body.pin), Buffer.from(config.pin));
+  if (!ok) { a.n++; attempts.set(ip, a); return send(res, 401, { error: 'PIN stimmt nicht.' }); }
+  const t = crypto.randomBytes(24).toString('hex');
+  sessions.set(t, Date.now());
+  fs.writeFileSync(path.join(DATA, 'sessions.json'), JSON.stringify(Object.fromEntries(sessions)));
+  res.setHeader('Set-Cookie', `wb=${t}; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000`);
+  send(res, 200, { ok: true });
+}
+
+/* ---------- Live-Aktualisierung (Server-Sent Events) ---------- */
+const clients = new Set();
+function broadcast() {
+  for (const c of clients) c.res.write(`data: ${JSON.stringify(c.full ? fullView() : boardView())}\n\n`);
+}
+
+/* ---------- Anzeige am Notebook (minimieren, schließen) ---------- */
+const display = require('./display')({ ROOT, DATA, config, log, broadcast: () => broadcast(), officeStart: () => db.settings.officeStart });
+
+/* ---------- Wetter vom DWD über Bright Sky ---------- */
+let weather = { ok: false, updated: 0 };
+let radar = { ok: false, updated: 0 };
+async function getJson(url) {
+  const r = await fetch(url, { headers: { 'User-Agent': 'Buero-Wallboard/1.0' }, signal: AbortSignal.timeout(20000) });
+  if (!r.ok) throw new Error(`${r.status} ${url}`);
+  return r.json();
+}
+async function updateWeather() {
+  const { lat, lon } = config;
+  try {
+    const [cur, fc, al] = await Promise.all([
+      getJson(`https://api.brightsky.dev/current_weather?lat=${lat}&lon=${lon}`),
+      getJson(`https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}&date=${localDate(0)}&last_date=${localDate(1)}&tz=Europe/Berlin`),
+      getJson(`https://api.brightsky.dev/alerts?lat=${lat}&lon=${lon}`).catch(() => ({ alerts: [] })),
+    ]);
+    const c = cur.weather || {};
+    const hours = {};
+    for (const w of fc.weather || []) {
+      const d = new Date(w.timestamp);
+      if (localDateOf(d) !== localDate(0)) continue;
+      hours[d.getHours()] = {
+        prob: w.precipitation_probability ?? (w.precipitation > 0.1 ? 80 : w.precipitation > 0 ? 40 : 5),
+        mm: w.precipitation ?? 0, temp: w.temperature,
+      };
+    }
+    weather = {
+      ok: true, updated: Date.now(), source: 'DWD',
+      now: { temp: c.temperature, condition: c.condition, icon: c.icon, wind: c.wind_speed_10 ?? c.wind_speed_30, windDir: c.wind_direction_10 ?? c.wind_direction_30 },
+      hours,
+      alerts: (al.alerts || []).filter(a => !a.expires || new Date(a.expires) > new Date())
+        .map(a => ({ event: a.event_de || a.event_en, headline: a.headline_de || a.headline_en, severity: a.severity, until: a.expires })),
+    };
+  } catch (e) {
+    log('Wetter nicht erreichbar:', e.message);
+    weather.ok = false;
+  }
+  broadcast();
+}
+function localDateOf(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+
+async function updateRadar() {
+  try {
+    const r = await getJson(`https://api.brightsky.dev/radar?lat=${config.lat}&lon=${config.lon}&distance=60000&format=plain&tz=Europe/Berlin`);
+    const frames = (r.radar || []).filter((_, i) => i % 2 === 0).slice(0, 13)
+      .map(f => ({ t: f.timestamp, grid: f.precipitation_5 }));
+    radar = { ok: frames.length > 0, updated: Date.now(), frames, pos: r.latlon_position || null };
+  } catch (e) {
+    log('Radar nicht erreichbar:', e.message);
+    radar.ok = false;
+  }
+}
+
+/* ---------- Updates aus dem GitHub-Repository ----------
+   Im Repository liegt manifest.json mit Version und SHA-256 jeder Datei unter app/.
+   Installiert wird nur auf Knopfdruck. Der Starter (launcher.js) stellt die alte
+   Version wieder her, falls die neue nicht startet. */
+const APP_NEW = path.join(ROOT, 'app.new'), APP_OLD = path.join(ROOT, 'app.old');
+let update = { available: null, notes: '', changes: [], error: '', checked: 0, busy: false, manifest: null };
+const newer = (a, b) => { const x = a.split('.').map(Number), y = b.split('.').map(Number); for (let i = 0; i < 3; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); } return false; };
+async function fetchRepoFile(file) {
+  const { updateRepo: repo, updateBranch: branch, updateToken: token } = config;
+  const url = config.updateUrl ? `${config.updateUrl.replace(/\/$/, '')}/${file}`
+    : token ? `https://api.github.com/repos/${repo}/contents/${file}?ref=${branch}`
+    : `https://raw.githubusercontent.com/${repo}/${branch}/${file}?t=${Date.now()}`;
+  const headers = { 'User-Agent': 'Buero-Wallboard', 'Cache-Control': 'no-cache' };
+  if (token) { headers.Authorization = `Bearer ${token}`; headers.Accept = 'application/vnd.github.raw'; }
+  const r = await fetch(url, { headers, signal: AbortSignal.timeout(30000) });
+  if (!r.ok) throw new Error(r.status === 404 ? 'Update-Quelle nicht gefunden' : `Update-Quelle antwortet mit ${r.status}`);
+  return Buffer.from(await r.arrayBuffer());
+}
+async function checkUpdate() {
+  if (!config.updateRepo && !config.updateUrl) return;
+  try {
+    const m = JSON.parse((await fetchRepoFile('manifest.json')).toString('utf8'));
+    if (!/^\d+\.\d+\.\d+$/.test(m.version) || typeof m.files !== 'object') throw new Error('Update-Beschreibung ungültig');
+    update.manifest = m;
+    let failed = ''; try { failed = fs.readFileSync(path.join(DATA, 'update-failed'), 'utf8').trim(); } catch {}
+    update.available = newer(m.version, VERSION) && m.version !== failed ? m.version : null;
+    update.notes = clean(m.notes, 300);
+    update.changes = Array.isArray(m.changes) ? m.changes.slice(0, 15).map(c => clean(c, 160)).filter(Boolean) : [];
+    update.error = m.version === failed ? `Version ${failed} ließ sich nicht starten, die bisherige Version läuft weiter` : '';
+  } catch (e) {
+    update.error = e.message;
+  }
+  update.checked = Date.now();
+  broadcast();
+}
+async function installUpdate() {
+  if (update.busy) throw new Error('Update läuft bereits');
+  await checkUpdate();
+  const m = update.manifest;
+  if (!update.available || !m) throw new Error('Keine neue Version vorhanden');
+  update.busy = true; broadcast();
+  try {
+    fs.rmSync(APP_NEW, { recursive: true, force: true });
+    for (const [rel, hash] of Object.entries(m.files)) {
+      if (!/^[a-z0-9_-]+(\/[a-z0-9_-]+)*\.(js|html|json|css|svg|png|woff2)$/i.test(rel) || !/^[a-f0-9]{64}$/.test(hash)) throw new Error(`Ungültiger Dateiname im Update: ${rel}`);
+      const buf = await fetchRepoFile(`app/${rel}`);
+      if (crypto.createHash('sha256').update(buf).digest('hex') !== hash) throw new Error(`Prüfsumme stimmt nicht: ${rel}`);
+      const dest = path.join(APP_NEW, rel);
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.writeFileSync(dest, buf);
+    }
+    if (!fs.existsSync(path.join(APP_NEW, 'server.js'))) throw new Error('Update unvollständig');
+    backup();
+    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 1));
+    fs.rmSync(APP_OLD, { recursive: true, force: true });
+    fs.renameSync(__dirname, APP_OLD);
+    fs.renameSync(APP_NEW, __dirname);
+    fs.writeFileSync(path.join(DATA, 'update-pending'), JSON.stringify({ from: VERSION, to: m.version, at: Date.now() }));
+    log(`Update ${VERSION} -> ${m.version} installiert, Neustart`);
+    for (const c of clients) c.res.write(`event: restart\ndata: {}\n\n`);
+    setTimeout(() => process.exit(0), 800);
+  } catch (e) {
+    update.busy = false; update.error = e.message;
+    fs.rmSync(APP_NEW, { recursive: true, force: true });
+    broadcast();
+    throw e;
+  }
+}
+
+/* ---------- HTTP ---------- */
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2' };
+function send(res, code, obj, type = 'application/json; charset=utf-8') {
+  const body = typeof obj === 'string' || Buffer.isBuffer(obj) ? obj : JSON.stringify(obj);
+  res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' });
+  res.end(body);
+}
+function readBody(req, limit) {
+  return new Promise((resolve, reject) => {
+    let size = 0; const chunks = [];
+    req.on('data', c => { size += c.length; if (size > limit) { reject(new Error('too_large')); req.destroy(); } else chunks.push(c); });
+    req.on('end', () => { try { resolve(chunks.length ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : {}); } catch { reject(new Error('bad_json')); } });
+    req.on('error', reject);
+  });
+}
+function serveFile(res, file) {
+  fs.readFile(file, (err, buf) => err ? send(res, 404, 'Nicht gefunden', 'text/plain; charset=utf-8')
+    : send(res, 200, buf, MIME[path.extname(file)] || 'application/octet-stream'));
+}
+function csv(rows) {
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  return '﻿' + [['Erfasst', 'Gerätetyp', 'Inventarnummer', 'Seriennummer', 'Zustand', 'Ablageort', 'Notiz', 'In Liste übernommen'],
+    ...rows.map(s => [new Date(s.created).toLocaleString('de-DE'), s.type, s.inv, s.serial, s.condition, s.location, s.note, s.done ? 'ja' : 'nein'])]
+    .map(r => r.map(q).join(';')).join('\r\n');
+}
+
+const server = http.createServer(async (req, res) => {
+  const url = new URL(req.url, 'http://x');
+  const p = url.pathname;
+  try {
+    // Seiten
+    if (req.method === 'GET' && (p === '/' || p === '/board')) return serveFile(res, path.join(PUBLIC, 'board.html'));
+    if (req.method === 'GET' && p === '/m') return serveFile(res, path.join(PUBLIC, 'm.html'));
+    if (req.method === 'GET' && p.startsWith('/static/')) {
+      const f = path.join(PUBLIC, path.normalize(p.slice(8)).replace(/^(\.\.[/\\])+/, ''));
+      if (!f.startsWith(PUBLIC)) return send(res, 403, 'Nein', 'text/plain');
+      return serveFile(res, f);
+    }
+    if (req.method === 'POST' && p === '/api/login') return login(req, res, await readBody(req, 1000));
+    if (req.method === 'GET' && p === '/api/me') return send(res, 200, { authed: authed(req) });
+
+    if (!p.startsWith('/api/')) return send(res, 404, 'Nicht gefunden', 'text/plain; charset=utf-8');
+    if (!authed(req)) return send(res, 401, { error: 'PIN nötig' });
+
+    if (req.method === 'GET' && p === '/api/state') return send(res, 200, url.searchParams.get('full') ? fullView() : boardView());
+    if (req.method === 'GET' && p === '/api/weather') return send(res, 200, weather);
+    if (req.method === 'GET' && p === '/api/radar') return send(res, 200, radar);
+    if (req.method === 'GET' && p === '/api/stream') {
+      res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive' });
+      const c = { res, full: !!url.searchParams.get('full') };
+      clients.add(c);
+      res.write(`data: ${JSON.stringify(c.full ? fullView() : boardView())}\n\n`);
+      const ping = setInterval(() => res.write(': ping\n\n'), 25000);
+      req.on('close', () => { clearInterval(ping); clients.delete(c); });
+      return;
+    }
+    if (req.method === 'GET' && p === '/api/scans.csv') {
+      res.setHeader('Content-Disposition', `attachment; filename="inventar-${localDate(0)}.csv"`);
+      return send(res, 200, csv(db.scans), 'text/csv; charset=utf-8');
+    }
+    let m;
+    if (req.method === 'GET' && (m = p.match(/^\/api\/photo\/([a-f0-9]{12})$/))) {
+      const s = db.scans.find(x => x.id === m[1]);
+      return s && s.photo ? serveFile(res, path.join(PHOTOS, s.photo)) : send(res, 404, { error: 'Kein Foto' });
+    }
+    if (req.method === 'POST' && p === '/api/update/check') { await checkUpdate(); return send(res, 200, { available: update.available, error: update.error }); }
+    if (req.method === 'POST' && p === '/api/update/install') {
+      try { await installUpdate(); return send(res, 200, { ok: true }); }
+      catch (e) { return send(res, 409, { error: e.message }); }
+    }
+    if (req.method === 'POST' && p === '/api/display') {
+      const b = { ...Object.fromEntries(url.searchParams), ...await readBody(req, 1000) };
+      try { return send(res, 200, display.set(String(b.mode), b.minutes)); }
+      catch (e) { return send(res, 400, { error: e.message }); }
+    }
+    if (req.method === 'POST' && p === '/api/unlock') {
+      const b = await readBody(req, 1000), ip = 'unlock:' + req.socket.remoteAddress;
+      const a = attempts.get(ip) || { n: 0, t: Date.now() };
+      if (Date.now() - a.t > 60000) { a.n = 0; a.t = Date.now(); }
+      if (a.n >= 5) return send(res, 429, { error: 'Zu viele Versuche. Bitte eine Minute warten.' });
+      if (!checkPw(b.password)) { a.n++; attempts.set(ip, a); return send(res, 401, { error: 'Passwort stimmt nicht' }); }
+      attempts.delete(ip);
+      return send(res, 200, { ok: true });
+    }
+    if (req.method === 'PUT' && p === '/api/unlock') {
+      const b = await readBody(req, 1000);
+      if (!checkPw(b.old)) return send(res, 403, { error: 'Bisheriges Passwort stimmt nicht' });
+      const pw = String(b.password ?? '');
+      if (pw.length < 3 || pw.length > 64) return send(res, 400, { error: 'Neues Passwort: 3 bis 64 Zeichen' });
+      const salt = crypto.randomBytes(12).toString('hex');
+      db.unlock = { salt, hash: hashPw(pw, salt) }; save();
+      return send(res, 200, { ok: true });
+    }
+    if (req.method === 'PUT' && p === '/api/settings') {
+      Object.assign(db.settings, sanitizeSettings(await readBody(req, 10000))); save();
+      return send(res, 200, db.settings);
+    }
+    if (p === '/api/incident') {
+      if (req.method === 'DELETE') { db.incident = null; save(); return send(res, 200, { ok: true }); }
+      if (req.method === 'PUT') {
+        const b = await readBody(req, 2000);
+        db.incident = { area: oneOf(b.area, AREAS, 'Sonstiges'), level: oneOf(b.level, ['warn', 'crit'], 'crit'), note: clean(b.note, 40), since: db.incident?.since || Date.now() };
+        save(); return send(res, 200, db.incident);
+      }
+    }
+    if ((m = p.match(/^\/api\/(tasks|events|scans|loans)(?:\/([a-z0-9]{1,16}))?$/))) {
+      const [, coll, id] = m;
+      if (req.method === 'POST' && !id) {
+        const b = await readBody(req, coll === 'scans' ? 8_000_000 : 5000);
+        const item = schemas[coll](b);
+        if (!item) return send(res, 400, { error: 'Angaben unvollständig' });
+        item.id = newId(); item.created = Date.now();
+        if (coll === 'scans' && typeof b.photo === 'string') {
+          const pm = b.photo.match(/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/);
+          if (pm) { item.photo = `${item.id}.${pm[1] === 'jpeg' ? 'jpg' : pm[1]}`; fs.writeFileSync(path.join(PHOTOS, item.photo), Buffer.from(pm[2], 'base64')); }
+        }
+        db[coll].push(item); save();
+        return send(res, 201, item);
+      }
+      const item = db[coll].find(x => x.id === id);
+      if (!item) return send(res, 404, { error: 'Nicht gefunden' });
+      if (req.method === 'PATCH') {
+        const b = await readBody(req, 5000);
+        const merged = schemas[coll]({ ...item, ...Object.fromEntries(Object.entries(b).filter(([k]) => patchable[coll].includes(k))) });
+        if (!merged) return send(res, 400, { error: 'Angaben unvollständig' });
+        Object.assign(item, merged); save();
+        return send(res, 200, item);
+      }
+      if (req.method === 'DELETE') {
+        if (item.photo) fs.rm(path.join(PHOTOS, item.photo), () => {});
+        db[coll] = db[coll].filter(x => x !== item); save();
+        return send(res, 200, { ok: true });
+      }
+    }
+    send(res, 404, { error: 'Unbekannt' });
+  } catch (e) {
+    if (e.message === 'too_large') return send(res, 413, { error: 'Zu groß (Foto max. 6 MB)' });
+    if (e.message === 'bad_json') return send(res, 400, { error: 'Ungültige Daten' });
+    log('Fehler', e); send(res, 500, { error: 'Interner Fehler' });
+  }
+});
+
+server.listen(config.port, () => {
+  log(`Wallboard ${VERSION} läuft auf http://localhost:${config.port}  ·  Handy: ${mobileUrl()}`);
+  // Nach einer Minute stabilem Lauf gilt ein frisches Update als gelungen
+  setTimeout(() => {
+    const pending = readJson(path.join(DATA, 'update-pending'), null);
+    if (!pending) return;
+    fs.writeFileSync(path.join(DATA, 'last-update.json'), JSON.stringify({ from: pending.from, version: VERSION, at: Date.now() }));
+    try { fs.unlinkSync(path.join(DATA, 'update-pending')); } catch {}
+    broadcast();
+  }, 60000);
+  display.installHelpers();
+  setInterval(display.tick, 20000);
+  setTimeout(checkUpdate, 15000);
+  setInterval(checkUpdate, 30 * 60000);
+  cleanup(); backup(); updateWeather(); updateRadar();
+  setInterval(updateWeather, 10 * 60000);
+  setInterval(updateRadar, 5 * 60000);
+  setInterval(() => { cleanup(); }, 10 * 60000);
+  setInterval(backup, 6 * 3600000);
+});

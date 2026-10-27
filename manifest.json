@@ -1,0 +1,19 @@
+{
+  "version": "1.3.0",
+  "notes": "Monatskalender statt Security-Tipp: ganzer Monat mit Kalenderwochen links, heute und die laufende Woche hervorgehoben, Feiertage in Niedersachsen markiert.",
+  "changes": [
+    "Monatskalender statt Security-Tipp: ganzer Monat mit Kalenderwochen links, heute und die laufende Woche hervorgehoben, Feiertage in Niedersachsen markiert.",
+    "Besuchermodus mit Passwort: Einen verwischten Eintrag antippen, Passwort eingeben (anfangs 123), dann ist alles 2 Minuten lesbar und sperrt sich danach von selbst.",
+    "„Jetzt sperren“ unten in der Mitte verwischt sofort wieder.",
+    "Besuchermodus ausschalten geht nur noch mit Passwort. Einschalten geht jederzeit.",
+    "Passwort ändern unter Einstellungen > Datenschutz."
+  ],
+  "files": {
+    "changelog.json": "0392e4e099e5dacaf598d5a3afd15c58a3d9b8bcfba0a7f0c62684d1efbb40a6",
+    "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
+    "public/board.html": "355b881f864252f411397fb56ffd0ebe97b9f9165f26dac7e521d7b14a2f5fa7",
+    "public/m.html": "c2c2ce7891b9eaba9a9e5e3e0fe9dab13d6ccbf5f3eb3efd7b90441d66d71f45",
+    "server.js": "0ce0fb8d42ce822dbe7e2665f74f0afc0c1a002163aa4fda302ffe478d6dedbc",
+    "version.json": "95b960d12ef2e2722946881cb95401468db2dee9eb7f5b23f43a79d4a9bc9252"
+  }
+}

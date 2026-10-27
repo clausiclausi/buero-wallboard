@@ -1,0 +1,48 @@
+BÜRO-WALLBOARD – INSTALLATION
+==============================
+
+So geht's (einmalig, ca. 5 Minuten):
+
+1. Diesen Ordner auf das Board-Notebook kopieren (z. B. per USB-Stick oder Download)
+   und dort entpacken.
+2. Doppelklick auf "Installieren.cmd" und die Windows-Abfrage mit "Ja" bestätigen.
+3. Den Fragen im schwarzen Fenster folgen:
+   - Benutzer für die Anzeige: einfach Enter drücken
+   - Büro-WLAN als privates Netzwerk: "J", falls gefragt
+   - Automatische Anmeldung: "J", dann im kleinen Fenster das Windows-Passwort
+     eingeben und "Enable" klicken
+4. Am Ende stehen die Handy-Adresse und die PIN im Fenster. Bitte notieren.
+   Die PIN liegt zusätzlich in C:\Wallboard\PIN.txt.
+
+Was die Installation einrichtet:
+- C:\Wallboard mit Programm, Daten und täglicher Sicherung (14 Tage)
+- Node.js (portabel, aus nodejs.org, Prüfsumme wird kontrolliert)
+- Wallboard-Server startet mit Windows und startet sich bei Fehlern neu
+- Board öffnet sich nach der Anmeldung im Vollbild (Microsoft Edge)
+- Energiesparen, Standby und Sperrbildschirm am Netzteil aus,
+  Deckel zuklappen erlaubt
+- Windows-Updates starten nur nachts neu (Nutzungszeit 6–21 Uhr)
+- Firewall: Handy-Zugang nur im privaten Netzwerk (Büro-WLAN)
+
+Benutzung:
+- Fernseher:   zeigt das Board. Maus/Tastatur am Notebook für Einstellungen (Zahnrad).
+- Handy:       im Büro-WLAN die angezeigte Adresse öffnen, PIN eingeben.
+               Tipp: Seite als Lesezeichen oder auf den Startbildschirm legen.
+- Schließen:   X oben rechts am Board (minimieren, für eine Zeit oder dauerhaft schließen)
+- Anzeigen:    Desktop-Symbol "Wallboard anzeigen" oder Handy-Seite, Bereich "Board"
+- Wartung:     C:\Wallboard\Board beenden (Wartung).cmd  /  Board starten.cmd
+- Updates:     Gibt es eine neue Version, erscheint oben am Board die Taste
+               "Neue Version vorhanden – Aktualisieren". Antippen, fertig.
+               Startet eine neue Version nicht, kommt automatisch die alte zurück.
+               Notfalls: neue ZIP entpacken und wieder "Installieren.cmd" ausführen.
+               Daten, PIN und Einstellungen bleiben immer erhalten.
+- Entfernen:   "Deinstallieren.cmd"
+
+Datenschutz:
+- Alles bleibt auf dem Notebook. Es gibt keine Cloud und kein Konto.
+- Nach außen gehen nur die Wetterabfrage für den Standort Hannover
+  (Deutscher Wetterdienst über api.brightsky.dev) und die Suche nach Updates
+  (GitHub), beides ohne Daten von euch.
+- Auf dem Board erscheinen keine Namen, Seriennummern, Fotos oder internen Notizen.
+
+Probleme? Die Datei C:\Wallboard\data\server.log an Claude schicken.

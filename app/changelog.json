@@ -1,0 +1,39 @@
+[
+  {
+    "version": "1.3.0",
+    "date": "2026-10-27",
+    "changes": [
+      "Monatskalender statt Security-Tipp: ganzer Monat mit Kalenderwochen links, heute und die laufende Woche hervorgehoben, Feiertage in Niedersachsen markiert.",
+      "Besuchermodus mit Passwort: Einen verwischten Eintrag antippen, Passwort eingeben (anfangs 123), dann ist alles 2 Minuten lesbar und sperrt sich danach von selbst.",
+      "„Jetzt sperren“ unten in der Mitte verwischt sofort wieder.",
+      "Besuchermodus ausschalten geht nur noch mit Passwort. Einschalten geht jederzeit.",
+      "Passwort ändern unter Einstellungen > Datenschutz."
+    ]
+  },
+  {
+    "version": "1.2.0",
+    "date": "2026-10-27",
+    "changes": [
+      "Neue X-Taste oben rechts: Board minimieren, für 15 Minuten bis 2 Stunden oder bis morgen früh schließen, oder dauerhaft schließen.",
+      "Wieder anzeigen über das neue Desktop-Symbol „Wallboard anzeigen“ oder auf der Handy-Seite im Bereich „Board“.",
+      "Minimiert oder zeitweise geschlossen kommt das Board spätestens zum nächsten Bürobeginn von selbst zurück.",
+      "Update-Hinweis jetzt groß oben in der Mitte. Antippen zeigt die Patch-Notes und startet das Update.",
+      "Nach einem Update zeigt das Board einen Tag lang „Was ist neu“. Alle Patch-Notes stehen unter Einstellungen > Updates."
+    ]
+  },
+  {
+    "version": "1.1.0",
+    "date": "2026-10-27",
+    "changes": [
+      "Update-Funktion: neue Versionen per Knopfdruck am Board installieren, mit automatischer Rückkehr zur alten Version bei Problemen.",
+      "Versionsnummer unten rechts."
+    ]
+  },
+  {
+    "version": "1.0.0",
+    "date": "2026-10-27",
+    "changes": [
+      "Erste Version: Tagesaufgaben mit Gong, Kalender, Wetter mit Regenradar und Regenwarnung, Scan-Eingang, Leihgeräte, Störungsbanner, Security-Tipp, Handy-Seite mit PIN."
+    ]
+  }
+]
