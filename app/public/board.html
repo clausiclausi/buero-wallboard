@@ -1141,6 +1141,7 @@ footer .sp { margin-left: auto; }
       </div>
       <div><h4>Updates</h4>
         <p class="hint" id="sUpd">Version ${esc(S.version || '?')}${S.update?.checked ? ` · zuletzt geprüft ${new Date(S.update.checked).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr` : ''}${S.update?.error ? ` · ${esc(S.update.error)}` : S.update?.available ? ` · Version ${esc(S.update.available)} verfügbar` : ' · aktuell'}</p>
+        <label class="field" style="margin-top:10px">Updates installieren <select id="sAuto">${[['sofort', 'automatisch, sofort'], ['nachts', 'automatisch, außerhalb der Bürozeiten'], ['aus', 'nur per Knopf']].map(([v, l]) => `<option value="${v}" ${(st.autoUpdate || 'sofort') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <div class="row" style="margin-top:10px"><button class="btn" id="sCheck">Jetzt nach Updates suchen</button><button class="btn" id="sNotes">Alle Patch-Notes</button></div>
       </div>
       <div class="row"><button class="btn" id="sReset">Auf Waldgrün zurücksetzen</button></div>
@@ -1194,6 +1195,7 @@ footer .sp { margin-left: auto; }
       try { const r = await api('POST', '/api/update/check'); scrim.querySelector('#sUpd').textContent = r.error ? `Version ${S.version} · ${r.error}` : r.available ? `Version ${r.available} verfügbar, oben auf „Aktualisieren“ tippen` : `Version ${S.version} ist aktuell`; }
       catch (e) { scrim.querySelector('#sUpd').textContent = 'Prüfen nicht möglich: ' + e.message; }
     };
+    scrim.querySelector('#sAuto').onchange = (e) => setSettings({ autoUpdate: e.target.value });
     scrim.querySelector('#sNotes').onclick = () => { close(); openChangelog(); };
     scrim.querySelector('#sReset').onclick = () => { setSettings({ theme: { preset: 'wald', colors: null } }); renderPresets(); renderColors(); };
     $('#overlayHost').append(scrim);

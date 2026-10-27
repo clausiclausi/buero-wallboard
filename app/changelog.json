@@ -1,5 +1,14 @@
 [
   {
+    "version": "1.5.0",
+    "date": "2026-10-27",
+    "changes": [
+      "Updates kommen ab jetzt von selbst: Das Board installiert neue Versionen automatisch, ohne dass jemand tippen muss. Während einer gemeldeten Störung wartet es.",
+      "Einstellbar unter Einstellungen > Updates: automatisch sofort, automatisch außerhalb der Bürozeiten oder nur per Knopf.",
+      "Startet eine neue Version nicht, kommt wie bisher automatisch die alte zurück."
+    ]
+  },
+  {
     "version": "1.4.0",
     "date": "2026-10-27",
     "changes": [

@@ -36,7 +36,7 @@ function log(...a) { console.log(new Date().toISOString(), ...a); }
 const DEFAULT_SETTINGS = {
   theme: { preset: 'wald', colors: null },
   muted: false, lead: 15, volume: 0.6, rainHours: [10, 12, 17],
-  visitor: false, officeStart: '06:00', officeEnd: '20:00',
+  visitor: false, officeStart: '06:00', officeEnd: '20:00', autoUpdate: 'sofort',
 };
 const DEFAULT_LOANS = [
   { id: 'l1', type: 'Notebooks', icon: 'laptop', avail: 0, total: 0 },
@@ -158,6 +158,7 @@ function sanitizeSettings(b) {
   if (Array.isArray(b.rainHours)) s.rainHours = [...new Set(b.rainHours.map(Number).filter(h => h >= 0 && h <= 23))].slice(0, 12);
   if (isTime(b.officeStart)) s.officeStart = b.officeStart;
   if (isTime(b.officeEnd)) s.officeEnd = b.officeEnd;
+  if ('autoUpdate' in b) s.autoUpdate = oneOf(b.autoUpdate, ['sofort', 'nachts', 'aus'], 'sofort');
   return s;
 }
 
@@ -288,7 +289,7 @@ async function fetchRepoFile(file) {
   if (!r.ok) throw new Error(r.status === 404 ? 'Update-Quelle nicht gefunden' : `Update-Quelle antwortet mit ${r.status}`);
   return Buffer.from(await r.arrayBuffer());
 }
-async function checkUpdate() {
+async function checkUpdate(auto = true) {
   if (!config.updateRepo && !config.updateUrl) return;
   try {
     const m = JSON.parse((await fetchRepoFile('manifest.json')).toString('utf8'));
@@ -304,10 +305,23 @@ async function checkUpdate() {
   }
   update.checked = Date.now();
   broadcast();
+  if (auto && update.available && !update.busy && autoUpdateAllowed()) {
+    log(`Installiere Version ${update.available} automatisch`);
+    installUpdate().catch(e => log('Automatisches Update fehlgeschlagen:', e.message));
+  }
+}
+// Automatisch installieren: sofort (nicht während einer gemeldeten Störung) oder nur außerhalb der Bürozeiten
+function autoUpdateAllowed() {
+  const mode = db.settings.autoUpdate || 'sofort';
+  if (mode === 'aus' || db.incident) return false;
+  if (mode === 'sofort') return true;
+  const d = new Date(), hm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  return d.getDay() === 0 || d.getDay() === 6 || hm < db.settings.officeStart || hm >= db.settings.officeEnd;
 }
 async function installUpdate() {
   if (update.busy) throw new Error('Update läuft bereits');
-  await checkUpdate();
+  update.busy = true;
+  try { await checkUpdate(false); } finally { update.busy = false; }
   const m = update.manifest;
   if (!update.available || !m) throw new Error('Keine neue Version vorhanden');
   update.busy = true; broadcast();
@@ -494,6 +508,8 @@ server.listen(config.port, () => {
   setTimeout(() => {
     const pending = readJson(path.join(DATA, 'update-pending'), null);
     if (!pending) return;
+    // Passt die gestartete Version nicht zur angekündigten, nicht endlos neu installieren
+    if (pending.to !== VERSION) fs.writeFileSync(path.join(DATA, 'update-failed'), pending.to);
     fs.writeFileSync(path.join(DATA, 'last-update.json'), JSON.stringify({ from: pending.from, version: VERSION, at: Date.now() }));
     try { fs.unlinkSync(path.join(DATA, 'update-pending')); } catch {}
     broadcast();
