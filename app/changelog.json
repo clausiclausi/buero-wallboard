@@ -4,10 +4,10 @@
     "date": "2026-10-27",
     "changes": [
       "Urlaub im Monatskalender: Kalender antippen, Personen mit Kürzel und Farbe anlegen, Urlaub oder Abwesenheit von–bis eintragen. Farbige Balken zeigen, wer an welchem Tag fehlt.",
-      "Übersicht unter dem Kalender: wer als Nächstes weg ist, „in X Tagen“ bzw. „bis …“, mit Anzahl Arbeitstagen (ohne Wochenenden und Feiertage).",
+      "Übersicht unter dem Kalender: wer als Nächstes weg ist, „in X Tagen“ bzw. „noch X Tage“, mit Anzahl Arbeitstagen (ohne Wochenenden und Feiertage).",
       "Warnung, wenn in den nächsten zwei Wochen an einem Arbeitstag nur noch eine Person im Büro ist.",
       "Im Kalender blättern mit ‹ ›, nach einer Minute springt er zurück auf heute.",
-      "Eintragen am Board nur mit Passwort, am Handy unter „Termine“. Im Besuchermodus sind Urlaube verwischt."
+      "Eintragen und Löschen am Board nur mit Passwort, am Handy unter „Termine“. Urlaube sind (nur als Kürzel) auch im Besuchermodus sichtbar."
     ]
   },
   {

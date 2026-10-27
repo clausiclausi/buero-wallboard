@@ -461,7 +461,7 @@ footer .sp { margin-left: auto; }
     <section class="card month" aria-label="Monatskalender">
       <h3><svg class="icon"><use href="#i-calendar"/></svg><span id="monthTitle"></span><span class="mnav"><button id="mPrev" title="Vorheriger Monat">‹</button><button id="mNext" title="Nächster Monat">›</button></span><span class="badge" id="monthKw"></span></h3>
       <div class="mgrid" id="mgrid"></div>
-      <div class="vac-list private" id="vacList"></div>
+      <div class="vac-list" id="vacList"></div>
       <div class="month-foot" id="monthFoot"></div>
     </section>
 
@@ -875,7 +875,7 @@ footer .sp { margin-left: auto; }
         if (h2 && !out) inMonth.push(`${d.getDate()}. ${h2}`);
         const abs = absentOn(dkey(d)).slice(0, 4);
         const cls = ['d', i >= 5 ? 'we' : '', out ? 'out' : '', h2 ? 'hol' : '', cw ? 'curw' : '', d.toDateString() === key ? 'today' : ''].join(' ');
-        const bars = abs.length ? `<span class="bars private">${abs.map(a => `<i style="background:${person(a.person).color}"></i>`).join('')}</span>` : '';
+        const bars = abs.length ? `<span class="bars">${abs.map(a => `<i style="background:${person(a.person).color}"></i>`).join('')}</span>` : '';
         html += `<div class="${cls}"${h2 ? ` title="${esc(h2)}"` : ''}>${d.getDate()}${bars}</div>`;
         d.setDate(d.getDate() + 1);
       }
@@ -896,7 +896,8 @@ footer .sp { margin-left: auto; }
     for (const a of upcoming.slice(0, MAX)) {
       const p = person(a.person), days = Math.round((parseD(a.from) - parseD(todayK)) / 864e5);
       const span = a.from === a.to ? fmtD(a.from) : `${fmtD(a.from)}–${fmtD(a.to)}`;
-      const when = a.from <= todayK ? `bis ${fmtD(a.to)}` : days === 1 ? 'morgen' : `in ${days} Tagen`;
+      const left = Math.round((parseD(a.to) - parseD(todayK)) / 864e5) + 1;
+      const when = a.from <= todayK ? (left === 1 ? 'letzter Tag' : `noch ${left} Tage`) : days === 1 ? 'morgen' : `in ${days} Tagen`;
       lines.push(`<div class="vl"><span class="chipc" style="background:${p.color}"></span><b>${esc(p.short)}</b><span>${a.kind === 'abwesend' ? 'Abwesend' : 'Urlaub'} ${span} · ${workdays(a.from, a.to)} AT</span><span class="when">${when}</span></div>`);
     }
     if (upcoming.length > MAX && MAX > 0) lines.push(`<div class="vl" style="color:var(--muted)">+ ${upcoming.length - MAX} weitere · antippen</div>`);
@@ -917,8 +918,6 @@ footer .sp { margin-left: auto; }
   const pwApi = (method, url, body) => new Promise((res, rej) => withPw(pw => api(method, url, body, { 'X-Wallboard-Passwort': encodeURIComponent(pw) }).then(res, rej)));
 
   $('.month').addEventListener('click', () => {
-    // Im Besuchermodus erst entsperren, dann öffnen
-    if (stage.classList.contains('visitor')) return unlockTemporarily(openVacation);
     openVacation();
   });
   function openVacation() {
@@ -1101,8 +1100,8 @@ footer .sp { margin-left: auto; }
   // Antippen eines verwischten Eintrags fragt das Passwort ab, statt ihn zu bearbeiten
   stage.addEventListener('click', (e) => {
     if (!stage.classList.contains('visitor')) return;
-    if (e.target.closest('.month .mnav')) return;
-    if (e.target.closest('.month')) { e.preventDefault(); e.stopPropagation(); return unlockTemporarily(openVacation); }
+    // Urlaube bleiben laut Absprache auch im Besuchermodus sichtbar (nur Kürzel)
+    if (e.target.closest('.month')) return;
     const hit = e.target.closest('.private, .task, .ev');
     if (!hit || !hit.querySelector('.private') && !hit.classList.contains('private')) return;
     e.preventDefault(); e.stopPropagation(); unlockTemporarily();
