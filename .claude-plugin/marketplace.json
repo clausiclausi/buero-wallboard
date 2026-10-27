@@ -1,0 +1,5 @@
+{
+  "name": "buero",
+  "owner": { "name": "Büro Hannover" },
+  "plugins": [{ "name": "wetterleiste", "source": "./claude-plugins/wetterleiste" }]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "wetterleiste",
+  "version": "0.1.0",
+  "description": "Leiste über der Eingabe: Wetter Hannover, Kontext-Auslastung, Verlauf, Auto-Compact, Uhrzeit",
+  "license": "MIT",
+  "types": "./types/index.d.ts"
+}
