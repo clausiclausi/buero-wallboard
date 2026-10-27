@@ -1,5 +1,14 @@
 [
   {
+    "version": "1.9.0",
+    "date": "2026-10-27",
+    "changes": [
+      "Neu: das AOK-Männchen. Die Buchstaben A, O und K sitzen auf einer Kachel und werden alle paar Minuten zu einer Figur, die zu einer anderen Kachel läuft, sich hinsetzt, winkt und wieder zu AOK wird.",
+      "Unter Einstellungen → AOK-Männchen wählbar: Strichmännchen, Kugel, Kätzchen, Lichtgeist oder Aus. Dazu Farbe der Figur, Farbe und Schriftart der Buchstaben, Größe und wie oft sie den Platz wechselt (Standard: zufällig alle 5 bis 15 Minuten).",
+      "Die Figur fängt keine Klicks ab, bleibt im Ruhemodus stehen und läuft nicht, solange ein Fenster offen ist."
+    ]
+  },
+  {
     "version": "1.8.0",
     "date": "2026-10-27",
     "changes": [

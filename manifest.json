@@ -1,19 +1,20 @@
 {
-  "version": "1.8.0",
-  "notes": "Neu: Gescannte Geräte per E-Mail. Auf der Handy-Seite unter Board → „Scans per E-Mail“ einstellbar: sofort, einmal täglich als Zusammenfassung oder aus. Bis zu 3 feste Empfänger, nur mit eurer Firmen-Endung. Optional mit Foto, die Tageszusammenfassung kommt mit Tabelle (CSV).",
+  "version": "1.9.0",
+  "notes": "Neu: das AOK-Männchen. Die Buchstaben A, O und K sitzen auf einer Kachel und werden alle paar Minuten zu einer Figur, die zu einer anderen Kachel läuft, sich hinsetzt, winkt und wieder zu AOK wird.",
   "changes": [
-    "Neu: Gescannte Geräte per E-Mail. Auf der Handy-Seite unter Board → „Scans per E-Mail“ einstellbar: sofort, einmal täglich als Zusammenfassung oder aus.",
-    "Bis zu 3 feste Empfänger, nur mit eurer Firmen-Endung. Optional mit Foto, die Tageszusammenfassung kommt mit Tabelle (CSV).",
-    "Einrichten nur im Büro-WLAN und mit Board-Passwort, inklusive Testmail-Knopf. Jeder Scan in der Liste hat außerdem einen ✉-Knopf zum Nachsenden."
+    "Neu: das AOK-Männchen. Die Buchstaben A, O und K sitzen auf einer Kachel und werden alle paar Minuten zu einer Figur, die zu einer anderen Kachel läuft, sich hinsetzt, winkt und wieder zu AOK wird.",
+    "Unter Einstellungen → AOK-Männchen wählbar: Strichmännchen, Kugel, Kätzchen, Lichtgeist oder Aus. Dazu Farbe der Figur, Farbe und Schriftart der Buchstaben, Größe und wie oft sie den Platz wechselt (Standard: zufällig alle 5 bis 15 Minuten).",
+    "Die Figur fängt keine Klicks ab, bleibt im Ruhemodus stehen und läuft nicht, solange ein Fenster offen ist."
   ],
   "files": {
-    "changelog.json": "ecf6adc796598d9c42c65332b456f8ea0331a01e0c9820a6c16c397e925cd1e8",
+    "changelog.json": "d97cd7d5192dd83a17f68d37d421975b77e9f0ffeb73be0f5287e3e98e58f6b6",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
     "mail.js": "29f1923f00a57552c5d04234ae9505a7c2ba313ae7b534ddfd9683dd18bc9025",
-    "public/board.html": "82ecda6f2f2316ef8d16d913dbd7b9e6eff452db8e0451627da24d7c87dddf18",
+    "public/board.html": "eea5183009df8b2703491809fd12d8aa73fe43c852b7ecf206d4f95bdf5bd1fc",
     "public/m.html": "e9d5c145986447fdda6d3938a971cb87cb2a6b2d010a537e435400b2a7e6dc66",
-    "server.js": "f140a968ad0c2427a44b382ee61b682231aef153e69ed97694036165f0d85835",
+    "public/mascot.js": "2401eb1f001a27586e3674fea033b57115414b922a1342595aa819e649aa0295",
+    "server.js": "29634f5b2e1695bbe3eb0152af6033bcef515633fab49f75dcf1c2425a5f1c77",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "b8c7945656998ab9007f74df78a343439cf7255ce29dbe41536f098f6abfbea4"
+    "version.json": "dbb4526b7ddac5946748db561d6bfc2c08f8e8bb69316bae22cfb1b80cb1817a"
   }
 }
