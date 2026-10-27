@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.7.0",
+    "date": "2026-10-27",
+    "changes": [
+      "Vier neue Designs unter Einstellungen → Design: Glas (im Stil von Apple), Neon (futuristisch), Klar (modern und ruhig) und Fluid (weich fließend). Standard bleibt eingestellt.",
+      "Die neuen Designs bewegen sich: Tasten reagieren beim Antippen, Fenster öffnen und schließen weich, Kacheln erscheinen beim Start nacheinander.",
+      "Farben bleiben frei einstellbar. Neu sind die Farb-Setups Weiß und Schwarz Cyan, und jedes Design schlägt passende Farben vor.",
+      "Im Ruhemodus stehen alle Animationen still."
+    ]
+  },
+  {
     "version": "1.6.0",
     "date": "2026-10-27",
     "changes": [

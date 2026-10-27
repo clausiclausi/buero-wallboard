@@ -1,18 +1,19 @@
 {
-  "version": "1.6.0",
-  "notes": "Zugriff von unterwegs: Auf der Handy-Seite unter „Board“ lässt sich ein Fernzugang einschalten. Danach ist die Handy-Seite unter einer festen Adresse erreichbar, ohne eigene Domain.",
+  "version": "1.7.0",
+  "notes": "Vier neue Designs unter Einstellungen → Design: Glas (im Stil von Apple), Neon (futuristisch), Klar (modern und ruhig) und Fluid (weich fließend). Standard bleibt eingestellt.",
   "changes": [
-    "Zugriff von unterwegs: Auf der Handy-Seite unter „Board“ lässt sich ein Fernzugang einschalten. Danach ist die Handy-Seite unter einer festen Adresse erreichbar, ohne eigene Domain.",
-    "Von außen braucht jeder die PIN. Nach 30 Fehlversuchen in einer Stunde ist die Anmeldung von außen eine Stunde gesperrt.",
-    "Einrichten und Ausschalten geht nur im Büro-WLAN."
+    "Vier neue Designs unter Einstellungen → Design: Glas (im Stil von Apple), Neon (futuristisch), Klar (modern und ruhig) und Fluid (weich fließend). Standard bleibt eingestellt.",
+    "Die neuen Designs bewegen sich: Tasten reagieren beim Antippen, Fenster öffnen und schließen weich, Kacheln erscheinen beim Start nacheinander.",
+    "Farben bleiben frei einstellbar. Neu sind die Farb-Setups Weiß und Schwarz Cyan, und jedes Design schlägt passende Farben vor.",
+    "Im Ruhemodus stehen alle Animationen still."
   ],
   "files": {
-    "changelog.json": "fc7e517345d68523ca18ad378b9ab89e88eddb7184d29f609e71668f9bb140ec",
+    "changelog.json": "9ac286cfb5447d385891fc42374ca11492c0cacb5d15e81f289ab0704013e9f2",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
-    "public/board.html": "ab561f2c5e410e1c458da16845dc964c9357918cc4e30f83426b6600435a4dce",
+    "public/board.html": "82ecda6f2f2316ef8d16d913dbd7b9e6eff452db8e0451627da24d7c87dddf18",
     "public/m.html": "44432e90fdb28a75c15ae622592a7d48239e6f77a56a5a723e8551405ef26f57",
-    "server.js": "2060031ed3b50f8c6df78891ea1b0b820b2323a8cd113292c0b726fa09ce523c",
+    "server.js": "fbee3ecb7d8c89ded8d4963513285ed553baac51e13c5a2c8f5692510600ed25",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "c5300642cfa1adb8d1d4d67517165b04e355115206115e493fa520f618a0d09d"
+    "version.json": "75fef277a4c0135ccef512d8a708d5a7611586137c54d0594b4690ffbe0a860b"
   }
 }

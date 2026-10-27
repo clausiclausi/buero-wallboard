@@ -37,7 +37,7 @@ function log(...a) { console.log(new Date().toISOString(), ...a); }
 const DEFAULT_SETTINGS = {
   theme: { preset: 'wald', colors: null },
   muted: false, lead: 15, volume: 0.6, rainHours: [10, 12, 17],
-  visitor: false, officeStart: '06:00', officeEnd: '20:00', autoUpdate: 'sofort',
+  visitor: false, officeStart: '06:00', officeEnd: '20:00', autoUpdate: 'sofort', skin: 'standard',
 };
 const DEFAULT_LOANS = [
   { id: 'l1', type: 'Notebooks', icon: 'laptop', avail: 0, total: 0 },
@@ -159,6 +159,7 @@ function sanitizeSettings(b) {
   if (Array.isArray(b.rainHours)) s.rainHours = [...new Set(b.rainHours.map(Number).filter(h => h >= 0 && h <= 23))].slice(0, 12);
   if (isTime(b.officeStart)) s.officeStart = b.officeStart;
   if (isTime(b.officeEnd)) s.officeEnd = b.officeEnd;
+  if ('skin' in b) s.skin = oneOf(b.skin, ['standard', 'glas', 'neon', 'klar', 'fluid'], 'standard');
   if ('autoUpdate' in b) s.autoUpdate = oneOf(b.autoUpdate, ['sofort', 'nachts', 'aus'], 'sofort');
   return s;
 }
