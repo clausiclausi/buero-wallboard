@@ -1,5 +1,14 @@
 [
   {
+    "version": "1.10.0",
+    "date": "2026-10-27",
+    "changes": [
+      "AOK-Männchen mit Charakter (Einstellungen → AOK-Männchen → Charakter): Lieb winkt, putzt die Kachelkante, schläft eine Runde, klettert an Kacheln hoch und freut sich, wenn eine Aufgabe abgehakt wird.",
+      "Frech tritt gegen Kacheln, hüpft darauf herum, bis sie wackeln, schneidet Grimassen und tritt einen Buchstaben aus einer Überschrift weg, holt ihn zurück und setzt ihn wieder ein. Gemischt wechselt zufällig.",
+      "Test-Knöpfe für jede Aktion in den Einstellungen. Bei einer Störung bleibt die Figur ruhig, im Besuchermodus ist sie immer lieb. Kacheln springen immer sofort in ihre Lage zurück."
+    ]
+  },
+  {
     "version": "1.9.0",
     "date": "2026-10-27",
     "changes": [

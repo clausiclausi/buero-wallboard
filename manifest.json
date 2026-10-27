@@ -1,20 +1,20 @@
 {
-  "version": "1.9.0",
-  "notes": "Neu: das AOK-Männchen. Die Buchstaben A, O und K sitzen auf einer Kachel und werden alle paar Minuten zu einer Figur, die zu einer anderen Kachel läuft, sich hinsetzt, winkt und wieder zu AOK wird.",
+  "version": "1.10.0",
+  "notes": "AOK-Männchen mit Charakter (Einstellungen → AOK-Männchen → Charakter): Lieb winkt, putzt die Kachelkante, schläft eine Runde, klettert an Kacheln hoch und freut sich, wenn eine Aufgabe abgehakt wird.",
   "changes": [
-    "Neu: das AOK-Männchen. Die Buchstaben A, O und K sitzen auf einer Kachel und werden alle paar Minuten zu einer Figur, die zu einer anderen Kachel läuft, sich hinsetzt, winkt und wieder zu AOK wird.",
-    "Unter Einstellungen → AOK-Männchen wählbar: Strichmännchen, Kugel, Kätzchen, Lichtgeist oder Aus. Dazu Farbe der Figur, Farbe und Schriftart der Buchstaben, Größe und wie oft sie den Platz wechselt (Standard: zufällig alle 5 bis 15 Minuten).",
-    "Die Figur fängt keine Klicks ab, bleibt im Ruhemodus stehen und läuft nicht, solange ein Fenster offen ist."
+    "AOK-Männchen mit Charakter (Einstellungen → AOK-Männchen → Charakter): Lieb winkt, putzt die Kachelkante, schläft eine Runde, klettert an Kacheln hoch und freut sich, wenn eine Aufgabe abgehakt wird.",
+    "Frech tritt gegen Kacheln, hüpft darauf herum, bis sie wackeln, schneidet Grimassen und tritt einen Buchstaben aus einer Überschrift weg, holt ihn zurück und setzt ihn wieder ein. Gemischt wechselt zufällig.",
+    "Test-Knöpfe für jede Aktion in den Einstellungen. Bei einer Störung bleibt die Figur ruhig, im Besuchermodus ist sie immer lieb. Kacheln springen immer sofort in ihre Lage zurück."
   ],
   "files": {
-    "changelog.json": "d97cd7d5192dd83a17f68d37d421975b77e9f0ffeb73be0f5287e3e98e58f6b6",
+    "changelog.json": "3e3022c949f8402e3efff41500fd2a370c0a73773aa94fcaab1d6e45dcf86109",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
     "mail.js": "29f1923f00a57552c5d04234ae9505a7c2ba313ae7b534ddfd9683dd18bc9025",
-    "public/board.html": "eea5183009df8b2703491809fd12d8aa73fe43c852b7ecf206d4f95bdf5bd1fc",
+    "public/board.html": "ee34a45c499973dbc135615d5725fd47f05c8d11b4bb0f8cb317355a91f89c1e",
     "public/m.html": "e9d5c145986447fdda6d3938a971cb87cb2a6b2d010a537e435400b2a7e6dc66",
-    "public/mascot.js": "2401eb1f001a27586e3674fea033b57115414b922a1342595aa819e649aa0295",
-    "server.js": "29634f5b2e1695bbe3eb0152af6033bcef515633fab49f75dcf1c2425a5f1c77",
+    "public/mascot.js": "696ce4c50da90969ff8495a858dbea5c46c7aef0d6a00b0efe2b0fdc22611936",
+    "server.js": "302348f5a2315ba20e7d0428618b50250fe082d20696f3bacd659c5f2d99f673",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "dbb4526b7ddac5946748db561d6bfc2c08f8e8bb69316bae22cfb1b80cb1817a"
+    "version.json": "a573cc2f1c6f5c16d02985f2c3fa4cae330a939f0fe9f3f59f1a5e0133058e63"
   }
 }

@@ -1442,9 +1442,13 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <p class="hint" style="margin:14px 0 8px">Farbe der Buchstaben</p>${swatches(m.text, 'text', true)}
         <p class="hint" style="margin:14px 0 8px">Schriftart der Buchstaben</p>
         <div class="mas-font">${Object.entries(M.FONTS).map(([k, f]) => `<button data-font="${k}" aria-pressed="${m.font === k}"><b style="${f.css ? `font-family:${f.css};font-weight:700` : 'font-family:var(--font-mono);font-weight:500'}">AOK</b><small>${f.name.replace(' (wie die Figur)', '')}</small></button>`).join('')}</div>
+        <div class="field" style="margin-top:14px">Charakter <div class="seg" id="mMood">${Object.entries(M.MOODS).map(([v, l]) => `<button data-mood="${v}" aria-pressed="${(m.mood || 'lieb') === v}">${l}</button>`).join('')}</div></div>
+        <p class="hint">Lieb: winkt, putzt, schläft, klettert und freut sich über erledigte Aufgaben. Frech: tritt gegen Kacheln, hüpft darauf herum, schneidet Grimassen und tritt Buchstaben weg, die er wieder einsetzt. Bei einer Störung bleibt die Figur ruhig, im Besuchermodus ist sie immer lieb.</p>
         <label class="field" style="margin-top:14px">Platz wechseln <select id="mEvery">${[['zufall', 'zufällig alle 5 bis 15 Minuten'], ['5', 'alle 5 Minuten'], ['10', 'alle 10 Minuten'], ['15', 'alle 15 Minuten'], ['30', 'alle 30 Minuten'], ['60', 'jede Stunde']].map(([v, l]) => `<option value="${v}" ${String(m.every) === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <div class="field">Größe <div class="seg" id="mSize">${[['klein', 'Klein'], ['mittel', 'Mittel'], ['gross', 'Groß']].map(([v, l]) => `<button data-size="${v}" aria-pressed="${m.size === v}">${l}</button>`).join('')}</div></div>
         <div class="row" style="margin-top:10px"><button class="btn" id="mGo">Jetzt einmal laufen lassen</button></div>
+        <p class="hint" style="margin:14px 0 8px">Test-Ablauf starten</p>
+        <div class="chips" id="mTests">${Object.entries(M.ACTS).map(([v, a]) => `<button type="button" data-test="${v}">${a.name}</button>`).join('')}</div>
         <p class="hint" style="margin-top:8px">Die Figur läuft nur über die Kachelkanten und fängt keine Klicks ab. Im Ruhemodus bleibt sie stehen.</p>`}`;
       box.querySelectorAll('[data-fig]').forEach(b => b.onclick = () => put({ fig: b.dataset.fig }));
       box.querySelectorAll('.mas-sw').forEach(row => {
@@ -1454,6 +1458,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       });
       box.querySelectorAll('[data-font]').forEach(b => b.onclick = () => put({ font: b.dataset.font }));
       box.querySelectorAll('[data-size]').forEach(b => b.onclick = () => put({ size: b.dataset.size }));
+      box.querySelectorAll('[data-mood]').forEach(b => b.onclick = () => put({ mood: b.dataset.mood }));
+      box.querySelectorAll('[data-test]').forEach(b => b.onclick = () => { close(); setTimeout(() => mascot?.test(b.dataset.test), 400); });
       const ev = box.querySelector('#mEvery'); if (ev) ev.onchange = () => put({ every: ev.value });
       const go = box.querySelector('#mGo'); if (go) go.onclick = () => { close(); setTimeout(() => mascot?.go(), 400); };
     };
@@ -1605,6 +1611,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     const es = new EventSource('/api/stream');
     es.onopen = () => { connected = true; };
     let bootVersion = null;
+    let doneCount = 0;
     es.onmessage = (e) => {
       S = JSON.parse(e.data); lastData = Date.now(); connected = true;
       if (bootVersion && S.version && S.version !== bootVersion) return location.reload();
@@ -1612,6 +1619,11 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       const first = !booted; booted = true;
       renderAll(); checkReminders();
       if (first && skin() === shownSkin) intro();
+      // AOK-Männchen: ruhig bei Störung, lieb im Besuchermodus, freut sich über abgehakte Aufgaben
+      const doneNow = (S.tasks || []).filter(t => t.done).length;
+      mascot?.context({ incident: !!S.incident, visitor: !!S.settings?.visitor });
+      if (!first && doneNow > doneCount) mascot?.cheer();
+      doneCount = doneNow;
     };
     es.addEventListener('restart', () => showUpdating('Neue Version wird gestartet …'));
     es.onerror = () => { connected = false; };
