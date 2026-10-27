@@ -1,5 +1,14 @@
 [
   {
+    "version": "1.8.0",
+    "date": "2026-10-27",
+    "changes": [
+      "Neu: Gescannte Geräte per E-Mail. Auf der Handy-Seite unter Board → „Scans per E-Mail“ einstellbar: sofort, einmal täglich als Zusammenfassung oder aus.",
+      "Bis zu 3 feste Empfänger, nur mit eurer Firmen-Endung. Optional mit Foto, die Tageszusammenfassung kommt mit Tabelle (CSV).",
+      "Einrichten nur im Büro-WLAN und mit Board-Passwort, inklusive Testmail-Knopf. Jeder Scan in der Liste hat außerdem einen ✉-Knopf zum Nachsenden."
+    ]
+  },
+  {
     "version": "1.7.0",
     "date": "2026-10-27",
     "changes": [

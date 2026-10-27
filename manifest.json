@@ -1,19 +1,19 @@
 {
-  "version": "1.7.0",
-  "notes": "Vier neue Designs unter Einstellungen → Design: Glas (im Stil von Apple), Neon (futuristisch), Klar (modern und ruhig) und Fluid (weich fließend). Standard bleibt eingestellt.",
+  "version": "1.8.0",
+  "notes": "Neu: Gescannte Geräte per E-Mail. Auf der Handy-Seite unter Board → „Scans per E-Mail“ einstellbar: sofort, einmal täglich als Zusammenfassung oder aus. Bis zu 3 feste Empfänger, nur mit eurer Firmen-Endung. Optional mit Foto, die Tageszusammenfassung kommt mit Tabelle (CSV).",
   "changes": [
-    "Vier neue Designs unter Einstellungen → Design: Glas (im Stil von Apple), Neon (futuristisch), Klar (modern und ruhig) und Fluid (weich fließend). Standard bleibt eingestellt.",
-    "Die neuen Designs bewegen sich: Tasten reagieren beim Antippen, Fenster öffnen und schließen weich, Kacheln erscheinen beim Start nacheinander.",
-    "Farben bleiben frei einstellbar. Neu sind die Farb-Setups Weiß und Schwarz Cyan, und jedes Design schlägt passende Farben vor.",
-    "Im Ruhemodus stehen alle Animationen still."
+    "Neu: Gescannte Geräte per E-Mail. Auf der Handy-Seite unter Board → „Scans per E-Mail“ einstellbar: sofort, einmal täglich als Zusammenfassung oder aus.",
+    "Bis zu 3 feste Empfänger, nur mit eurer Firmen-Endung. Optional mit Foto, die Tageszusammenfassung kommt mit Tabelle (CSV).",
+    "Einrichten nur im Büro-WLAN und mit Board-Passwort, inklusive Testmail-Knopf. Jeder Scan in der Liste hat außerdem einen ✉-Knopf zum Nachsenden."
   ],
   "files": {
-    "changelog.json": "9ac286cfb5447d385891fc42374ca11492c0cacb5d15e81f289ab0704013e9f2",
+    "changelog.json": "ecf6adc796598d9c42c65332b456f8ea0331a01e0c9820a6c16c397e925cd1e8",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
+    "mail.js": "29f1923f00a57552c5d04234ae9505a7c2ba313ae7b534ddfd9683dd18bc9025",
     "public/board.html": "82ecda6f2f2316ef8d16d913dbd7b9e6eff452db8e0451627da24d7c87dddf18",
-    "public/m.html": "44432e90fdb28a75c15ae622592a7d48239e6f77a56a5a723e8551405ef26f57",
-    "server.js": "fbee3ecb7d8c89ded8d4963513285ed553baac51e13c5a2c8f5692510600ed25",
+    "public/m.html": "e9d5c145986447fdda6d3938a971cb87cb2a6b2d010a537e435400b2a7e6dc66",
+    "server.js": "f140a968ad0c2427a44b382ee61b682231aef153e69ed97694036165f0d85835",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "75fef277a4c0135ccef512d8a708d5a7611586137c54d0594b4690ffbe0a860b"
+    "version.json": "b8c7945656998ab9007f74df78a343439cf7255ce29dbe41536f098f6abfbea4"
   }
 }

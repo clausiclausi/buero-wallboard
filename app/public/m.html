@@ -182,6 +182,32 @@ nav button[aria-current="page"] { color: var(--text); }
       </div>
       <div class="row" id="tunBtns"><button class="btn" id="tunRetry">Nochmal versuchen</button><button class="btn danger" id="tunOff">Fernzugang ausschalten</button></div>
     </div>
+    <h2>Scans per E-Mail</h2>
+    <div class="card" id="mailCard">
+      <div class="inc" id="mailNow"></div>
+      <p class="hint" id="mailErr" hidden></p>
+      <label class="f">Versand</label>
+      <div class="seg" id="mMode"><button type="button" data-v="sofort">Sofort bei jedem Scan</button><button type="button" data-v="taeglich">Einmal am Tag</button><button type="button" data-v="aus">Aus</button></div>
+      <label class="f" id="mTimeRow">Uhrzeit der Tagesmail <input type="time" id="mTime" value="16:00"></label>
+      <label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="mPhoto" style="width:auto"> Foto anhängen</label>
+      <details id="mSetup">
+        <summary style="font-weight:700;cursor:pointer;padding:6px 0">Konto und Empfänger</summary>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-top:10px">
+          <label class="f">Absender (Gmail-Adresse des Boards) <input type="email" id="mFrom" autocomplete="off" placeholder="z. B. buero.wallboard@gmail.com"></label>
+          <label class="f">App-Passwort von Google <input type="password" id="mPass" autocomplete="new-password" placeholder="16 Zeichen"></label>
+          <label class="f">Empfänger (bis zu 3)
+            <input type="email" id="mR0" autocomplete="off" placeholder="name@eure-firma.de">
+            <input type="email" id="mR1" autocomplete="off">
+            <input type="email" id="mR2" autocomplete="off">
+          </label>
+          <label class="f">Nur an diese Firmen-Endung senden <input type="text" id="mDomain" autocomplete="off" placeholder="@eure-firma.de"></label>
+          <label class="f">Board-Passwort (zum Speichern nötig) <input type="password" id="mPw" autocomplete="off"></label>
+          <p class="hint">Zugangsdaten bleiben auf dem Notebook und werden hier nie wieder angezeigt. Nicht per Chat oder Mail verschicken.</p>
+          <button class="btn primary" type="button" id="mSave">Konto und Empfänger speichern</button>
+        </div>
+      </details>
+      <button class="btn" type="button" id="mTest">Testmail senden</button>
+    </div>
     <h2>Störung</h2>
     <div id="incNow"></div>
     <h2>Melden oder ändern</h2>
@@ -397,8 +423,10 @@ nav button[aria-current="page"] { color: var(--text); }
           <small>${s.serial ? 'SN ' + esc(s.serial) + ' · ' : ''}${s.condition ? esc(s.condition) + ' · ' : ''}${esc(s.location || 'kein Ablageort')}</small>
           ${s.note ? `<small>${esc(s.note)}</small>` : ''}
           <small>${new Date(s.created).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })} · <span class="badge ${s.done ? 'ok' : 'open'}">${s.done ? 'in Liste' : 'offen'}</span></small></div>
-        <button class="icon-btn" title="${s.done ? 'Wieder öffnen' : 'In Liste übernehmen'}">✓</button><button class="icon-btn" title="Löschen">✕</button>`;
-      const [d, x] = n.querySelectorAll('button');
+        ${M?.ready ? '<button class="icon-btn" data-mail title="Per Mail senden">✉</button>' : ''}<button class="icon-btn" title="${s.done ? 'Wieder öffnen' : 'In Liste übernehmen'}">✓</button><button class="icon-btn" title="Löschen">✕</button>`;
+      const mb = n.querySelector('[data-mail]');
+      if (mb) mb.onclick = () => { mb.disabled = true; run(api('POST', `/api/scans/${s.id}/mail`), 'Per Mail gesendet').finally(() => { mb.disabled = false; loadMail(); }); };
+      const [d, x] = n.querySelectorAll('button:not([data-mail])');
       d.onclick = () => run(api('PATCH', `/api/scans/${s.id}`, { done: !s.done }));
       x.onclick = () => { if (x.dataset.sure) run(api('DELETE', `/api/scans/${s.id}`), 'Gelöscht'); else { x.dataset.sure = 1; x.textContent = '?'; toast('Zum Löschen nochmal tippen'); setTimeout(() => { delete x.dataset.sure; x.textContent = '✕'; }, 3000); } };
       el.append(n);
@@ -454,6 +482,41 @@ nav button[aria-current="page"] { color: var(--text); }
   $('#tunRetry').onclick = () => run(api('POST', '/api/tunnel', { token: '' }), 'Wird erneut versucht');
   $('#tunOff').onclick = () => { if (confirm('Fernzugang ausschalten? Danach ist das Board nur noch im Büro-WLAN erreichbar.')) run(api('DELETE', '/api/tunnel'), 'Fernzugang ausgeschaltet'); };
 
+  /* ---------- Scans per E-Mail ---------- */
+  let M = null;
+  const loadMail = () => api('GET', '/api/mail').then(v => { M = v; renderMail(); }).catch(() => {});
+  function renderMail() {
+    if (!M) return;
+    const el = $('#mailNow');
+    const n = M.recipients.length;
+    if (!M.ready) { el.className = 'inc'; el.textContent = 'Noch nicht eingerichtet'; }
+    else if (M.mode === 'aus') { el.className = 'inc'; el.textContent = 'Aus'; }
+    else { el.className = 'inc none'; el.textContent = `Aktiv: ${M.mode === 'sofort' ? 'bei jedem Scan' : 'täglich um ' + M.dailyTime + ' Uhr'} an ${n} ${n === 1 ? 'Empfänger' : 'Empfänger'}`; }
+    $('#mailErr').hidden = !M.lastError; $('#mailErr').textContent = M.lastError ? 'Letzter Fehler: ' + M.lastError : '';
+    document.querySelectorAll('#mMode button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === M.mode));
+    $('#mTimeRow').hidden = M.mode !== 'taeglich';
+    if (document.activeElement !== $('#mTime')) $('#mTime').value = M.dailyTime;
+    $('#mPhoto').checked = M.photo;
+    if (!$('#mSetup').open) {
+      $('#mFrom').value = M.from; $('#mDomain').value = M.domain;
+      [0, 1, 2].forEach(i => $('#mR' + i).value = M.recipients[i] || '');
+      $('#mPass').placeholder = M.hasPass ? 'gespeichert (nur zum Ändern ausfüllen)' : '16 Zeichen';
+    }
+    $('#mSetup').open = $('#mSetup').open || !M.ready;
+    renderScans();
+  }
+  const putMail = (b, ok) => run(api('PUT', '/api/mail', b).then(v => { M = v; renderMail(); }), ok);
+  document.querySelectorAll('#mMode button').forEach(b => b.onclick = () => putMail({ mode: b.dataset.v }, 'Gespeichert'));
+  $('#mTime').onchange = () => putMail({ dailyTime: $('#mTime').value }, 'Gespeichert');
+  $('#mPhoto').onchange = () => putMail({ photo: $('#mPhoto').checked }, 'Gespeichert');
+  $('#mSave').onclick = () => {
+    const b = { from: $('#mFrom').value.trim(), recipients: [0, 1, 2].map(i => $('#mR' + i).value.trim()).filter(Boolean), domain: $('#mDomain').value.trim(), password: $('#mPw').value };
+    if ($('#mPass').value.trim()) b.pass = $('#mPass').value;
+    $('#mSave').disabled = true;
+    run(api('PUT', '/api/mail', b).then(v => { M = v; $('#mPass').value = ''; $('#mPw').value = ''; $('#mSetup').open = false; renderMail(); }), 'Gespeichert').finally(() => $('#mSave').disabled = false);
+  };
+  $('#mTest').onclick = () => { $('#mTest').disabled = true; run(api('POST', '/api/mail/test').finally(loadMail), 'Testmail ist raus. Bitte im Postfach nachsehen.').finally(() => $('#mTest').disabled = false); };
+
   /* ---------- Urlaub & Abwesenheit ---------- */
   const PALETTE = ['#5EA8FF', '#FF8A65', '#C792EA', '#4DD0E1', '#F06292', '#AED581', '#FFB74D', '#90A4AE', '#E57373', '#7986CB'];
   const fmtD = (k) => { const [y, m, d] = k.split('-'); return `${+d}.${+m}.`; };
@@ -502,6 +565,7 @@ nav button[aria-current="page"] { color: var(--text); }
     let tab = 'scan'; try { tab = sessionStorage.getItem('tab') || 'scan'; } catch {}
     go(tab);
     if (es) es.close();
+    loadMail();
     es = new EventSource('/api/stream?full=1');
     es.onmessage = (e) => { S = JSON.parse(e.data); renderAll(); };
   }

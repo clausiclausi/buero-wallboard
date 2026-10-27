@@ -236,6 +236,7 @@ function broadcast() {
 
 /* ---------- Anzeige am Notebook (minimieren, schließen) ---------- */
 const display = require('./display')({ ROOT, DATA, config, log, broadcast: () => broadcast(), officeStart: () => db.settings.officeStart });
+const mail = require('./mail')({ DATA, PHOTOS, config, log, getScans: () => db.scans, csv });
 const tunnel = require('./tunnel')({ ROOT, config, log, broadcast: () => broadcast() });
 
 /* ---------- Wetter vom DWD über Bright Sky ---------- */
@@ -449,6 +450,24 @@ const server = http.createServer(async (req, res) => {
       try { return send(res, 200, display.set(String(b.mode), b.minutes)); }
       catch (e) { return send(res, 400, { error: e.message }); }
     }
+    if (p === '/api/mail') {
+      if (req.method === 'GET') return send(res, 200, mail.view());
+      if (req.method === 'PUT') {
+        if (viaProxy(req)) return send(res, 403, { error: 'Nur im Büro-WLAN möglich' });
+        const b = await readBody(req, 4000);
+        // Konto und Empfänger nur mit dem Board-Passwort ändern
+        if (['from', 'pass', 'clearPass', 'recipients', 'domain'].some(k => k in b) && !checkPw(String(b.password ?? ''))) return send(res, 403, { error: 'Passwort stimmt nicht' });
+        try { return send(res, 200, mail.update(b)); } catch (e) { return send(res, 400, { error: e.message }); }
+      }
+    }
+    if (req.method === 'POST' && p === '/api/mail/test') {
+      try { await mail.sendTest(); return send(res, 200, { ok: true }); } catch (e) { return send(res, 502, { error: e.message }); }
+    }
+    if (req.method === 'POST' && (m = p.match(/^\/api\/scans\/([a-z0-9]{1,16})\/mail$/))) {
+      const s = db.scans.find(x => x.id === m[1]);
+      if (!s) return send(res, 404, { error: 'Nicht gefunden' });
+      try { await mail.sendScan(s); return send(res, 200, { ok: true }); } catch (e) { return send(res, 502, { error: e.message }); }
+    }
     if (p === '/api/tunnel') {
       if (req.method === 'GET') { await tunnel.refresh(); return send(res, 200, tunnel.status()); }
       // Einrichten und Entfernen nur im Büro-WLAN, nicht über den Tunnel selbst
@@ -505,6 +524,7 @@ const server = http.createServer(async (req, res) => {
           if (pm) { item.photo = `${item.id}.${pm[1] === 'jpeg' ? 'jpg' : pm[1]}`; fs.writeFileSync(path.join(PHOTOS, item.photo), Buffer.from(pm[2], 'base64')); }
         }
         db[coll].push(item); save();
+        if (coll === 'scans') mail.onScan(item);
         return send(res, 201, item);
       }
       const item = db[coll].find(x => x.id === id);
