@@ -187,7 +187,16 @@ function mobileUrl() {
 /* ---------- Zugang ---------- */
 const sessions = new Map(Object.entries(readJson(path.join(DATA, 'sessions.json'), {})));
 const attempts = new Map();
-function isLocal(req) { const a = req.socket.remoteAddress || ''; return a === '127.0.0.1' || a === '::1' || a === '::ffff:127.0.0.1'; }
+const LOOPBACK = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
+// Anfragen über den Cloudflare-Tunnel kommen ebenfalls von localhost, gelten aber als Zugriff von außen
+const PROXY_HEADERS = ['cf-connecting-ip', 'cf-ray', 'cf-access-jwt-assertion', 'x-forwarded-for', 'forwarded'];
+function viaProxy(req) { return PROXY_HEADERS.some(h => h in req.headers); }
+function isLocal(req) { return LOOPBACK.includes(req.socket.remoteAddress || '') && !viaProxy(req); }
+function clientIp(req) {
+  const a = req.socket.remoteAddress || '';
+  if (LOOPBACK.includes(a) && req.headers['cf-connecting-ip']) return 'cf:' + String(req.headers['cf-connecting-ip']).slice(0, 64);
+  return a;
+}
 function cookies(req) { return Object.fromEntries((req.headers.cookie || '').split(';').map(c => c.trim().split('=')).filter(p => p[0])); }
 function authed(req) {
   if (isLocal(req)) return true;
@@ -195,7 +204,7 @@ function authed(req) {
   return !!t && sessions.has(t);
 }
 function login(req, res, body) {
-  const ip = req.socket.remoteAddress;
+  const ip = clientIp(req);
   const a = attempts.get(ip) || { n: 0, t: Date.now() };
   if (Date.now() - a.t > 60000) { a.n = 0; a.t = Date.now(); }
   if (a.n >= 5) return send(res, 429, { error: 'Zu viele Versuche. Bitte eine Minute warten.' });
@@ -429,7 +438,7 @@ const server = http.createServer(async (req, res) => {
       catch (e) { return send(res, 400, { error: e.message }); }
     }
     if (req.method === 'POST' && p === '/api/unlock') {
-      const b = await readBody(req, 1000), ip = 'unlock:' + req.socket.remoteAddress;
+      const b = await readBody(req, 1000), ip = 'unlock:' + clientIp(req);
       const a = attempts.get(ip) || { n: 0, t: Date.now() };
       if (Date.now() - a.t > 60000) { a.n = 0; a.t = Date.now(); }
       if (a.n >= 5) return send(res, 429, { error: 'Zu viele Versuche. Bitte eine Minute warten.' });

@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.5.1",
+    "date": "2026-10-27",
+    "changes": [
+      "Vorbereitung für den Zugriff von unterwegs: Wer über den gesicherten Fernzugang kommt, braucht immer die PIN, auch wenn die Verbindung über das Notebook selbst läuft.",
+      "Fehlversuche bei PIN und Passwort werden pro Gerät gezählt, auch beim Zugriff von außen."
+    ]
+  },
+  {
     "version": "1.5.0",
     "date": "2026-10-27",
     "changes": [

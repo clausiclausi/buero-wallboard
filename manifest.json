@@ -1,17 +1,16 @@
 {
-  "version": "1.5.0",
-  "notes": "Updates kommen ab jetzt von selbst: Das Board installiert neue Versionen automatisch, ohne dass jemand tippen muss. Während einer gemeldeten Störung wartet es. Einstellbar unter Einstellungen > Updates: automatisch sofort, automatisch außerhalb der Bürozeiten oder nur per Knopf.",
+  "version": "1.5.1",
+  "notes": "Vorbereitung für den Zugriff von unterwegs: Wer über den gesicherten Fernzugang kommt, braucht immer die PIN, auch wenn die Verbindung über das Notebook selbst läuft. Fehlversuche bei PIN und Passwort werden pro Gerät gezählt, auch beim Zugriff von außen.",
   "changes": [
-    "Updates kommen ab jetzt von selbst: Das Board installiert neue Versionen automatisch, ohne dass jemand tippen muss. Während einer gemeldeten Störung wartet es.",
-    "Einstellbar unter Einstellungen > Updates: automatisch sofort, automatisch außerhalb der Bürozeiten oder nur per Knopf.",
-    "Startet eine neue Version nicht, kommt wie bisher automatisch die alte zurück."
+    "Vorbereitung für den Zugriff von unterwegs: Wer über den gesicherten Fernzugang kommt, braucht immer die PIN, auch wenn die Verbindung über das Notebook selbst läuft.",
+    "Fehlversuche bei PIN und Passwort werden pro Gerät gezählt, auch beim Zugriff von außen."
   ],
   "files": {
-    "changelog.json": "31ab7638b85f5a87e72f6ae5932b1767d1d1ea558197926f2da3daa4b5f7bd9e",
+    "changelog.json": "4b5b3084d21f0ae116a1519fcdca9d91729fe720e7d4e6c89021deb0b2f8ae86",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
     "public/board.html": "ab561f2c5e410e1c458da16845dc964c9357918cc4e30f83426b6600435a4dce",
     "public/m.html": "4853107b37f944ddff2d40e7e89fdebf2bc37140b85b2c202c4be22447fa3de7",
-    "server.js": "895c9ebe7604c07be3af0a8a0c0e86bc25d2e7b26bf0bf95fc8ffeec5855b9fe",
-    "version.json": "c5c9fe01b4c1d3113ee9d39913af59606eac8dfe7c1b86b13114717bc5d8ea8b"
+    "server.js": "0acae94f0a1f7475a3593719c0b14b18eee8b5c7fea15b5fa306fb1203c560b0",
+    "version.json": "ac37295099ef7b034f98d9d9db2c0fcd8a368c935f973ca268399f433bc32600"
   }
 }
