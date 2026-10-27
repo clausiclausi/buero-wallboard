@@ -697,6 +697,28 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   /* ---------- Skalierung auf 16:9 ---------- */
   const stage = $('#stage'), fit = $('#fit');
   const mascot = window.WBMascot ? WBMascot.create(stage) : null;
+  // AOK-Männchen: an Termine erinnern, Bürobeginn, Spaziergang (jedes Ereignis nur einmal pro Tag)
+  const mascotDone = new Set(local.get('mascotDone', []));
+  function mascotTimers() {
+    const m = settings().mascot;
+    if (!mascot || !m || m.fig === 'aus' || !booted) return;
+    const now = minsNow(), today = dayKey(0), wd = new Date().getDay();
+    const once = (key, fn) => { if (mascotDone.has(key)) return; mascotDone.add(key); local.set('mascotDone', [...mascotDone].slice(-100)); fn(); };
+    const items = [...(S.events || []).filter(e => e.date === today && e.time).map(e => ({ id: 'e' + e.id, time: e.time })),
+      ...(S.tasks || []).filter(t => !t.done && t.remind && t.date === today && t.time).map(t => ({ id: 't' + t.id, time: t.time }))];
+    let soon = false;
+    for (const it of items) {
+      const diff = toMin(it.time) - now;
+      if (diff > 0 && diff <= 15) soon = true;
+      if (m.alerts !== false) for (const th of [10, 5]) if (diff <= th && diff > th - 1) once(`${today}${it.id}${it.time}-${th}`, () => mascot.alert(th, it.time));
+    }
+    mascot.context({ avoid: soon ? [$('.card.cal')] : [] });
+    if (wd < 1 || wd > 5) return;
+    const at = (t) => t && now >= toMin(t) && now < toMin(t) + 1;
+    if (at(settings().officeStart)) once(today + '-morgen', () => mascot.announce('Guten Morgen!', 'strecken'));
+    if (at(m.walk)) once(today + '-walk', () => mascot.announce('Wir gehen gleich spazieren?', 'spazieren'));
+  }
+  setInterval(mascotTimers, 10000);
   function scale() {
     const s = Math.min(fit.clientWidth / 1920, fit.clientHeight / 1080);
     stage.style.transform = `scale(${s}) translate(-50%, -50%)`;
@@ -1444,6 +1466,10 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <div class="mas-font">${Object.entries(M.FONTS).map(([k, f]) => `<button data-font="${k}" aria-pressed="${m.font === k}"><b style="${f.css ? `font-family:${f.css};font-weight:700` : 'font-family:var(--font-mono);font-weight:500'}">AOK</b><small>${f.name.replace(' (wie die Figur)', '')}</small></button>`).join('')}</div>
         <div class="field" style="margin-top:14px">Charakter <div class="seg" id="mMood">${Object.entries(M.MOODS).map(([v, l]) => `<button data-mood="${v}" aria-pressed="${(m.mood || 'lieb') === v}">${l}</button>`).join('')}</div></div>
         <p class="hint">Lieb: winkt, putzt, schläft, klettert und freut sich über erledigte Aufgaben. Frech: tritt gegen Kacheln, hüpft darauf herum, schneidet Grimassen und tritt Buchstaben weg, die er wieder einsetzt. Bei einer Störung bleibt die Figur ruhig, im Besuchermodus ist sie immer lieb.</p>
+        <div class="field" style="margin-top:14px">An Termine erinnern <button class="switch" id="mAlerts" role="switch" aria-checked="${m.alerts !== false}"></button></div>
+        <p class="hint">Klopft 10 und 5 Minuten vor einem Termin oder einer Aufgabe mit Erinnerung an den Bildschirm. Die Kalender-Kachel meidet die Figur dann.</p>
+        <label class="field" style="margin-top:10px">„Wir gehen gleich spazieren?“ um <input type="time" id="mWalk" value="${m.walk || ''}" style="max-width:160px"></label>
+        <p class="hint">Mo–Fr. Feld leeren schaltet den Hinweis aus. Zum Bürobeginn gähnt und streckt sich die Figur.</p>
         <label class="field" style="margin-top:14px">Platz wechseln <select id="mEvery">${[['zufall', 'zufällig alle 5 bis 15 Minuten'], ['5', 'alle 5 Minuten'], ['10', 'alle 10 Minuten'], ['15', 'alle 15 Minuten'], ['30', 'alle 30 Minuten'], ['60', 'jede Stunde']].map(([v, l]) => `<option value="${v}" ${String(m.every) === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <div class="field">Größe <div class="seg" id="mSize">${[['klein', 'Klein'], ['mittel', 'Mittel'], ['gross', 'Groß']].map(([v, l]) => `<button data-size="${v}" aria-pressed="${m.size === v}">${l}</button>`).join('')}</div></div>
         <div class="row" style="margin-top:10px"><button class="btn" id="mGo">Jetzt einmal laufen lassen</button></div>
@@ -1459,6 +1485,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       box.querySelectorAll('[data-font]').forEach(b => b.onclick = () => put({ font: b.dataset.font }));
       box.querySelectorAll('[data-size]').forEach(b => b.onclick = () => put({ size: b.dataset.size }));
       box.querySelectorAll('[data-mood]').forEach(b => b.onclick = () => put({ mood: b.dataset.mood }));
+      const al = box.querySelector('#mAlerts'); if (al) al.onclick = () => put({ alerts: m.alerts === false });
+      const wk = box.querySelector('#mWalk'); if (wk) wk.onchange = () => put({ walk: wk.value });
       box.querySelectorAll('[data-test]').forEach(b => b.onclick = () => { close(); setTimeout(() => mascot?.test(b.dataset.test), 400); });
       const ev = box.querySelector('#mEvery'); if (ev) ev.onchange = () => put({ every: ev.value });
       const go = box.querySelector('#mGo'); if (go) go.onclick = () => { close(); setTimeout(() => mascot?.go(), 400); };

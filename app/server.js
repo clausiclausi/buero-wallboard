@@ -38,7 +38,7 @@ const DEFAULT_SETTINGS = {
   theme: { preset: 'wald', colors: null },
   muted: false, lead: 15, volume: 0.6, rainHours: [10, 12, 17],
   visitor: false, officeStart: '06:00', officeEnd: '20:00', autoUpdate: 'sofort', skin: 'standard',
-  mascot: { fig: 'strich', color: '#7FE0AE', text: '', font: 'strich', every: 'zufall', size: 'mittel', mood: 'lieb' },
+  mascot: { fig: 'strich', color: '#7FE0AE', text: '', font: 'strich', every: 'zufall', size: 'mittel', mood: 'lieb', alerts: true, walk: '09:55' },
 };
 const DEFAULT_LOANS = [
   { id: 'l1', type: 'Notebooks', icon: 'laptop', avail: 0, total: 0 },
@@ -167,6 +167,7 @@ function sanitizeSettings(b) {
       fig: oneOf(m.fig, ['aus', 'strich', 'kugel', 'katze', 'geist'], 'strich'), color: hex(m.color) || '#7FE0AE', text: hex(m.text),
       font: oneOf(m.font, ['strich', 'segoe', 'rund', 'technik', 'kraeftig', 'klassisch', 'verspielt'], 'strich'),
       every: oneOf(String(m.every), ['zufall', '5', '10', '15', '30', '60'], 'zufall'), size: oneOf(m.size, ['klein', 'mittel', 'gross'], 'mittel'), mood: oneOf(m.mood, ['lieb', 'frech', 'gemischt'], 'lieb'),
+      alerts: m.alerts !== false, walk: isTime(m.walk) ? m.walk : '',
     };
   }
   if ('autoUpdate' in b) s.autoUpdate = oneOf(b.autoUpdate, ['sofort', 'nachts', 'aus'], 'sofort');

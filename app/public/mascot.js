@@ -41,10 +41,12 @@
     winken: { name: 'Winken', mood: 'lieb' }, putzen: { name: 'Putzen', mood: 'lieb' }, schlafen: { name: 'Schlafen', mood: 'lieb' },
     klettern: { name: 'Klettern', mood: 'lieb' }, freuen: { name: 'Freuen', mood: 'lieb' },
     treten: { name: 'Kachel antreten', mood: 'frech' }, huepfen: { name: 'Hüpfen', mood: 'frech' }, grimasse: { name: 'Grimasse', mood: 'frech' },
-    buchstabe: { name: 'Buchstabe wegtreten', mood: 'frech' },
+    buchstabe: { name: 'Buchstabe wegtreten', mood: 'frech' }, schieben: { name: 'Kachel schieben', mood: 'frech' },
+    strecken: { name: 'Gähnen und Strecken', mood: 'lieb' }, spazieren: { name: 'Spaziergang-Hinweis', mood: 'info' },
+    klopfen: { name: 'Termin-Klopfen', mood: 'info' },
   };
   const SIZES = { klein: .42, mittel: .55, gross: .72 };
-  const DEFAULTS = { fig: 'strich', color: '#7FE0AE', text: '', font: 'strich', every: 'zufall', size: 'mittel', mood: 'lieb' };
+  const DEFAULTS = { fig: 'strich', color: '#7FE0AE', text: '', font: 'strich', every: 'zufall', size: 'mittel', mood: 'lieb', alerts: true, walk: '09:55' };
 
   // ---------- Posen (Koordinaten in 1/3 Board-Pixeln, Füße bei x/y) ----------
   function letterPose(x, y, t) {
@@ -74,6 +76,10 @@
     arm.R = lerp(arm.R, 2.75 + .2 * Math.sin(t * 14), s.cheer); arm.L = lerp(arm.L, -2.75 - .2 * Math.sin(t * 14), s.cheer);
     arm.R = lerp(arm.R, 2.7 + .45 * Math.sin(p), s.climb); arm.L = lerp(arm.L, -2.7 + .45 * Math.sin(p), s.climb);
     arm.R = lerp(arm.R, .15, s.sleep); arm.L = lerp(arm.L, -.15, s.sleep);
+    arm.R = lerp(arm.R, 2.95, s.stretch); arm.L = lerp(arm.L, -2.95, s.stretch);
+    const tapA = s.tap >= 0 && s.tap < .35 ? .55 * (1 - s.tap / .35) : 0;
+    arm[front] = lerp(arm[front], dir * (2.05 - tapA), s.knock);
+    arm.R = lerp(arm.R, dir * 1.55, s.push); arm.L = lerp(arm.L, dir * 1.4, s.push);
     const head = { cx: neck[0] + dir * 2.5 * s.sleep, cy: neck[1] - 11 + 2 * s.sleep, rx: 11.5, ry: 10.5 };
     const hR = polar(sh, 17 + 3 * wave, arm.R), hL = polar(sh, 17, arm.L);
     return {
@@ -106,6 +112,10 @@
     const up = Math.sin(t * 14) * 3;
     hR = set(hR, P(c[0] + rx + 4, c[1] - ry - 4 + up), Math.max(s.cheer, s.climb)); hL = set(hL, P(c[0] - rx - 4, c[1] - ry - 4 - up), Math.max(s.cheer, s.climb));
     hR = set(hR, P(c[0] + rx + 3, c[1] + 6), s.sleep); hL = set(hL, P(c[0] - rx - 3, c[1] + 6), s.sleep);
+    hR = set(hR, P(c[0] + rx + 2, c[1] - ry - 6), s.stretch); hL = set(hL, P(c[0] - rx - 2, c[1] - ry - 6), s.stretch);
+    const kH = P(c[0] + dir * (rx + 5 - (s.tap >= 0 && s.tap < .35 ? 4 * (1 - s.tap / .35) : 0)), c[1] - ry * .5);
+    if (dir > 0) hR = set(hR, kH, s.knock); else hL = set(hL, kH, s.knock);
+    hR = set(hR, P(c[0] + dir * (rx + 7), c[1] + 2), s.push); hL = set(hL, P(c[0] + dir * (rx + 7), c[1] - 6), s.push);
     const tip = P(c[0] + Math.sin(t * 5) * 4 * (1 - s.sleep) - dir * 3 * a + dir * 6 * s.sleep, c[1] - ry - 11 + 4 * s.sleep);
     return {
       L: [[P(c[0] - 7, c[1] + ry - 3), fl], [P(c[0] + 7, c[1] + ry - 3), fr], [P(c[0] - 5 + dir * 2, c[1] + 5), P(c[0] + 5 + dir * 2, c[1] + 5), .7],
@@ -120,8 +130,8 @@
     const p = s.dist * 0.2;
     const hop = Math.abs(Math.sin(p)) * 7 * a;
     const sq = Math.sin(t * 2.5) * .02 + (1 - Math.abs(Math.sin(p))) * .08 * a + Math.sin(t * 1.6) * .03 * s.sleep;
-    const rx = 17 * (1 + sq), ry = 14 * (1 - sq);
-    const c = P(x + dir * 7 * s.kick + Math.sin(t * 12) * 2 * s.wipe, lerp(y - ry - 1 - hop, y - 8, sit) - air * 3);
+    const rx = 17 * (1 + sq + .12 * s.stretch + .1 * s.push), ry = 14 * (1 - sq - .08 * s.stretch);
+    const c = P(x + dir * 7 * s.kick + Math.sin(t * 12) * 2 * s.wipe + dir * 4 * s.push + dir * (s.tap >= 0 && s.tap < .35 ? 3 * (1 - s.tap / .35) : 0) * s.knock, lerp(y - ry - 1 - hop, y - 8, sit) - air * 3);
     const tw = Math.max(wave, s.cheer) * Math.max(0, Math.sin(t * 7)) * 3;
     const flat = s.sleep * 4 + s.grim * 3; // Ohren legen sich an
     const eL = P(c[0] - 11 - flat, c[1] - ry - 11 - tw + flat * 1.5), eR = P(c[0] + 11 + flat, c[1] - ry - 11 + flat * 1.5);
@@ -185,14 +195,15 @@
   }
 
   // ---------- Ablauf ----------
-  const ACT_KEYS = ['wave', 'wipe', 'sleep', 'cheer', 'kick', 'grim', 'climb'];
+  const ACT_KEYS = ['wave', 'wipe', 'sleep', 'cheer', 'kick', 'grim', 'climb', 'stretch', 'knock', 'push'];
   function stateAt(segs, t, start, clock, k) {
-    const s = { x: start.x, y: start.y, m: 0, sit: 0, walk: 0, dist: 0, air: 0, dir: start.dir || 1, txt: start.txt, t: clock, carry: 0, ins: 0, act: '' };
+    const s = { x: start.x, y: start.y, m: 0, sit: 0, walk: 0, dist: 0, air: 0, dir: start.dir || 1, txt: start.txt, t: clock, carry: 0, ins: 0, act: '', zoom: 1, tap: -1, say: '' };
     for (const a of ACT_KEYS) s[a] = 0;
     for (const g of segs) {
       const u = clamp(t / g.d), x0 = s.x, y0 = s.y;
       if (g.carry !== undefined && t > 0) s.carry = g.carry;
       if (g.dir && t > 0) s.dir = g.dir;
+      if (g.say !== undefined && t > 0) s.say = g.say;
       if (g.k === 'morph') s.m = lerp(s.m, g.to, ease(u));
       if (g.k === 'sit') s.sit = lerp(s.sit, g.to, ease(u));
       if (g.k === 'txt') s.txt = lerp(s.txt, g.to, ease(u));
@@ -209,6 +220,17 @@
         if (g.name === 'grim') { s.grim = env; s.x = x0 + Math.sin(at * 22) * 1.2 * k * env; }
         if (g.name === 'insert') s.ins = ease(u);
         if (g.name === 'look') s.dir = Math.sin(at * 3) > 0 ? 1 : -1;
+        if (g.name === 'stretch') s.stretch = sstep(0, .3, u) * (1 - sstep(.75, 1, u));
+        if (g.name === 'knock') {
+          // Nach vorne kommen (größer werden) und an die Scheibe klopfen
+          s.knock = env; s.zoom = 1 + 1.3 * sstep(0, .18, u) * (1 - sstep(.86, 1, u));
+          if (u >= .25 && u <= .8) s.tap = ((at - .25 * g.d) % .32) / .32;
+        }
+        if (g.name === 'push') {
+          s.push = env;
+          const sh = u < .22 ? ease(u / .22) : u < .8 ? 1 : 1 - ease((u - .8) / .2);
+          s.x = x0 + (g.dir || s.dir) * 13 * sh; s.walk = u < .22 ? .6 : 0; s.dist += u < .22 ? 2 : 0;
+        }
       }
       if (g.k === 'act' && g.name === 'insert' && t >= g.d) { s.ins = 1; s.carry = 0; }
       if (g.k === 'walk' || g.k === 'jump' || g.k === 'climb') {
@@ -231,7 +253,7 @@
     const host = stage.querySelector('#toastHost');
     stage.insertBefore(svg, host);
     let cfg = null, key = '', light = false, k = 1;
-    let ctx = { incident: false, visitor: false };
+    let ctx = { incident: false, visitor: false, avoid: [] };
     let E = {};                // SVG-Elemente der aktuellen Figur
     let pos = null;            // Ruheplatz { x, y, card }
     let move = null;           // laufende Bewegung { segs, start, t0, total, to, events, cleanup }
@@ -267,13 +289,21 @@
       E.sparks = [0, 1, 2].map(() => el('path', { d: '', fill: '#FFFFFF', opacity: 0 }, svg));
       E.zzz = [0, 1, 2].map(i => { const z = el('text', { fill: LC, 'font-size': ((10 + i * 3) * k).toFixed(1), 'font-weight': 700, opacity: 0, style: "font-family:'Segoe UI',system-ui,sans-serif" }, svg); z.textContent = 'z'; return z; });
       E.held = el('text', { 'text-anchor': 'middle', 'dominant-baseline': 'central', opacity: 0 }, svg);
+      E.yawn = el('ellipse', { fill: '#3A1F1A', opacity: 0 }, E.fig);
+      E.rings = [0, 1].map(() => el('circle', { fill: 'none', stroke: '#FFFFFF', 'stroke-width': 1.2, opacity: 0 }, svg));
+      E.bubble = el('g', { opacity: 0 }, svg);
+      E.bRect = el('rect', { rx: 5, fill: '#FFFFFF' }, E.bubble);
+      E.bTail = el('path', { fill: '#FFFFFF' }, E.bubble);
+      E.bText = el('text', { 'text-anchor': 'middle', 'dominant-baseline': 'central', fill: '#14201B', 'font-size': 8.5, 'font-weight': 600, style: "font-family:'Segoe UI',system-ui,sans-serif" }, E.bubble);
+      E.bSaid = '';
     }
 
+    let lastTap = -1;
     function render(s) {
-      const t = s.t, x = s.x, y = s.y;
+      const t = s.t, x = s.x, y = s.y, kk = k * (s.zoom || 1);
       const lp = scaleGeo(letterPose(x, y, reduced.matches ? 0 : t), x, y, k);
       const blinkOpen = (t % 3.1) < .12 ? .15 : 1, eyeOn = sstep(.8, 1, s.m);
-      const shut = Math.max(s.sleep, 0);
+      const shut = Math.max(s.sleep, s.stretch * .9);
       const eyeOpen = i => Math.min(blinkOpen, 1 - .9 * shut, (s.grim > .3 && i === (s.dir > 0 ? 1 : 0)) ? .15 : 1);
       const strokes = E.text ? 1 - s.txt : 1;
       E.fig.setAttribute('opacity', strokes.toFixed(2));
@@ -287,40 +317,42 @@
 
       let fp;
       if (E.dots) {
-        fp = scaleGeo(ghostShape(s), x, y, k);
+        fp = scaleGeo(ghostShape(s), x, y, kk);
         const a = letterPoints(lp, E.dots.length), b = sampleChain(fp.seg, E.dots.length);
         E.dots.forEach((d, i) => {
           const u = ease(clamp(s.m * 1.5 - rnd[i] * .5)), swirl = Math.sin(Math.PI * u) * 22 * k;
           d.setAttribute('cx', (lerp(a[i][0], b[i][0], u) + Math.cos(i * 2.4 + t) * swirl).toFixed(1));
           d.setAttribute('cy', (lerp(a[i][1], b[i][1], u) + Math.sin(i * 2.4 + t) * swirl).toFixed(1));
-          d.setAttribute('fill', mix(E.LC, E.FC, u));
+          d.setAttribute('fill', mix(E.LC, E.FC, u)); d.setAttribute('r', (2.3 * kk / 1.35).toFixed(2));
           d.setAttribute('opacity', ((.8 + .2 * Math.sin(t * 5 + i * 1.7)) * (1 - .4 * s.sleep)).toFixed(2));
         });
-        E.eyes.forEach((e, i) => { e.setAttribute('cx', fp.eyes[i][0]); e.setAttribute('cy', fp.eyes[i][1]); e.setAttribute('rx', 1.8 * k); e.setAttribute('ry', 2.4 * k * eyeOpen(i)); e.setAttribute('opacity', eyeOn); });
+        E.eyes.forEach((e, i) => { e.setAttribute('cx', fp.eyes[i][0]); e.setAttribute('cy', fp.eyes[i][1]); e.setAttribute('rx', 1.8 * kk); e.setAttribute('ry', 2.4 * kk * eyeOpen(i)); e.setAttribute('opacity', eyeOn); });
         E.cheeks.forEach((c, i) => { c.setAttribute('cx', fp.cheeks[i][0]); c.setAttribute('cy', fp.cheeks[i][1]); c.setAttribute('opacity', eyeOn * .7); });
       } else {
-        fp = scaleGeo(POSES[cfg.fig](s), x, y, k);
+        fp = scaleGeo(POSES[cfg.fig](s), x, y, kk);
         const mi = i => ease(clamp((s.m - i * .055) / (1 - 6 * .055)));
         const lift = (i, u) => -Math.sin(Math.PI * u) * (14 + 6 * rnd[i]) * k;
         E.lines.forEach((ln, i) => {
           const u = mi(i), A = lp.L[i], B = fp.L[i], dy = lift(i, u);
           ln.setAttribute('d', curve(P(lerp(A[0][0], B[0][0], u), lerp(A[0][1], B[0][1], u) + dy), P(lerp(A[1][0], B[1][0], u), lerp(A[1][1], B[1][1], u) + dy), lerp(A[2], B[2], u)));
-          ln.setAttribute('stroke', mix(E.LC, E.FC, u));
+          ln.setAttribute('stroke', mix(E.LC, E.FC, u)); ln.setAttribute('stroke-width', (E.sw * s.zoom).toFixed(2));
         });
         // Mund wird dunkel und dünn, sobald er im Gesicht sitzt
         const um = sstep(.7, 1, mi(2));
         E.lines[2].setAttribute('stroke', mix(mix(E.LC, E.FC, mi(2)), '#1B1410', um));
-        E.lines[2].setAttribute('stroke-width', (lerp(E.sw, E.sw * .6, um)).toFixed(2));
+        E.lines[2].setAttribute('stroke-width', (lerp(E.sw, E.sw * .6, um) * s.zoom).toFixed(2));
+        E.oval.setAttribute('stroke-width', (E.sw * s.zoom).toFixed(2));
         const uo = mi(6), dy = lift(6, uo);
         E.oval.setAttribute('cx', lerp(lp.O.cx, fp.O.cx, uo).toFixed(1)); E.oval.setAttribute('cy', (lerp(lp.O.cy, fp.O.cy, uo) + dy).toFixed(1));
         E.oval.setAttribute('rx', lerp(lp.O.rx, fp.O.rx, uo).toFixed(1)); E.oval.setAttribute('ry', lerp(lp.O.ry, fp.O.ry, uo).toFixed(1));
         E.oval.setAttribute('stroke', mix(E.LC, E.FC, uo)); E.oval.setAttribute('fill-opacity', (.92 * uo).toFixed(2));
-        const er = fp.er * k * .8;
+        const er = fp.er * kk * .8;
         E.eyes.forEach((e, i) => {
           const q = fp.eyes[i], o = eyeOpen(i);
           e.setAttribute('cx', q[0].toFixed(1)); e.setAttribute('cy', q[1].toFixed(1)); e.setAttribute('rx', er); e.setAttribute('ry', er * 1.2 * o); e.setAttribute('opacity', eyeOn);
           E.hl[i].setAttribute('cx', (q[0] + er * .35).toFixed(1)); E.hl[i].setAttribute('cy', (q[1] - er * .45).toFixed(1)); E.hl[i].setAttribute('r', er * .38); E.hl[i].setAttribute('opacity', o > .5 ? eyeOn : 0);
           E.cheeks[i].setAttribute('cx', fp.cheeks[i][0].toFixed(1)); E.cheeks[i].setAttribute('cy', fp.cheeks[i][1].toFixed(1)); E.cheeks[i].setAttribute('opacity', eyeOn * .75);
+          E.cheeks[i].setAttribute('rx', (3 * kk / 1.35).toFixed(2)); E.cheeks[i].setAttribute('ry', (1.8 * kk / 1.35).toFixed(2));
         });
         if (E.tip) { E.tip.setAttribute('cx', fp.tip[0].toFixed(1)); E.tip.setAttribute('cy', fp.tip[1].toFixed(1)); E.tip.setAttribute('opacity', eyeOn); }
         fp.mouth = P((fp.L[2][0][0] + fp.L[2][1][0]) / 2, (fp.L[2][0][1] + fp.L[2][1][1]) / 2);
@@ -328,6 +360,31 @@
       // Zunge bei der Grimasse
       E.tongue.setAttribute('cx', fp.mouth[0].toFixed(1)); E.tongue.setAttribute('cy', (fp.mouth[1] + 2.4 * k).toFixed(1));
       E.tongue.setAttribute('opacity', (sstep(.2, .5, s.grim) * eyeOn).toFixed(2));
+      // Gähnen: Mund geht auf
+      E.yawn.setAttribute('cx', fp.mouth[0].toFixed(1)); E.yawn.setAttribute('cy', (fp.mouth[1] + .5 * kk).toFixed(1));
+      E.yawn.setAttribute('rx', (2.6 * kk * s.stretch).toFixed(2)); E.yawn.setAttribute('ry', (3.4 * kk * s.stretch).toFixed(2));
+      E.yawn.setAttribute('opacity', (sstep(.1, .4, s.stretch) * eyeOn).toFixed(2));
+      // Klopfen: Ringe an der Hand, Bildschirm zuckt kurz
+      E.rings.forEach((r, i) => {
+        const tp = s.tap < 0 ? -1 : (s.tap + i * .5) % 1;
+        r.setAttribute('cx', fp.hand[0].toFixed(1)); r.setAttribute('cy', fp.hand[1].toFixed(1));
+        r.setAttribute('r', (2 + Math.max(0, tp) * 14 * k).toFixed(1)); r.setAttribute('opacity', tp < 0 ? 0 : ((1 - tp) * .8).toFixed(2));
+      });
+      if (s.tap >= 0 && lastTap > s.tap && stage.parentElement && stage.parentElement.animate) {
+        stage.parentElement.animate([{ transform: 'translate(0,0)' }, { transform: 'translate(3px,-2px)' }, { transform: 'translate(-2px,1px)' }, { transform: 'translate(0,0)' }], { duration: 140 });
+      }
+      lastTap = s.tap;
+      // Sprechblase über dem Kopf
+      if (s.say) {
+        if (E.bSaid !== s.say) { E.bText.textContent = s.say; E.bSaid = s.say; E.bW = E.bText.getComputedTextLength() + 14; }
+        const w = E.bW, hgt = 16, headTop = fp.O.cy - fp.O.ry;
+        const bx = Math.max(w / 2 + 4, Math.min(636 - w / 2, fp.O.cx)), by = Math.max(4, headTop - hgt - 8 * k);
+        E.bRect.setAttribute('x', (bx - w / 2).toFixed(1)); E.bRect.setAttribute('y', by.toFixed(1)); E.bRect.setAttribute('width', w.toFixed(1)); E.bRect.setAttribute('height', hgt);
+        const tx = Math.max(bx - w / 2 + 6, Math.min(bx + w / 2 - 6, fp.O.cx));
+        E.bTail.setAttribute('d', `M${tx - 4} ${by + hgt - .5}L${tx + 4} ${by + hgt - .5}L${tx + 1} ${by + hgt + 5}Z`);
+        E.bText.setAttribute('x', bx.toFixed(1)); E.bText.setAttribute('y', (by + hgt / 2 + .5).toFixed(1));
+        E.bubble.setAttribute('opacity', eyeOn.toFixed(2));
+      } else E.bubble.setAttribute('opacity', 0);
       // Putzlappen und Glitzer
       const h = fp.hand;
       E.rag.setAttribute('x', (h[0] - 4.5 * k).toFixed(1)); E.rag.setAttribute('y', (Math.min(h[1], y - 2.5 * k) - 2.5 * k).toFixed(1));
@@ -367,7 +424,7 @@
     const spotOn = c => ({ x: lerp(c.l + margin(), c.r - margin(), Math.random()), y: c.top, card: c.el });
     function pickSpot(exclude, filter) {
       const list = cards(); if (!list.length) return null;
-      let options = list.filter(c => c.el !== exclude && (!filter || filter(c)));
+      let options = list.filter(c => c.el !== exclude && !ctx.avoid.includes(c.el) && (!filter || filter(c)));
       if (!options.length) options = list.filter(c => c.el !== exclude);
       if (!options.length) options = list;
       return spotOn(pick(options));
@@ -380,6 +437,14 @@
       const o = { transformOrigin: '50% 100%' };
       card.animate([{ ...o, transform: 'none' }, { ...o, transform: `translateX(${dir * 10 * strength}px) rotate(${dir * 1.3 * strength}deg)` },
         { ...o, transform: `translateX(${-dir * 4 * strength}px) rotate(${-dir * .5 * strength}deg)` }, { ...o, transform: 'none' }], { duration: 650, easing: 'ease-out' });
+    }
+
+    // Kachel ein Stück wegschieben oder schief hängen lassen, danach zurück in die Ausgangslage
+    function shove(card, dir, ms, px, deg) {
+      if (!card || !card.animate) return;
+      const o = { transformOrigin: '50% 100%' };
+      card.animate([{ ...o, transform: 'none' }, { ...o, transform: `translateX(${dir * px}px) rotate(${dir * deg}deg)`, offset: .22 },
+        { ...o, transform: `translateX(${dir * px}px) rotate(${dir * deg}deg)`, offset: .8 }, { ...o, transform: 'none' }], { duration: ms, easing: 'ease-in-out' });
     }
 
     // Einen Buchstaben aus der Überschrift einer Kachel wählen und in ein eigenes Element packen
@@ -415,7 +480,7 @@
     function plan(from, to, opts = {}) {
       const list = cards(), A = list.find(c => c.el === from.card), B = list.find(c => c.el === to.card);
       const mood = opts.mood || moodNow();
-      const act = opts.act || pick({ ruhig: ['winken'], lieb: ['winken', 'putzen', 'schlafen'], frech: ['treten', 'huepfen', 'grimasse', 'buchstabe'] }[mood]);
+      const act = opts.act || pick({ ruhig: ['winken'], lieb: ['winken', 'putzen', 'schlafen'], frech: ['treten', 'huepfen', 'grimasse', 'buchstabe', 'schieben'] }[mood]);
       const climbUp = opts.climb ?? (mood === 'lieb');
       const segs = [], events = [];
       let total = 0;
@@ -482,18 +547,31 @@
         add({ d: 1.0, k: 'act', name: 'insert', carry: 1 });
         at(0, () => { if (letter.anim) letter.anim.cancel(); letter.span.animate([{ transform: 'scale(1.5)' }, { transform: 'scale(1)' }], { duration: 260, easing: 'ease-out' }); });
         add({ d: .9, k: 'act', name: 'wave' });
+      } else if (act === 'schieben' && B) {
+        // An die Kante laufen und die Kachel ein Stück zur Seite schieben
+        const d = to.x < (B.l + B.r) / 2 ? 1 : -1;
+        walk(d > 0 ? B.l + 10 * k : B.r - 10 * k);
+        add({ d: .4, k: 'act', name: 'look', dir: d });
+        at(.05, () => shove(B.el, d, 3600, 40, 1.6));
+        add({ d: 3.6, k: 'act', name: 'push', dir: d });
+        add({ d: 1, k: 'act', name: 'grim' });
       } else {
         walk(to.x);
+        const iAct = segs.length;
         const sitAct = (d, name) => add({ d: .45, k: 'sit', to: 1 }, { d, k: 'act', name }, { d: .45, k: 'sit', to: 0 });
         if (act === 'putzen') add({ d: 4.2, k: 'act', name: 'wipe' });
         else if (act === 'schlafen') sitAct(7, 'sleep');
         else if (act === 'freuen') add({ d: 2.2, k: 'act', name: 'cheer' });
-        else if (act === 'treten') { const d = x < (B ? (B.l + B.r) / 2 : x) ? -1 : 1; add({ d: .3, k: 'act', name: 'look', dir: d }); at(2.2 * .3 + .05, () => wobble(B && B.el, d)); at(2.2 * .7 + .05, () => wobble(B && B.el, d, 1.3)); add({ d: 2.2, k: 'act', name: 'kick', dir: d }); add({ d: .8, k: 'act', name: 'grim' }); }
-        else if (act === 'huepfen') { [1, 2, 3].forEach(i => at(2.4 * i / 3 - .02, () => wobble(B && B.el, i % 2 ? 1 : -1, .8))); add({ d: 2.4, k: 'act', name: 'stomp' }); }
+        else if (act === 'treten') { const d = x < (B ? (B.l + B.r) / 2 : x) ? -1 : 1; add({ d: .3, k: 'act', name: 'look', dir: d }); at(2.2 * .3 + .05, () => wobble(B && B.el, d, 1.4)); at(2.2 * .7 + .05, () => shove(B && B.el, d, 2600, 14, 2.2)); add({ d: 2.2, k: 'act', name: 'kick', dir: d }); add({ d: 1.2, k: 'act', name: 'grim' }); }
+        else if (act === 'huepfen') { [1, 2].forEach(i => at(2.4 * i / 3 - .02, () => wobble(B && B.el, i % 2 ? 1 : -1, 1.1))); at(2.38, () => shove(B && B.el, Math.random() < .5 ? 1 : -1, 3000, 6, 2.6)); add({ d: 2.4, k: 'act', name: 'stomp' }); add({ d: 1.4, k: 'act', name: 'grim' }); }
+        else if (act === 'strecken') add({ d: 3.4, k: 'act', name: 'stretch' }, { d: 1.6, k: 'act', name: 'wave' });
+        else if (act === 'klopfen') add({ d: 4.2, k: 'act', name: 'knock', dir: x > 320 ? -1 : 1 }, { d: 1.2, k: 'act', name: 'wave' });
         else if (act === 'grimasse') add({ d: 2.6, k: 'act', name: 'grim' });
+        else if (act === 'spazieren') add({ d: 4, k: 'act', name: 'wave' }, { d: .6, k: 'act', name: 'look' });
         else sitAct(2.4, 'wave');
+        if (opts.say && segs[iAct]) segs[iAct].say = opts.say;
       }
-      add({ d: 1.3, k: 'morph', to: 0 });
+      add({ d: 1.3, k: 'morph', to: 0, say: '' });
       if (E.text) add({ d: .35, k: 'txt', to: 1 });
       return { segs, events, letter, total, to: { x, y, card: B ? B.el : to.card } };
     }
@@ -582,14 +660,27 @@
       if (!pos || !pos.card.isConnected) return;
       start(plan(pos, { x: pos.x, y: pos.y, card: pos.card }, { act: 'freuen' }));
     }
+    // Ohne Ortswechsel: an Ort und Stelle Figur werden, etwas tun oder sagen, wieder AOK werden
+    function here(act, say) {
+      if (!cfg || reduced.matches) return;
+      if (move) stop();
+      if (!pos || !pos.card.isConnected) pos = pickSpot(null);
+      if (!pos) return;
+      start(plan(pos, { x: pos.x, y: pos.y, card: pos.card }, { act, say }));
+    }
+    const alert = (mins, time) => here('klopfen', `Termin in ${mins} Minuten (${time} Uhr)`);
+    const announce = (text, act) => here(act, text);
     function test(name) {
       if (!cfg) return;
+      if (name === 'klopfen') return alert(10, '10:30');
+      if (name === 'spazieren') return announce('Wir gehen gleich spazieren?', 'spazieren');
+      if (name === 'strecken') return announce('Guten Morgen!', 'strecken');
       if (name === 'klettern') return go({ target: 'oben', act: 'winken' });
       if (name === 'freuen') { if (move) stop(); if (!pos) pos = pickSpot(null); return pos && start(plan(pos, { x: pos.x, y: pos.y, card: pos.card }, { act: 'freuen' })); }
       const hasText = c => [...(c.el.querySelector('h3')?.childNodes || [])].some(n => n.nodeType === 3 && /[A-Za-zÄÖÜäöü]/.test(n.nodeValue));
       return go({ act: name, near: true, filter: name === 'buchstabe' ? hasText : null });
     }
-    return { apply, go, test, cheer, context };
+    return { apply, go, test, cheer, context, alert, announce };
   }
 
   window.WBMascot = { create, FONTS, FIGS, MOODS, ACTS, DEFAULTS };
