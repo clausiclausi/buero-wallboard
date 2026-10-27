@@ -140,6 +140,9 @@ $kPrincipal = New-ScheduledTaskPrincipal -UserId $KioskUser -LogonType Interacti
 Register-ScheduledTask -TaskName 'Wallboard Anzeige' -Action $kAction -Trigger $kTrigger -Settings $kSettings -Principal $kPrincipal -Force | Out-Null
 icacls "$Target\data" /grant "*S-1-5-32-545:(OI)(CI)M" | Out-Null
 Remove-Item "$Target\data\pause-anzeige" -ErrorAction SilentlyContinue
+# Nach einer Neuinstallation wird das Board immer wieder angezeigt (auch wenn es vorher dauerhaft geschlossen war)
+try { Invoke-RestMethod -Method Post -Uri "http://localhost:$($cfg.port)/api/display?mode=show" -TimeoutSec 5 | Out-Null }
+catch { [IO.File]::WriteAllText("$Target\data\anzeige.json", '{"mode":"show","until":0,"id":"install"}', $Utf8NoBom) }
 Info 'startet nach jeder Anmeldung automatisch'
 
 # 7. Energiesparen und Sperre aus (am Netzteil)
