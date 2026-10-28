@@ -1,23 +1,20 @@
 {
-  "version": "1.13.0",
-  "notes": "Kacheln ausblenden: unter „Kacheln anordnen“ hat jede Kachel einen Knopf „Ausblenden“, oben in der Leiste holt „+ Name“ sie zurück. Neue Kachel Notizen: am Board über „+ Notiz“ oder am Handy unter Aufgaben eintragen, mit ✕ löschen. Im Besuchermodus verwischt.",
+  "version": "1.14.0",
+  "notes": "Handy: Live-Scanner. „Scannen“ öffnet die Kamera mit Rahmen, QR-Code oder Strichcode hineinhalten, die Nummer wird sofort erkannt und eingetragen. Funktioniert über die sichere Adresse (Zugang von unterwegs).",
   "changes": [
-    "Kacheln ausblenden: unter „Kacheln anordnen“ hat jede Kachel einen Knopf „Ausblenden“, oben in der Leiste holt „+ Name“ sie zurück.",
-    "Neue Kachel Notizen: am Board über „+ Notiz“ oder am Handy unter Aufgaben eintragen, mit ✕ löschen. Im Besuchermodus verwischt.",
-    "Handy: Knopf „Scannen“ neben Inventar- und Seriennummer liest QR-Codes und Strichcodes (EAN, Code 128 u. a.) aus einem Kamerafoto und trägt die Nummer ein. Funktioniert auf allen Handys, auch ohne Internet.",
-    "Updates: Prüfabstand einstellbar (Standard alle 30 Sekunden), automatisches Installieren per Schalter an oder aus.",
-    "Männchen: kleiner Darstellungsfehler bei der Kugel behoben."
+    "Handy: Live-Scanner. „Scannen“ öffnet die Kamera mit Rahmen, QR-Code oder Strichcode hineinhalten, die Nummer wird sofort erkannt und eingetragen. Funktioniert über die sichere Adresse (Zugang von unterwegs).",
+    "Im Büro-WLAN (ohne HTTPS) sperren Handys die Live-Kamera. Dort macht „Scannen“ ein Foto, die Nummer wird danach erkannt."
   ],
   "files": {
-    "changelog.json": "4d51a5023b56d57189558b553917202b034068c2a11c535131118477233e466a",
+    "changelog.json": "1bc4c53f2f5baebb17ac5008b94f53914f7a0a9525c7d386e115e8e4d3240e14",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
     "mail.js": "29f1923f00a57552c5d04234ae9505a7c2ba313ae7b534ddfd9683dd18bc9025",
     "public/board.html": "87c2bcbd49f593ef11018782dedfa508c38edb6bbf92ee37065c277db7a020d4",
-    "public/m.html": "59591e03d3237bb6ac2ab1782cf328151cc5fa0272aecb0df2ef3fda48ef8aae",
+    "public/m.html": "6da87d42a25437a5e0410f8b208ddb11f3bc8a708c86c768fd638fdb5c30bece",
     "public/mascot.js": "0fddce41a0154a94e7d4cd67ae077905c0cec81994cdb98d626ff0fca0f9e89a",
     "public/zxing.js": "f82cb14d1d3541b71ab7312abe7bd87a31aa620f2580544abe36e107c20225a0",
     "server.js": "2abd7ea1a2dceced1ee141e4b6d539ad1760d3fed5c24102a194bce3810d956f",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "d0f3f48c5f1e3da4c297e65a9c22f9492a8320ee427f057bff24918050b2c2ce"
+    "version.json": "c9d227ae8951249c3336ed8e9dbf46527b379bc1f494ea8d00ffe33add0fcf9f"
   }
 }

@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.14.0",
+    "date": "2026-10-28",
+    "changes": [
+      "Handy: Live-Scanner. „Scannen“ öffnet die Kamera mit Rahmen, QR-Code oder Strichcode hineinhalten, die Nummer wird sofort erkannt und eingetragen. Funktioniert über die sichere Adresse (Zugang von unterwegs).",
+      "Im Büro-WLAN (ohne HTTPS) sperren Handys die Live-Kamera. Dort macht „Scannen“ ein Foto, die Nummer wird danach erkannt."
+    ]
+  },
+  {
     "version": "1.13.0",
     "date": "2026-10-28",
     "changes": [

@@ -63,6 +63,13 @@ nav button[aria-current="page"] { color: var(--text); }
 .codefield input { flex: 1; min-width: 0; }
 .codefield .btn { flex: none; padding: 0 14px; display: flex; align-items: center; gap: 6px; font-size: 15px; }
 .codefield .btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.live { position: fixed; inset: 0; z-index: 20; background: #000; display: flex; flex-direction: column; }
+.live video { flex: 1; min-height: 0; width: 100%; object-fit: cover; }
+.live .frame { position: absolute; left: 10%; right: 10%; top: 28%; height: 30%; border: 3px solid var(--ok); border-radius: 18px; box-shadow: 0 0 0 100vmax rgba(0,0,0,.35); pointer-events: none; }
+.live .frame::after { content: ""; position: absolute; left: 6%; right: 6%; top: 50%; height: 2px; background: var(--crit); animation: scanline 1.6s ease-in-out infinite alternate; }
+@keyframes scanline { from { transform: translateY(-40px); } to { transform: translateY(40px); } }
+.live .bar { padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); background: var(--surface); display: flex; flex-direction: column; gap: 10px; }
+.live .bar p { margin: 0; color: var(--muted); font-size: 15px; text-align: center; }
 .login { max-width: 360px; margin: 18vh auto 0; display: flex; flex-direction: column; gap: 14px; text-align: center; }
 .login input { font-size: 28px; letter-spacing: 8px; text-align: center; font-family: var(--mono); }
 [hidden] { display: none !important; }
@@ -337,7 +344,7 @@ nav button[aria-current="page"] { color: var(--text); }
     if (/^https?:\/\//i.test(v)) { try { const u = new URL(v); v = u.searchParams.get('id') || u.searchParams.get('sn') || u.pathname.split('/').filter(Boolean).pop() || v; } catch {} }
     return v.replace(/[\u0000-\u001f]/g, '').trim();
   }
-  async function readCode(canvas) {
+  async function readCode(canvas, fast) {
     if ('BarcodeDetector' in window) {
       try { const codes = await new BarcodeDetector().detect(canvas); if (codes.length) return codeText(codes[0].rawValue); } catch {}
     }
@@ -349,7 +356,7 @@ nav button[aria-current="page"] { color: var(--text); }
         Z.BarcodeFormat.CODE_128, Z.BarcodeFormat.CODE_39, Z.BarcodeFormat.ITF, Z.BarcodeFormat.DATA_MATRIX]);
       const reader = new Z.MultiFormatReader(); reader.setHints(hints);
       // Mehrere Größen probieren, kleine Codes auf großen Fotos werden so besser gefunden
-      for (const max of [1600, 1000, 2400]) {
+      for (const max of fast ? [1280] : [1600, 1000, 2400]) {
         const s = Math.min(1, max / Math.max(canvas.width, canvas.height));
         let src = canvas;
         if (s < 1) { src = document.createElement('canvas'); src.width = Math.round(canvas.width * s); src.height = Math.round(canvas.height * s); src.getContext('2d').drawImage(canvas, 0, 0, src.width, src.height); }
@@ -366,6 +373,55 @@ nav button[aria-current="page"] { color: var(--text); }
     c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
     return c;
   }
+  /* Live-Scanner: Kamera läuft, jedes Bild wird nach einem Code durchsucht. Geht nur über HTTPS (oder localhost),
+     im Büro-WLAN über http bleibt das Foto mit anschließender Erkennung. */
+  const canLive = () => !!(window.isSecureContext && navigator.mediaDevices?.getUserMedia);
+  async function liveScan(field) {
+    const ov = document.createElement('div'); ov.className = 'live';
+    ov.innerHTML = `<video playsinline muted autoplay></video><div class="frame"></div>
+      <div class="bar"><p id="liveMsg">QR-Code oder Strichcode in den Rahmen halten</p><button class="btn" type="button" id="liveStop">Abbrechen</button></div>`;
+    document.body.append(ov);
+    const video = ov.querySelector('video'), msg = ov.querySelector('#liveMsg');
+    let stream = null, done = false;
+    const stop = () => { done = true; stream?.getTracks().forEach(t => t.stop()); ov.remove(); };
+    ov.querySelector('#liveStop').onclick = stop;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
+    } catch {
+      msg.textContent = 'Kamera nicht freigegeben. Bitte in den Browser-Einstellungen die Kamera erlauben.'; return;
+    }
+    video.srcObject = stream; await video.play().catch(() => {});
+    loadZx().catch(() => {});
+    const c = document.createElement('canvas');
+    while (!done) {
+      if (video.videoWidth) {
+        // Nur den Bereich im Rahmen auswerten: schneller und genauer
+        const vw = video.videoWidth, vh = video.videoHeight;
+        const sw = Math.round(vw * .9), sh = Math.round(vh * .6);
+        c.width = Math.min(sw, 1280); c.height = Math.round(sh * c.width / sw);
+        c.getContext('2d').drawImage(video, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, c.width, c.height);
+        const v = await readCode(c, true);
+        if (v && !done) {
+          field.value = v.slice(0, +field.maxLength || 40);
+          $('#sScanHint').textContent = `Erkannt: ${v}`;
+          navigator.vibrate?.(120);
+          stop(); toast('Code erkannt: ' + v); return;
+        }
+      }
+      await new Promise(r => setTimeout(r, 120));
+    }
+  }
+  function renderScanHint() {
+    const el = $('#sScanHint'); if (/^Erkannt|gelesen|Kein Code/.test(el.textContent)) return;
+    if (canLive()) { el.textContent = '„Scannen“ öffnet die Kamera. Code in den Rahmen halten, die Nummer wird sofort eingetragen.'; return; }
+    const url = S.tunnel?.funnel && S.tunnel?.url;
+    el.innerHTML = '„Scannen“ macht ein Foto vom Code, die Nummer wird danach erkannt. Code groß und scharf aufnehmen.'
+      + (url ? ` Live-Kamera ohne Foto: <a href="${esc(url.replace(/\/$/, ''))}/m" style="color:var(--ok)">sichere Adresse öffnen</a>.` : ' Live-Kamera ohne Foto geht, sobald der Zugang von unterwegs eingerichtet ist.');
+  }
+  document.querySelectorAll('input[data-code]').forEach(inp => inp.closest('label').addEventListener('click', (e) => {
+    if (!canLive()) return; // kein HTTPS: Foto aufnehmen, danach wird erkannt
+    e.preventDefault(); liveScan($('#' + inp.dataset.code));
+  }));
   document.querySelectorAll('input[data-code]').forEach(inp => inp.onchange = async () => {
     const file = inp.files[0]; inp.value = ''; if (!file) return;
     const field = $('#' + inp.dataset.code), hint = $('#sScanHint');
@@ -628,7 +684,7 @@ nav button[aria-current="page"] { color: var(--text); }
     });
   }
 
-  function renderAll() { renderTasks(); renderNotes(); renderEvents(); renderIncident(); renderDisplay(); renderTunnel(); renderLoans(); renderScans(); renderAbsences(); }
+  function renderAll() { renderScanHint(); renderTasks(); renderNotes(); renderEvents(); renderIncident(); renderDisplay(); renderTunnel(); renderLoans(); renderScans(); renderAbsences(); }
   let es = null;
   function start() {
     $('#login').hidden = true; $('#app').hidden = false; $('#nav').hidden = false;
