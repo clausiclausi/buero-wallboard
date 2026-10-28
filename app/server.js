@@ -37,7 +37,7 @@ function log(...a) { console.log(new Date().toISOString(), ...a); }
 const DEFAULT_SETTINGS = {
   theme: { preset: 'wald', colors: null },
   muted: false, lead: 15, volume: 0.6, rainHours: [10, 12, 17],
-  visitor: false, officeStart: '06:00', officeEnd: '20:00', autoUpdate: 'sofort', skin: 'standard',
+  visitor: false, officeStart: '06:00', officeEnd: '20:00', autoUpdate: 'sofort', updateEvery: 30, skin: 'standard',
   mascot: { fig: 'strich', color: '#7FE0AE', text: '', font: 'strich', every: 'zufall', size: 'mittel', mood: 'lieb', alerts: true, walk: '09:55' },
 };
 const DEFAULT_LOANS = [
@@ -46,7 +46,7 @@ const DEFAULT_LOANS = [
   { id: 'l3', type: 'Smartphones', icon: 'phone', avail: 0, total: 0 },
   { id: 'l4', type: 'Headsets', icon: 'box', avail: 0, total: 0 },
 ];
-let db = Object.assign({ tasks: [], events: [], scans: [], loans: DEFAULT_LOANS, incident: null, settings: {}, people: [], absences: [] }, readJson(DB_FILE, {}));
+let db = Object.assign({ tasks: [], events: [], scans: [], loans: DEFAULT_LOANS, incident: null, settings: {}, people: [], absences: [], notes: [] }, readJson(DB_FILE, {}));
 db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings);
 
 // Passwort zum Entsperren des Besuchermodus (nur als Hash gespeichert, Standard: 123)
@@ -134,6 +134,11 @@ const schemas = {
     if (!db.people.some(x => x.id === b.person) || !isDate(b.from) || !isDate(b.to) || b.to < b.from) return null;
     return { person: b.person, from: b.from, to: b.to, kind: oneOf(b.kind, ['urlaub', 'abwesend'], 'urlaub') };
   },
+  // Notizen fürs Board: kurzer Text, sichtbar für Besucher (im Besuchermodus unscharf)
+  notes: b => {
+    if (!clean(b.text, 140)) return null;
+    return { text: clean(b.text, 140) };
+  },
   loans: b => {
     const total = Math.max(0, Math.min(999, parseInt(b.total, 10) || 0));
     return { type: clean(b.type, 24) || 'Geräte', icon: oneOf(b.icon, ICONS, 'box'), total, avail: Math.max(0, Math.min(total, parseInt(b.avail, 10) || 0)) };
@@ -143,7 +148,7 @@ const schemas = {
 const patchable = {
   tasks: ['title', 'time', 'remind', 'done'], events: ['title', 'meta', 'time', 'date'],
   scans: ['type', 'inv', 'serial', 'condition', 'location', 'note', 'done'], loans: ['type', 'icon', 'avail', 'total'],
-  people: ['short', 'color'], absences: ['person', 'from', 'to', 'kind'],
+  people: ['short', 'color'], absences: ['person', 'from', 'to', 'kind'], notes: ['text'],
 };
 
 function sanitizeSettings(b) {
@@ -172,12 +177,15 @@ function sanitizeSettings(b) {
   }
   if ('layout' in b) {
     // Kachel-Anordnung im 12x6-Raster: [Spalte, Zeile, Breite, Höhe], nur vollständig und ohne Überlappung
-    const keys = ['cal', 'scan', 'wx', 'loan', 'month', 'incident'], L = b.layout || {};
+    const keys = ['cal', 'scan', 'wx', 'loan', 'month', 'incident', 'notes'], L = b.layout || {};
+    const hidden = Array.isArray(L.hidden) ? keys.filter(k => L.hidden.includes(k)) : [];
+    const shown = keys.filter(k => !hidden.includes(k));
     const ok = a => Array.isArray(a) && a.length === 4 && a.every(Number.isInteger) && a[0] >= 1 && a[1] >= 1 && a[2] >= 2 && a[3] >= 2 && a[0] + a[2] <= 13 && a[1] + a[3] <= 7;
     const hit = (a, c) => a[0] < c[0] + c[2] && c[0] < a[0] + a[2] && a[1] < c[1] + c[3] && c[1] < a[1] + a[3];
-    s.layout = keys.every(k => ok(L[k])) && keys.every((k, i) => keys.slice(i + 1).every(j => !hit(L[k], L[j]))) ? Object.fromEntries(keys.map(k => [k, L[k]])) : null;
+    s.layout = keys.every(k => ok(L[k])) && shown.every((k, i) => shown.slice(i + 1).every(j => !hit(L[k], L[j]))) ? { ...Object.fromEntries(keys.map(k => [k, L[k]])), hidden } : null;
   }
   if ('autoUpdate' in b) s.autoUpdate = oneOf(b.autoUpdate, ['sofort', 'nachts', 'aus'], 'sofort');
+  if ('updateEvery' in b) s.updateEvery = oneOf(+b.updateEvery, [30, 60, 300, 1800], 30);
   return s;
 }
 
@@ -190,7 +198,7 @@ function boardView() {
     scans: db.scans.filter(s => !s.done || Date.now() - s.created < 86400000).slice(-12)
       .map(s => ({ id: s.id, type: s.type, inv: s.inv, location: s.location, created: s.created, done: s.done })),
     loans: db.loans, incident: db.incident, settings: db.settings, mobileUrl: mobileUrl(),
-    people: db.people, absences: db.absences,
+    people: db.people, absences: db.absences, notes: db.notes,
     version: VERSION, changelog: CHANGELOG, lastUpdate: readJson(path.join(DATA, 'last-update.json'), null), display: display.view(),
     update: { available: update.available, notes: update.notes, changes: update.changes, error: update.error, checked: update.checked, busy: update.busy },
   };
@@ -327,8 +335,10 @@ async function fetchRepoFile(file) {
   if (!r.ok) throw new Error(r.status === 404 ? 'Update-Quelle nicht gefunden' : `Update-Quelle antwortet mit ${r.status}`);
   return Buffer.from(await r.arrayBuffer());
 }
+let lastCheckSent = 0;
 async function checkUpdate(auto = true) {
   if (!config.updateRepo && !config.updateUrl) return;
+  const before = `${update.available}|${update.error}`;
   try {
     const m = JSON.parse((await fetchRepoFile('manifest.json')).toString('utf8'));
     if (!/^\d+\.\d+\.\d+$/.test(m.version) || typeof m.files !== 'object') throw new Error('Update-Beschreibung ungültig');
@@ -341,8 +351,10 @@ async function checkUpdate(auto = true) {
   } catch (e) {
     update.error = e.message;
   }
+  const changed = before !== `${update.available}|${update.error}`;
   update.checked = Date.now();
-  broadcast();
+  // Bei häufigem Prüfen nur melden, wenn sich etwas geändert hat
+  if (changed || !auto || Date.now() - lastCheckSent > 30 * 60000) { lastCheckSent = Date.now(); broadcast(); }
   if (auto && update.available && !update.busy && autoUpdateAllowed()) {
     log(`Installiere Version ${update.available} automatisch`);
     installUpdate().catch(e => log('Automatisches Update fehlgeschlagen:', e.message));
@@ -524,7 +536,7 @@ const server = http.createServer(async (req, res) => {
         save(); return send(res, 200, db.incident);
       }
     }
-    if ((m = p.match(/^\/api\/(tasks|events|scans|loans|people|absences)(?:\/([a-z0-9]{1,16}))?$/))) {
+    if ((m = p.match(/^\/api\/(tasks|events|scans|loans|people|absences|notes)(?:\/([a-z0-9]{1,16}))?$/))) {
       const [, coll, id] = m;
       // Urlaube am Board nur mit Passwort ändern; am Handy reicht die PIN
       if ((coll === 'people' || coll === 'absences') && isLocal(req)) {
@@ -535,6 +547,7 @@ const server = http.createServer(async (req, res) => {
         const b = await readBody(req, coll === 'scans' ? 8_000_000 : 5000);
         const item = schemas[coll](b);
         if (!item) return send(res, 400, { error: 'Angaben unvollständig' });
+        if (coll === 'notes' && db.notes.length >= 12) return send(res, 400, { error: 'Höchstens 12 Notizen, bitte erst eine löschen' });
         item.id = newId(); item.created = Date.now();
         if (coll === 'scans' && typeof b.photo === 'string') {
           const pm = b.photo.match(/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/);
@@ -585,8 +598,9 @@ server.listen(config.port, () => {
   }, 60000);
   display.installHelpers();
   setInterval(display.tick, 20000);
-  setTimeout(checkUpdate, 15000);
-  setInterval(checkUpdate, 30 * 60000);
+  // Nach Updates schauen im eingestellten Abstand (Standard alle 30 Sekunden)
+  const updateLoop = () => checkUpdate().finally(() => setTimeout(updateLoop, (db.settings.updateEvery || 30) * 1000));
+  setTimeout(updateLoop, 15000);
   cleanup(); backup(); updateWeather(); updateRadar();
   setInterval(updateWeather, 10 * 60000);
   setInterval(updateRadar, 5 * 60000);

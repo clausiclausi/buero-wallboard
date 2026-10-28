@@ -429,7 +429,7 @@
       if (!options.length) options = list;
       return spotOn(pick(options));
     }
-    const restState = () => ({ x: pos.x, y: pos.y, m: 0, sit: 0, walk: 0, dist: 0, air: 0, dir: 1, txt: E.text ? 1 : 0, t: now(), carry: 0, ins: 0, wave: 0, wipe: 0, sleep: 0, cheer: 0, kick: 0, grim: 0, climb: 0 });
+    const restState = () => ({ x: pos.x, y: pos.y, m: 0, sit: 0, walk: 0, dist: 0, air: 0, dir: 1, txt: E.text ? 1 : 0, t: now(), carry: 0, ins: 0, wave: 0, wipe: 0, sleep: 0, cheer: 0, kick: 0, grim: 0, climb: 0, stretch: 0, knock: 0, push: 0, tap: 0, zoom: 1 });
 
     // Kachel wackeln lassen (springt immer von selbst in die Ausgangslage zurück)
     function wobble(card, dir, strength = 1) {

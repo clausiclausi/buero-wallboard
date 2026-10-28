@@ -1,20 +1,23 @@
 {
-  "version": "1.12.0",
-  "notes": "Kacheln selbst anordnen (Einstellungen → Kacheln → „Kacheln anordnen“): Kachel ziehen verschiebt sie, auf eine andere Kachel ziehen tauscht die Plätze, die Ecke unten rechts ändert die Größe. Nachbarn machen dabei Platz.",
+  "version": "1.13.0",
+  "notes": "Kacheln ausblenden: unter „Kacheln anordnen“ hat jede Kachel einen Knopf „Ausblenden“, oben in der Leiste holt „+ Name“ sie zurück. Neue Kachel Notizen: am Board über „+ Notiz“ oder am Handy unter Aufgaben eintragen, mit ✕ löschen. Im Besuchermodus verwischt.",
   "changes": [
-    "Kacheln selbst anordnen (Einstellungen → Kacheln → „Kacheln anordnen“): Kachel ziehen verschiebt sie, auf eine andere Kachel ziehen tauscht die Plätze, die Ecke unten rechts ändert die Größe. Nachbarn machen dabei Platz.",
-    "Schrift und Inhalt passen sich der Kachelgröße an, in kleinen Kacheln werden Nebensachen ausgeblendet.",
-    "Wetter Büro ist jetzt halb so hoch, Störungen dafür breiter. „Standard“ stellt diese Anordnung jederzeit wieder her."
+    "Kacheln ausblenden: unter „Kacheln anordnen“ hat jede Kachel einen Knopf „Ausblenden“, oben in der Leiste holt „+ Name“ sie zurück.",
+    "Neue Kachel Notizen: am Board über „+ Notiz“ oder am Handy unter Aufgaben eintragen, mit ✕ löschen. Im Besuchermodus verwischt.",
+    "Handy: Knopf „Scannen“ neben Inventar- und Seriennummer liest QR-Codes und Strichcodes (EAN, Code 128 u. a.) aus einem Kamerafoto und trägt die Nummer ein. Funktioniert auf allen Handys, auch ohne Internet.",
+    "Updates: Prüfabstand einstellbar (Standard alle 30 Sekunden), automatisches Installieren per Schalter an oder aus.",
+    "Männchen: kleiner Darstellungsfehler bei der Kugel behoben."
   ],
   "files": {
-    "changelog.json": "29bb9493e2277704ade80f64b6836ea6be25a06e6ca1f77f5437c46c129f3391",
+    "changelog.json": "4d51a5023b56d57189558b553917202b034068c2a11c535131118477233e466a",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
     "mail.js": "29f1923f00a57552c5d04234ae9505a7c2ba313ae7b534ddfd9683dd18bc9025",
-    "public/board.html": "231eca3e929024ce8e440c749d883a365a18f818953544567f245a7cec6a681c",
-    "public/m.html": "e9d5c145986447fdda6d3938a971cb87cb2a6b2d010a537e435400b2a7e6dc66",
-    "public/mascot.js": "b2a5324afaea6b70a75e43a6b9638811ece44ea1d0a055baf9e4803f1a957522",
-    "server.js": "c289f61a1b4bd785bcafc47fa8e09dd973a1ed946875ff5dbaac0217f8b64c1e",
+    "public/board.html": "87c2bcbd49f593ef11018782dedfa508c38edb6bbf92ee37065c277db7a020d4",
+    "public/m.html": "59591e03d3237bb6ac2ab1782cf328151cc5fa0272aecb0df2ef3fda48ef8aae",
+    "public/mascot.js": "0fddce41a0154a94e7d4cd67ae077905c0cec81994cdb98d626ff0fca0f9e89a",
+    "public/zxing.js": "f82cb14d1d3541b71ab7312abe7bd87a31aa620f2580544abe36e107c20225a0",
+    "server.js": "2abd7ea1a2dceced1ee141e4b6d539ad1760d3fed5c24102a194bce3810d956f",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "bfe70763c09116e1402dd9dfaf4d898c5b790e3c28ada7d9bbd583a977875429"
+    "version.json": "d0f3f48c5f1e3da4c297e65a9c22f9492a8320ee427f057bff24918050b2c2ce"
   }
 }

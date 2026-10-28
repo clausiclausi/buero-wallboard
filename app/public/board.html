@@ -127,7 +127,16 @@ main {
 .wx { grid-area: 1 / 10 / span 3 / span 3; }
 .loan { grid-area: 4 / 1 / span 3 / span 3; }
 .month { grid-area: 4 / 4 / span 3 / span 3; gap: calc(10px * var(--z, 1)); }
-.incident { grid-area: 4 / 7 / span 3 / span 6; }
+.incident { grid-area: 4 / 7 / span 3 / span 3; }
+.notes { grid-area: 4 / 10 / span 3 / span 3; }
+main > .card.off { display: none; }
+.note-list { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; }
+.note { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--bg); font-size: 21px; line-height: 1.3; font-weight: 500; }
+.note span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.note button { flex: none; width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); display: grid; place-items: center; font-size: 18px; }
+.arr-off { position: absolute; top: 12px; right: 12px; border: 0; border-radius: 12px; padding: 8px 14px; font-size: 18px; font-weight: 700; background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 8px; }
+.arr-bar .arr-hid { display: flex; gap: 8px; }
+.arr-bar .arr-hid button { border: 1px dashed var(--muted); background: transparent; border-radius: 12px; padding: 8px 12px; font-size: 18px; font-weight: 600; }
 
 /* Kacheln anordnen */
 #stage.arranging .mascot { opacity: 0; }
@@ -679,6 +688,11 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       <h3>Störungen</h3>
       <div id="incBody" style="display:flex;flex-direction:column;gap:12px;flex:1"></div>
     </section>
+
+    <section class="card notes" data-k="notes" data-name="Notizen">
+      <h3>Notizen <button class="mini-btn" id="addNote"><svg class="icon"><use href="#i-plus"/></svg>Notiz</button></h3>
+      <div class="note-list" id="notes"></div>
+    </section>
   </main>
 
   <footer>
@@ -783,25 +797,51 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 
   /* ---------- Kacheln anordnen: 12x6-Raster, Lage und Größe je Kachel [Spalte, Zeile, Breite, Höhe] ---------- */
   const COLS = 12, ROWS = 6, MIN = 2;
-  const DEF_LAYOUT = { cal: [1, 1, 3, 3], scan: [4, 1, 6, 3], wx: [10, 1, 3, 3], loan: [1, 4, 3, 3], month: [4, 4, 3, 3], incident: [7, 4, 6, 3] };
+  const DEF_LAYOUT = { cal: [1, 1, 3, 3], scan: [4, 1, 6, 3], wx: [10, 1, 3, 3], loan: [1, 4, 3, 3], month: [4, 4, 3, 3], incident: [7, 4, 3, 3], notes: [10, 4, 3, 3], hidden: [] };
   // Größe, für die der Inhalt gestaltet ist; größere Kacheln zeigen größere Schrift, kleinere kleinere
-  const BASE = { cal: [3, 3], scan: [6, 3], wx: [3, 4], loan: [3, 3], month: [3, 3], incident: [3, 3] };
+  const BASE = { cal: [3, 3], scan: [6, 3], wx: [3, 4], loan: [3, 3], month: [3, 3], incident: [3, 3], notes: [3, 3] };
+  const TILE_KEYS = Object.keys(BASE);
   const tiles = () => [...stage.querySelectorAll('main > .card[data-k]')];
   const fits = a => Array.isArray(a) && a.length === 4 && a.every(Number.isInteger) && a[0] >= 1 && a[1] >= 1 && a[2] >= MIN && a[3] >= MIN && a[0] + a[2] - 1 <= COLS && a[1] + a[3] - 1 <= ROWS;
   const overlap = (a, b) => a[0] < b[0] + b[2] && b[0] < a[0] + a[2] && a[1] < b[1] + b[3] && b[1] < a[1] + a[3];
+  const shownKeys = L => TILE_KEYS.filter(k => !(L.hidden || []).includes(k));
   function validLayout(L) {
-    const ks = Object.keys(DEF_LAYOUT);
-    if (!L || !ks.every(k => fits(L[k]))) return false;
+    if (!L || !TILE_KEYS.every(k => fits(L[k]))) return false;
+    const ks = shownKeys(L);
     return ks.every((k, i) => ks.slice(i + 1).every(j => !overlap(L[k], L[j])));
   }
-  const layout = () => { const L = settings().layout; return validLayout(L) ? L : DEF_LAYOUT; };
+  // Freien Platz für eine Kachel suchen (erst 3x3, dann 2x2)
+  function freeSpot(L, except) {
+    const used = shownKeys(L).filter(k => k !== except && fits(L[k])).map(k => L[k]);
+    for (const [w, hh] of [[3, 3], [3, 2], [2, 3], [2, 2]])
+      for (let r = 1; r + hh - 1 <= ROWS; r++) for (let c = 1; c + w - 1 <= COLS; c++) {
+        const a = [c, r, w, hh]; if (!used.some(u => overlap(a, u))) return a;
+      }
+    return null;
+  }
+  // Gespeicherte Anordnung ergänzen: neue Kacheln (z. B. Notizen) bekommen einen freien Platz, sonst bleiben sie ausgeblendet
+  function layout() {
+    const saved = settings().layout;
+    if (!saved || typeof saved !== 'object') return DEF_LAYOUT;
+    const L = { hidden: Array.isArray(saved.hidden) ? saved.hidden.filter(k => TILE_KEYS.includes(k)) : [] };
+    const missing = [];
+    for (const k of TILE_KEYS) fits(saved[k]) ? L[k] = saved[k].slice() : missing.push(k);
+    for (const k of missing) {
+      L[k] = DEF_LAYOUT[k].slice();
+      if (shownKeys(L).some(j => j !== k && fits(L[j]) && overlap(L[k], L[j]))) {
+        const spot = freeSpot(L, k);
+        if (spot) L[k] = spot; else L.hidden.push(k);
+      }
+    }
+    return validLayout(L) ? L : DEF_LAYOUT;
+  }
   function placeTile(el, a) {
     el.style.gridArea = `${a[1]} / ${a[0]} / span ${a[3]} / span ${a[2]}`;
     const b = BASE[el.dataset.k] || [3, 3];
     const z = Math.max(.7, Math.min(1.35, Math.min(a[2] / b[0], a[3] / b[1]) ** .5));
     el.style.setProperty('--z', z.toFixed(3));
   }
-  function applyLayout(L = layout()) { tiles().forEach(el => placeTile(el, L[el.dataset.k])); }
+  function applyLayout(L = layout()) { tiles().forEach(el => { placeTile(el, L[el.dataset.k]); el.classList.toggle('off', (L.hidden || []).includes(el.dataset.k)); }); }
 
   function arrange() {
     if (stage.querySelector('.arr')) return;
@@ -820,16 +860,32 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     const boxes = {};
     for (const el of tiles()) {
       const k = el.dataset.k;
-      const b = h(`<div class="arr-box" data-k="${k}"><b>${esc(el.dataset.name || k)}<small></small></b><div class="arr-grip" title="Größe ändern"></div></div>`);
+      const b = h(`<div class="arr-box" data-k="${k}"><b>${esc(el.dataset.name || k)}<small></small></b><button class="arr-off" type="button"><svg class="icon"><use href="#i-eye-off"/></svg>Ausblenden</button><div class="arr-grip" title="Größe ändern"></div></div>`);
       boxes[k] = b; ov.append(b);
     }
-    const draw = () => { for (const [k, b] of Object.entries(boxes)) { put(b, L[k]); b.querySelector('small').textContent = `${L[k][2]}×${L[k][3]}`; } applyLayout(L); };
+    const draw = () => {
+      for (const [k, b] of Object.entries(boxes)) { put(b, L[k]); b.hidden = L.hidden.includes(k); b.querySelector('small').textContent = `${L[k][2]}×${L[k][3]}`; }
+      const hid = bar?.querySelector('.arr-hid');
+      if (hid) {
+        hid.innerHTML = '';
+        for (const k of L.hidden) {
+          const btn = h(`<button type="button">+ ${esc(tiles().find(e => e.dataset.k === k)?.dataset.name || k)}</button>`);
+          btn.onclick = () => {
+            const rest = { ...L, hidden: L.hidden.filter(j => j !== k) };
+            if (shownKeys(rest).some(j => j !== k && overlap(rest[k], rest[j]))) { const spot = freeSpot(rest, k); if (!spot) { bar.querySelector('span').innerHTML = '<b>Kein Platz frei.</b> Bitte erst eine Kachel kleiner ziehen.'; return; } rest[k] = spot; }
+            L = rest; draw();
+          };
+          hid.append(btn);
+        }
+      }
+      applyLayout(L);
+    };
+    let bar = null;
+    bar = h(`<div class="arr-bar"><span><b>Ziehen</b> verschiebt, auf eine andere Kachel ziehen <b>tauscht</b>, die Ecke ändert die <b>Größe</b>.</span>
+      <div class="arr-hid"></div><button class="btn" id="arrDef">Standard</button><button class="btn" id="arrNo">Abbrechen</button><button class="btn primary" id="arrOk">Fertig</button></div>`);
+    stage.append(bar);
     main.append(ov); draw();
     stage.classList.add('arranging');
-
-    const bar = h(`<div class="arr-bar"><span><b>Ziehen</b> verschiebt, auf eine andere Kachel ziehen <b>tauscht</b>, die Ecke ändert die <b>Größe</b>.</span>
-      <button class="btn" id="arrDef">Standard</button><button class="btn" id="arrNo">Abbrechen</button><button class="btn primary" id="arrOk">Fertig</button></div>`);
-    stage.append(bar);
     const end = (save) => {
       ov.remove(); bar.remove(); stage.classList.remove('arranging');
       if (save) setSettings({ layout: L }); else applyLayout();
@@ -842,6 +898,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     ov.addEventListener('pointerdown', (e) => {
       const box = e.target.closest('.arr-box'); if (!box) return;
       e.preventDefault();
+      if (e.target.closest('.arr-off')) { L = { ...L, hidden: [...L.hidden, box.dataset.k] }; return draw(); }
       const k = box.dataset.k, mr = main.getBoundingClientRect(), sc = scale();
       drag = { k, box, resize: !!e.target.closest('.arr-grip'), orig: L[k].slice(), base: JSON.parse(JSON.stringify(L)), x0: e.clientX, y0: e.clientY, mr, sc, cand: null, swap: null };
       box.classList.add('drag'); ov.setPointerCapture(e.pointerId);
@@ -850,7 +907,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       if (!drag) return;
       const { k, box, orig, sc, mr } = drag;
       const dx = (e.clientX - drag.x0) / sc, dy = (e.clientY - drag.y0) / sc;
-      const others = Object.keys(L).filter(j => j !== k);
+      const others = shownKeys(L).filter(j => j !== k);
       Object.values(boxes).forEach(b => b.classList.remove('swap'));
       let cand, bad = false, swap = null;
       if (drag.resize) {
@@ -1111,6 +1168,30 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     $('#overlayHost').append(scrim); scrim.querySelector('#eTitle').focus();
   }
   $('#addEv').onclick = openEventDialog;
+
+  /* ---------- Notizen ---------- */
+  function renderNotes() {
+    const el = $('#notes'); el.innerHTML = '';
+    const list = [...(S.notes || [])].sort((a, b) => b.created - a.created);
+    if (!list.length) el.append(h('<div class="cal-empty" style="font-size:20px;padding:6px 4px">Noch keine Notizen. Oben auf „Notiz“ tippen oder am Handy eintragen.</div>'));
+    for (const n of list) {
+      const row = h(`<div class="note"><span class="private">${esc(n.text)}</span><button title="Notiz löschen"><svg class="icon"><use href="#i-x"/></svg></button></div>`);
+      row.querySelector('button').onclick = () => { if (confirm('Diese Notiz löschen?')) api('DELETE', `/api/notes/${n.id}`); };
+      el.append(row);
+    }
+  }
+  function openNoteDialog() {
+    const scrim = h(`<div class="scrim center"><form class="panel dialog" autocomplete="off">
+      <h2>Neue Notiz</h2>
+      <label class="field">Text <input type="text" id="nText" required maxlength="140" placeholder="z. B. Lieferung Monitore kommt Freitag"></label>
+      <p class="hint">Das Board ist für Besucher sichtbar. Bitte keine Namen, Kundendaten oder Passwörter eintragen.</p>
+      <div class="row"><button class="btn primary" type="submit">Speichern</button><button class="btn" type="button" id="nCancel">Abbrechen</button></div>
+    </form></div>`);
+    scrim.querySelector('#nCancel').onclick = () => scrim.remove();
+    scrim.querySelector('form').onsubmit = (e) => { e.preventDefault(); api('POST', '/api/notes', { text: scrim.querySelector('#nText').value }); scrim.remove(); };
+    $('#overlayHost').append(scrim); scrim.querySelector('#nText').focus();
+  }
+  $('#addNote').onclick = openNoteDialog;
 
   /* ---------- Scan-Eingang ---------- */
   const SCAN_ICON = { Notebook: 'laptop', Monitor: 'monitor', Smartphone: 'phone', Tablet: 'phone', Drucker: 'printer' };
@@ -1566,7 +1647,9 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       </div>
       <div><h4>Updates</h4>
         <p class="hint" id="sUpd">Version ${esc(S.version || '?')}${S.update?.checked ? ` · zuletzt geprüft ${new Date(S.update.checked).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr` : ''}${S.update?.error ? ` · ${esc(S.update.error)}` : S.update?.available ? ` · Version ${esc(S.update.available)} verfügbar` : ' · aktuell'}</p>
-        <label class="field" style="margin-top:10px">Updates installieren <select id="sAuto">${[['sofort', 'automatisch, sofort'], ['nachts', 'automatisch, außerhalb der Bürozeiten'], ['aus', 'nur per Knopf']].map(([v, l]) => `<option value="${v}" ${(st.autoUpdate || 'sofort') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        <label class="field" style="margin-top:10px">Nach Updates schauen <select id="sEvery">${[[30, 'alle 30 Sekunden'], [60, 'jede Minute'], [300, 'alle 5 Minuten'], [1800, 'alle 30 Minuten']].map(([v, l]) => `<option value="${v}" ${(st.updateEvery || 30) === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        <div class="field">Neue Version automatisch installieren <button class="switch" id="sAutoOn" role="switch" aria-checked="${(st.autoUpdate || 'sofort') !== 'aus'}"></button></div>
+        <label class="field" id="sAutoWhen" ${(st.autoUpdate || 'sofort') === 'aus' ? 'hidden' : ''}>Wann installieren <select id="sAuto">${[['sofort', 'sofort'], ['nachts', 'außerhalb der Bürozeiten']].map(([v, l]) => `<option value="${v}" ${(st.autoUpdate || 'sofort') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <div class="row" style="margin-top:10px"><button class="btn" id="sCheck">Jetzt nach Updates suchen</button><button class="btn" id="sNotes">Alle Patch-Notes</button></div>
       </div>
       <div class="row"><button class="btn" id="sReset">Auf Waldgrün zurücksetzen</button></div>
@@ -1676,6 +1759,13 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       catch (e) { scrim.querySelector('#sUpd').textContent = 'Prüfen nicht möglich: ' + e.message; }
     };
     scrim.querySelector('#sAuto').onchange = (e) => setSettings({ autoUpdate: e.target.value });
+    scrim.querySelector('#sEvery').onchange = (e) => setSettings({ updateEvery: +e.target.value });
+    const ao = scrim.querySelector('#sAutoOn');
+    ao.onclick = () => {
+      const on = settings().autoUpdate === 'aus';
+      setSettings({ autoUpdate: on ? scrim.querySelector('#sAuto').value : 'aus' });
+      ao.setAttribute('aria-checked', on); scrim.querySelector('#sAutoWhen').hidden = !on;
+    };
     scrim.querySelector('#sNotes').onclick = () => { close(); openChangelog(); };
     scrim.querySelector('#sReset').onclick = () => { setSettings({ theme: { preset: 'wald', colors: null } }); renderPresets(); renderColors(); };
     $('#overlayHost').append(scrim);
@@ -1789,7 +1879,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   });
 
   /* ---------- Verbindung zum Server ---------- */
-  function renderAll() { applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderScans(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); }
+  function renderAll() { applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderScans(); renderNotes(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); }
   function connect() {
     const es = new EventSource('/api/stream');
     es.onopen = () => { connected = true; };
