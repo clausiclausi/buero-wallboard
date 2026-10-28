@@ -48,6 +48,8 @@ const DEFAULT_LOANS = [
 ];
 let db = Object.assign({ tasks: [], events: [], scans: [], loans: DEFAULT_LOANS, incident: null, settings: {}, people: [], absences: [], notes: [] }, readJson(DB_FILE, {}));
 db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings);
+// Ab 1.18.1 ist die Clausewitzstraße Standard: alte Haltestellenwahl einmalig zurücksetzen
+if (!db.transitDefault) { db.settings.transit = null; db.transitDefault = 1; }
 
 // Passwort zum Entsperren des Besuchermodus (nur als Hash gespeichert, Standard: 123)
 const hashPw = (pw, salt) => crypto.scryptSync(String(pw), salt, 32).toString('hex');
@@ -180,6 +182,7 @@ function sanitizeSettings(b) {
     const tr = b.transit;
     s.transit = tr && typeof tr === 'object' && /^[A-Za-z0-9:_.-]{1,20}$/.test(String(tr.id || '')) ? { id: String(tr.id), name: clean(tr.name, 60) } : null;
   }
+  if (b.radar && typeof b.radar === 'object') s.radar = { zoom: oneOf(+b.radar.zoom, [1, 1.5, 2, 3, 4], 1), play: b.radar.play !== false };
   if ('autoUpdate' in b) s.autoUpdate = oneOf(b.autoUpdate, ['sofort', 'nachts', 'aus'], 'sofort');
   if ('updateEvery' in b) s.updateEvery = oneOf(+b.updateEvery, [30, 60, 300, 1800], 30);
   return s;

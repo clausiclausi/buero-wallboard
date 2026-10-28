@@ -168,6 +168,7 @@ main > .card.off { display: none; }
 
 /* Kacheln anordnen */
 #stage.arranging .mascot { opacity: 0; }
+#stage.arranging .mascot * { pointer-events: none !important; }
 #stage.arranging main > .card { transition: none; }
 .arr { position: absolute; inset: 0; z-index: 7; touch-action: none; user-select: none; }
 .arr-cell { position: absolute; border: 2px dashed color-mix(in srgb, var(--text) 14%, transparent); border-radius: 14px; }
@@ -203,6 +204,12 @@ main > .card.off { display: none; }
 .radar-wrap { position: relative; border-radius: 16px; overflow: hidden; flex: 1; min-height: 0; background: #e8eaea; }
 .radar-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .radar-wrap .rf { opacity: 0; transition: opacity .35s; }
+.radar-zoom { position: absolute; inset: 0; transform-origin: 50% 50%; transition: transform .35s ease; }
+.radar-btns { position: absolute; left: 8px; top: 8px; display: flex; gap: 6px; }
+.radar-btn { width: 40px; height: 40px; border-radius: 10px; border: 0; background: rgba(255,255,255,.9); color: #24302b; font: 700 24px/1 system-ui, sans-serif; display: grid; place-items: center; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.25); padding: 0; }
+.radar-btn:disabled { opacity: .45; }
+.radar-bar .radar-btn { width: 30px; height: 30px; font-size: 15px; box-shadow: none; background: #e3e8e5; flex: none; }
+.radar-track { cursor: pointer; }
 .radar-wrap .rf.on { opacity: .85; }
 .radar-pin { position: absolute; left: 50%; top: 50%; width: 22px; height: 30px; transform: translate(-50%, -100%); filter: drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
 .radar-bar { position: absolute; left: 8px; right: 8px; bottom: 8px; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.88); color: #24302b; border-radius: 10px; padding: 3px 10px; }
@@ -667,10 +674,11 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <div class="wx-desc" id="wxDesc">Wetter wird geladen</div>
       </div>
       <div class="radar-wrap" id="radarWrap">
-        <img id="radarMap" alt="" hidden>
+        <div class="radar-zoom" id="radarZoom"><img id="radarMap" alt="" hidden></div>
         <svg class="radar-pin" viewBox="0 0 22 30" aria-hidden="true"><path d="M11 29C11 29 2 17.5 2 11a9 9 0 0 1 18 0c0 6.5-9 18-9 18z" fill="#e2453c" stroke="#fff" stroke-width="2"/><circle cx="11" cy="11" r="3.5" fill="#fff"/></svg>
         <span class="radar-src">Radar © DWD · Karte © BKG</span>
-        <div class="radar-bar"><span class="radar-tag" id="radarTime">--:--</span><div class="radar-track" id="radarTrack"><span class="knob" id="radarKnob"></span></div></div>
+        <div class="radar-btns"><button type="button" class="radar-btn" id="radarIn" title="Hineinzoomen">+</button><button type="button" class="radar-btn" id="radarOut" title="Herauszoomen">−</button></div>
+        <div class="radar-bar"><button type="button" class="radar-btn" id="radarPlay" title="Abspielen oder anhalten">❚❚</button><span class="radar-tag" id="radarTime">--:--</span><div class="radar-track" id="radarTrack"><span class="knob" id="radarKnob"></span></div></div>
         <div class="radar-msg" id="radarMsg" hidden></div>
       </div>
       <div class="rain-alert" id="rainAlert"><svg class="icon"><use href="#i-cloud-rain"/></svg><span id="rainText"></span></div>
@@ -1326,13 +1334,13 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   let frameIdx = 0, frameEls = [];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   function buildRadar() {
-    const wrap = $('#radarWrap'), map = $('#radarMap'), v = R.updated || 0;
+    const wrap = $('#radarZoom'), map = $('#radarMap'), v = R.updated || 0;
     frameEls.forEach(el => el.remove()); frameEls = [];
     if (R.map) { if (!map.src.includes('karte.png')) map.src = '/api/radar/karte.png'; map.hidden = false; }
     (R.frames || []).forEach((f, i) => {
       const img = document.createElement('img');
       img.className = 'rf'; img.alt = ''; img.src = `/api/radar/bild/${i}.png?v=${v}`;
-      wrap.insertBefore(img, $('.radar-pin', wrap)); frameEls.push(img);
+      wrap.append(img); frameEls.push(img);
     });
     const track = $('#radarTrack'), fr = R.frames || [];
     track.querySelector('.now')?.remove();
@@ -1343,7 +1351,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   function drawRadar() {
     const msg = $('#radarMsg'), fr = R.frames || [];
     if (!R.ok || !fr.length) {
-      msg.hidden = false; msg.textContent = 'Regenradar gerade nicht erreichbar';
+      msg.hidden = false; msg.textContent = R.updated ? 'Regenradar gerade nicht erreichbar' : 'Regenradar wird geladen …';
       $('#radarTime').textContent = '--:--'; frameEls.forEach(el => el.classList.remove('on')); return;
     }
     msg.hidden = true;
@@ -1352,17 +1360,46 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     $('#radarTime').textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}${f.kind === 'fc' && diff > 0 ? ` · in ${diff} min` : ''}`;
     $('#radarKnob').style.left = `${fr.length > 1 ? frameIdx / (fr.length - 1) * 100 : 100}%`;
   }
+  // Zoom und Abspielen, gemerkt in den Einstellungen
+  const ZOOMS = [1, 1.5, 2, 3, 4];
+  const radarCfg = () => Object.assign({ zoom: 1, play: true }, settings().radar || {});
+  function applyRadarCfg() {
+    const c = radarCfg(), i = ZOOMS.indexOf(c.zoom);
+    $('#radarZoom').style.transform = `scale(${c.zoom})`;
+    $('#radarIn').disabled = i >= ZOOMS.length - 1; $('#radarOut').disabled = i <= 0;
+    $('#radarPlay').textContent = c.play && !reduced ? '❚❚' : '▶';
+  }
+  const setRadar = (patch) => { setSettings({ radar: Object.assign(radarCfg(), patch) }); applyRadarCfg(); };
+  $('#radarIn').onclick = () => { const i = ZOOMS.indexOf(radarCfg().zoom); setRadar({ zoom: ZOOMS[Math.min(ZOOMS.length - 1, i + 1)] }); };
+  $('#radarOut').onclick = () => { const i = ZOOMS.indexOf(radarCfg().zoom); setRadar({ zoom: ZOOMS[Math.max(0, i - 1)] }); };
+  $('#radarPlay').onclick = () => setRadar({ play: !radarCfg().play });
+  // Auf die Zeitleiste tippen: diesen Zeitpunkt zeigen und anhalten
+  $('#radarTrack').onclick = (e) => {
+    const n = R.frames?.length || 0; if (n < 2) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    frameIdx = Math.round(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * (n - 1));
+    if (radarCfg().play) setRadar({ play: false });
+    drawRadar();
+  };
   let pauseUntil = 0;
   setInterval(() => {
     const n = R.frames?.length || 0;
-    if (reduced || n < 2 || Date.now() < pauseUntil) return;
+    if (reduced || !radarCfg().play || n < 2 || Date.now() < pauseUntil) return;
     frameIdx = (frameIdx + 1) % n;
     if (frameIdx === n - 1) pauseUntil = Date.now() + 2500;
     drawRadar();
   }, 900);
 
   async function loadWeather() { try { W = await api('GET', '/api/weather'); } catch { W = { ok: false }; } renderWeather(); }
-  async function loadRadar() { try { R = await api('GET', '/api/radar'); } catch { R = { ok: false }; } buildRadar(); drawRadar(); }
+  let radarRetry = 0;
+  async function loadRadar() {
+    const before = R.updated;
+    try { R = await api('GET', '/api/radar'); } catch { R = { ok: false }; }
+    if (R.updated !== before || !frameEls.length) buildRadar();
+    drawRadar();
+    // Nach dem Start lädt das Notebook die Radarbilder noch, dann alle 20 Sekunden nachsehen
+    clearTimeout(radarRetry); if (!R.ok) radarRetry = setTimeout(loadRadar, 20000);
+  }
 
   /* ---------- Leihgeräte ---------- */
   function renderLoans() {
@@ -1704,11 +1741,12 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       <div><h4>Wetter</h4>
         <p class="hint" style="margin-bottom:10px">Regenwarnung zu diesen Uhrzeiten:</p>
         <div class="chips" id="sRain">${[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(v => `<button type="button" data-h="${v}" aria-pressed="${st.rainHours.includes(v)}">${v}:00</button>`).join('')}</div>
+        <div class="field" style="margin-top:10px">Regenradar automatisch abspielen <button class="switch" id="sRadarPlay" role="switch" aria-checked="${st.radar?.play !== false}"></button></div>
         <p class="hint" style="margin-top:10px">Amtliche Unwetterwarnungen des DWD werden immer angezeigt.</p>
       </div>
       <div><h4>Abfahrten</h4>
-        <p class="hint" style="margin-bottom:10px">Haltestelle: <b id="sStopNow">${esc(st.transit?.name || S.extras?.transit?.stop?.name || 'automatisch die nächste')}</b></p>
-        <div class="row"><input type="text" id="sStopQ" placeholder="Haltestelle suchen, z. B. Hannover Kröpcke" style="flex:1;font:inherit;font-size:20px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px"><button class="btn" id="sStopGo">Suchen</button></div>
+        <p class="hint" style="margin-bottom:10px">Haltestelle: <b id="sStopNow">${esc(st.transit?.name || S.extras?.transit?.stop?.name || 'Clausewitzstraße (Standard)')}</b></p>
+        <div class="row"><input type="text" id="sStopQ" placeholder="Haltestelle suchen, z. B. Clausewitzstraße" style="flex:1;font:inherit;font-size:20px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px"><button class="btn" id="sStopGo">Suchen</button></div>
         <div class="chips" id="sStops" style="margin-top:10px"></div>
         <p class="hint" style="margin-top:8px">Fahrplandaten der Deutschen Bahn, enthalten auch Stadtbahn und Bus.</p>
       </div>
@@ -1816,6 +1854,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     scrim.querySelector('#sArrange').onclick = () => { close(); arrange(); };
     const sw = scrim.querySelector('#sSound');
     sw.onclick = () => { setSettings({ muted: !settings().muted }); sw.setAttribute('aria-checked', !settings().muted); };
+    const rp = scrim.querySelector('#sRadarPlay');
+    rp.onclick = () => { setRadar({ play: !radarCfg().play }); rp.setAttribute('aria-checked', radarCfg().play); };
     const vs = scrim.querySelector('#sVisitor');
     vs.onclick = () => { if (settings().visitor) { close(); toggleVisitor(); } else { setSettings({ visitor: true }); vs.setAttribute('aria-checked', true); } };
     scrim.querySelector('#sPw').onclick = () => {
@@ -1976,7 +2016,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   });
 
   /* ---------- Verbindung zum Server ---------- */
-  function renderAll() { applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderNotes(); renderTransit(); renderSec(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); }
+  function renderAll() { applyRadarCfg(); applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderNotes(); renderTransit(); renderSec(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); }
   function connect() {
     const es = new EventSource('/api/stream');
     es.onopen = () => { connected = true; };

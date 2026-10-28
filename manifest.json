@@ -1,21 +1,22 @@
 {
-  "version": "1.18.0",
-  "notes": "Neues Regenradar wie in der WetterOnline-App: hellgraue Landkarte rund um Hannover mit rotem Büro-Pin, echtes DWD-Radar der letzten Stunde plus Vorhersage, Zeitleiste spielt automatisch ab. Das alte schwarze Radarbild ist entfernt.",
+  "version": "1.19.0",
+  "notes": "Regenradar: mit + und − bis vierfach hineinzoomen. Der Pause-Knopf stoppt die Animation, Antippen der Zeitleiste zeigt einen bestimmten Zeitpunkt. Automatisches Abspielen lässt sich unter Einstellungen → Wetter abschalten.",
   "changes": [
-    "Neues Regenradar wie in der WetterOnline-App: hellgraue Landkarte rund um Hannover mit rotem Büro-Pin, echtes DWD-Radar der letzten Stunde plus Vorhersage, Zeitleiste spielt automatisch ab.",
-    "Das alte schwarze Radarbild ist entfernt.",
-    "Die Bilder holt das Notebook selbst vom DWD und vom Bundesamt für Kartographie. Keine Werbung, keine Cookies, kein fremder Dienst sieht das Board."
+    "Regenradar: mit + und − bis vierfach hineinzoomen. Der Pause-Knopf stoppt die Animation, Antippen der Zeitleiste zeigt einen bestimmten Zeitpunkt. Automatisches Abspielen lässt sich unter Einstellungen → Wetter abschalten.",
+    "Regenradar erscheint nach einem Neustart jetzt von selbst, statt bis zu 5 Minuten „nicht erreichbar“ zu zeigen.",
+    "Abfahrten: Standard ist jetzt die Haltestelle Clausewitzstraße. Die Suche fragt direkt bei bahn.de an und findet auch Üstra-Haltestellen.",
+    "AOK-Männchen: antippen, und es reagiert. Festhalten und ziehen, loslassen mit Schwung wirft es über das Board, und es landet auf einer Kachel."
   ],
   "files": {
-    "changelog.json": "ae29bd18855e935e01fcb14a387e0bc53902b28dd5dc8cd535d2fb257af4f697",
+    "changelog.json": "cd72596e48ebdb9461685ed60948d90edba87e10d788e70b6e65287b46c896d4",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
-    "extras.js": "cab56cefe11edfc2e242a43fb36f7d0e7a23731c029d1e3cb803d7dcb401c8e3",
-    "public/board.html": "1dd07628a37a1665c7dbf6ccec13661e2ecf223fe1b0374dd7ac7cac1aab000d",
+    "extras.js": "1af577f822cb9dbea9cd055364202224c3e3e345ba2ba6b6cc08c4734ee9c626",
+    "public/board.html": "a46d837696b2bef450a8bdc023744940b562d86af61d6d755083c3a9fc2ac9e8",
     "public/m.html": "51f4c46130b9710c6f2995f6a028d81ec9139521416ab7042636a67b49fd3c78",
-    "public/mascot.js": "3a8a71036ec87f857a004892cf72386c39c6f80d9d2fc37d15339933ca593a26",
-    "radar.js": "a061446796240aa17b53107dc18b9835024fbd41bd779253e69648f1da167e72",
-    "server.js": "abc6db36775c4f32e8c599a7eb10a4f0c8af739c7f9a5783ba7f037d19538d40",
+    "public/mascot.js": "48ffd3c448bec0d56de44edb1bd54741c4cb9c29ae4a200124a0a0e6a727e04c",
+    "radar.js": "2de0dd59de4067ed5a90383e0f6b809fcba6522fa9299c1a4bc5595a464aeaff",
+    "server.js": "67a0f840b5d8bcd27ce47b95a212b9a24a935b6d410231c849ccacd7d833d3ed",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "f30093cdf64adf8ef820ecd6857ac9516a31137b9f360500b866c954179dcd7d"
+    "version.json": "e1010afecda6f8d7a51cde2876c8f53346634e14f87b4bdfc78b38180e1d9b1b"
   }
 }

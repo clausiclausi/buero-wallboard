@@ -18,32 +18,76 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
   }
   const clean = (v, n) => String(v ?? '').replace(/[\u0000-\u001f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
 
-  /* ---------- Abfahrten (Deutsche Bahn, enthält auch Stadtbahn und Bus in Hannover) ---------- */
-  const PRODUCT = { nationalExpress: 'zug', national: 'zug', regionalExpress: 'zug', regional: 'zug', suburban: 'sbahn', subway: 'stadtbahn', tram: 'stadtbahn', bus: 'bus', ferry: 'bus', taxi: 'bus' };
-  const stopList = list => (Array.isArray(list) ? list : []).filter(s => s && (s.type === 'stop' || s.type === 'station') && s.id)
-    .slice(0, 8).map(s => ({ id: clean(s.id, 20), name: clean(s.name, 60), dist: s.distance ?? null }));
-  async function nearby() {
-    return stopList(await get(`${TRANSIT}/locations/nearby?latitude=${config.lat}&longitude=${config.lon}&results=8&distance=1500`));
+  /* ---------- Abfahrten ----------
+     Zuerst direkt die Fahrplanauskunft von bahn.de (enthält Üstra-Stadtbahn und Bus in Hannover),
+     wenn die nicht antwortet, der freie Spiegel db.transport.rest. */
+  const DBWEB = (config.dbwebUrl || 'https://int.bahn.de/web/api/reiseloesung').replace(/\/$/, '');
+  const DEFAULT_STOP = config.transitDefault || 'Clausewitzstraße, Hannover';
+  const BROWSER = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36 Edg/130.0', Accept: 'application/json', 'Accept-Language': 'de' };
+  async function getWeb(url) {
+    const r = await fetch(url, { headers: BROWSER, signal: AbortSignal.timeout(20000) });
+    if (!r.ok) throw new Error(`${r.status}`);
+    return r.json();
   }
+  const PRODUCT = { nationalExpress: 'zug', national: 'zug', regionalExpress: 'zug', regional: 'zug', suburban: 'sbahn', subway: 'stadtbahn', tram: 'stadtbahn', bus: 'bus', ferry: 'bus', taxi: 'bus',
+    ICE: 'zug', EC_IC: 'zug', IR: 'zug', REGIONAL: 'zug', SBAHN: 'sbahn', UBAHN: 'stadtbahn', TRAM: 'stadtbahn', BUS: 'bus', SCHIFF: 'bus', ANRUFPFLICHTIG: 'bus' };
+  const VM = ['ICE', 'EC_IC', 'IR', 'REGIONAL', 'SBAHN', 'BUS', 'SCHIFF', 'UBAHN', 'TRAM', 'ANRUFPFLICHTIG'].map(v => `&verkehrsmittel[]=${v}`).join('');
+  // Haltestellen von bahn.de: { extId, name, type: 'ST' }; von transport.rest: { id, name, type: 'stop' }
+  const stopList = list => (Array.isArray(list) ? list : []).map(s => s && (s.type === 'ST' || s.type === 'stop' || s.type === 'station')
+      ? { id: clean(String(s.extId || s.id || '').replace(/^0+/, ''), 20), name: clean(s.name, 60), dist: s.distance ?? s.dist ?? null } : null)
+    .filter(s => s && /^[A-Za-z0-9:_.-]{1,20}$/.test(s.id)).slice(0, 8);
+  async function both(web, rest) {
+    try { const l = stopList(await web()); if (l.length) return l; } catch (e) { log('bahn.de Haltestellen:', e.message); }
+    return stopList(await rest());
+  }
+  const nearby = () => both(
+    () => getWeb(`${DBWEB}/orte/nearby?lat=${config.lat}&long=${config.lon}&radius=1500&maxNo=8`),
+    () => get(`${TRANSIT}/locations/nearby?latitude=${config.lat}&longitude=${config.lon}&results=8&distance=1500`));
   async function search(q) {
-    return stopList(await get(`${TRANSIT}/locations?query=${encodeURIComponent(clean(q, 60))}&results=8&addresses=false&poi=false`));
+    q = clean(q, 60);
+    const one = t => both(
+      () => getWeb(`${DBWEB}/orte?suchbegriff=${encodeURIComponent(t)}&typ=HALTESTELLEN&limit=8`),
+      () => get(`${TRANSIT}/locations?query=${encodeURIComponent(t)}&results=8&addresses=false&poi=false`));
+    let list = await one(q);
+    // „Clausewitzstraße“ allein findet sonst Haltestellen in ganz Deutschland
+    if (!/hannover/i.test(q)) {
+      const local = await one(`${q} Hannover`).catch(() => []);
+      list = [...local, ...list.filter(s => !local.some(l => l.id === s.id))].slice(0, 8);
+    }
+    return list;
+  }
+  const localIso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
+  async function departures(id) {
+    try {
+      const now = new Date(), [datum, zeit] = localIso(now).split('T');
+      const r = await getWeb(`${DBWEB}/abfahrten?ortExtId=${encodeURIComponent(id)}&datum=${datum}&zeit=${zeit.slice(0, 5)}${VM}`);
+      const list = (r.entries || []).map(d => {
+        const vm = d.verkehrmittel || d.verkehrsmittel || {}, plan = new Date(d.zeit), real = d.ezZeit ? new Date(d.ezZeit) : plan;
+        const line = vm.linienNummer && /^(BUS|TRAM|UBAHN)$/.test(vm.produktGattung) ? vm.linienNummer : vm.mittelText || vm.name;
+        return { line: clean(line, 12), kind: PRODUCT[vm.produktGattung] || 'bus', dir: clean(d.terminus, 40), when: real.toISOString(),
+          delay: Math.round((real - plan) / 60000), cancelled: (d.meldungen || []).some(m => /fällt aus|entfällt/i.test(m.text || '')), platform: clean(d.ezGleis || d.gleis, 6) };
+      });
+      if (r.entries) return list;
+    } catch (e) { log('bahn.de Abfahrten:', e.message); }
+    const r = await get(`${TRANSIT}/stops/${encodeURIComponent(id)}/departures?duration=90&results=14&remarks=false&linesOfStops=false`);
+    return (Array.isArray(r) ? r : r.departures || []).filter(d => d && (d.when || d.plannedWhen)).map(d => ({
+      line: clean(d.line?.name, 12), kind: PRODUCT[d.line?.product] || 'bus', dir: clean(d.direction, 40),
+      when: d.when || d.plannedWhen, delay: Math.round((d.delay || 0) / 60), cancelled: !!d.cancelled,
+      platform: clean(d.platform || d.plannedPlatform, 6),
+    }));
   }
   let autoStop = null;
   async function updateTransit() {
     let stop = getSettings().transit;
     try {
       if (!stop || !stop.id) {
-        if (!autoStop) autoStop = (await nearby())[0] || null;
+        // Standard: Clausewitzstraße, sonst die nächste Haltestelle am Büro
+        if (!autoStop) autoStop = (await search(DEFAULT_STOP).catch(() => [])).find(s => /clausewitz/i.test(s.name)) || (await nearby())[0] || null;
         stop = autoStop;
       }
-      if (!stop) throw new Error('Keine Haltestelle in der Nähe gefunden');
-      const r = await get(`${TRANSIT}/stops/${encodeURIComponent(stop.id)}/departures?duration=90&results=14&remarks=false&linesOfStops=false`);
-      const list = Array.isArray(r) ? r : r.departures || [];
-      const deps = list.filter(d => d && (d.when || d.plannedWhen)).map(d => ({
-        line: clean(d.line?.name, 12), kind: PRODUCT[d.line?.product] || 'bus', dir: clean(d.direction, 40),
-        when: d.when || d.plannedWhen, delay: Math.round((d.delay || 0) / 60), cancelled: !!d.cancelled,
-        platform: clean(d.platform || d.plannedPlatform, 6),
-      })).sort((a, b) => new Date(a.when) - new Date(b.when)).slice(0, 12);
+      if (!stop) throw new Error('Keine Haltestelle gefunden');
+      const deps = (await departures(stop.id)).filter(d => new Date(d.when) > Date.now() - 60000)
+        .sort((a, b) => new Date(a.when) - new Date(b.when)).slice(0, 12);
       st.transit = { ok: true, stop: { id: stop.id, name: stop.name }, deps, updated: Date.now() };
     } catch (e) {
       log('Abfahrten nicht erreichbar:', e.message);

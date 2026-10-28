@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.19.0",
+    "date": "2026-10-28",
+    "changes": [
+      "Regenradar: mit + und − bis vierfach hineinzoomen. Der Pause-Knopf stoppt die Animation, Antippen der Zeitleiste zeigt einen bestimmten Zeitpunkt. Automatisches Abspielen lässt sich unter Einstellungen → Wetter abschalten.",
+      "Regenradar erscheint nach einem Neustart jetzt von selbst, statt bis zu 5 Minuten „nicht erreichbar“ zu zeigen.",
+      "Abfahrten: Standard ist jetzt die Haltestelle Clausewitzstraße. Die Suche fragt direkt bei bahn.de an und findet auch Üstra-Haltestellen.",
+      "AOK-Männchen: antippen, und es reagiert. Festhalten und ziehen, loslassen mit Schwung wirft es über das Board, und es landet auf einer Kachel."
+    ]
+  },
+  {
     "version": "1.18.0",
     "date": "2026-10-28",
     "changes": [

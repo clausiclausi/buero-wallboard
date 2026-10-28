@@ -222,7 +222,7 @@
   // ---------- Ablauf ----------
   const ACT_KEYS = ['wave', 'wipe', 'sleep', 'cheer', 'kick', 'grim', 'climb', 'stretch', 'knock', 'push'];
   function stateAt(segs, t, start, clock, k) {
-    const s = { x: start.x, y: start.y, m: 0, sit: 0, walk: 0, dist: 0, air: 0, dir: start.dir || 1, txt: start.txt, t: clock, carry: 0, ins: 0, act: '', zoom: 1, tap: -1, say: '' };
+    const s = { x: start.x, y: start.y, m: start.m || 0, sit: 0, walk: 0, dist: 0, air: 0, dir: start.dir || 1, txt: start.txt, t: clock, carry: 0, ins: 0, act: '', zoom: 1, tap: -1, say: '' };
     for (const a of ACT_KEYS) s[a] = 0;
     for (const g of segs) {
       const u = clamp(t / g.d), x0 = s.x, y0 = s.y;
@@ -325,11 +325,15 @@
       E.bTail = el('path', { fill: '#FFFFFF' }, E.bubble);
       E.bText = el('text', { 'text-anchor': 'middle', 'dominant-baseline': 'central', fill: '#14201B', 'font-size': 8.5, 'font-weight': 600, style: "font-family:'Segoe UI',system-ui,sans-serif" }, E.bubble);
       E.bSaid = '';
+      // Unsichtbare Fläche zum Anfassen, liegt über allem
+      E.hit = el('ellipse', { fill: 'transparent', style: 'pointer-events:all;cursor:grab;touch-action:none' }, svg);
+      E.hit.addEventListener('pointerdown', grab);
     }
 
     let lastTap = -1;
     function render(s) {
       const t = s.t, x = s.x, y = s.y, kk = k * (s.zoom || 1);
+      if (E.hit) { E.hit.setAttribute('cx', x.toFixed(1)); E.hit.setAttribute('cy', (y - 16 * k).toFixed(1)); E.hit.setAttribute('rx', (42 * k).toFixed(1)); E.hit.setAttribute('ry', (26 * k).toFixed(1)); }
       const lp = scaleGeo(letterPose(x, y, reduced.matches ? 0 : t), x, y, k);
       const blinkOpen = (t % 3.1) < .12 ? .15 : 1, eyeOn = sstep(.8, 1, s.m);
       const shut = Math.max(s.sleep, s.stretch * .9);
@@ -467,7 +471,7 @@
       if (!options.length) options = list;
       return spotOn(pick(options));
     }
-    const restState = () => ({ x: pos.x, y: pos.y, m: 0, sit: 0, walk: 0, dist: 0, air: 0, dir: 1, txt: E.text ? 1 : 0, t: now(), carry: 0, ins: 0, wave: 0, wipe: 0, sleep: 0, cheer: 0, kick: 0, grim: 0, climb: 0, stretch: 0, knock: 0, push: 0, tap: 0, zoom: 1 });
+    const restState = () => ({ x: pos.x, y: pos.y, m: 0, sit: 0, walk: 0, dist: 0, air: 0, dir: 1, txt: E.text ? 1 : 0, t: now(), carry: 0, ins: 0, wave: 0, wipe: 0, sleep: 0, cheer: 0, kick: 0, grim: 0, climb: 0, stretch: 0, knock: 0, push: 0, tap: -1, zoom: 1 });
 
     // Kachel wackeln lassen (springt immer von selbst in die Ausgangslage zurück)
     function wobble(card, dir, strength = 1) {
@@ -524,8 +528,7 @@
       let total = 0;
       const add = (...g) => { for (const x of g) { segs.push(x); total += x.d; } };
       const at = (offset, fn) => events.push({ at: total + offset, fn });
-      if (E.text) add({ d: .35, k: 'txt', to: 0 });
-      add({ d: 1.3, k: 'morph', to: 1 });
+      if (!opts.fig) { if (E.text) add({ d: .35, k: 'txt', to: 0 }); add({ d: 1.3, k: 'morph', to: 1 }); }
       let x = from.x, y = from.y;
       const walk = (tx, extra = {}) => { const d = Math.abs(tx - x); if (d > 1) add({ d: Math.max(.25, d / (80 * k)), k: 'walk', to: [tx, y], ...extra }); x = tx; };
       const jump = (tx, ty, h, extra = {}) => { add({ d: .55 + Math.hypot(tx - x, ty - y) / 400, k: 'jump', to: [tx, ty], h, ...extra }); x = tx; y = ty; };
@@ -623,14 +626,14 @@
       if (move && move.letter) { if (move.letter.anim) move.letter.anim.cancel(); move.letter.restore(); }
       move = null;
     }
-    function start(p) {
-      move = { ...p, start: restState(), t0: now() };
+    function start(p, from) {
+      move = { ...p, start: { ...restState(), ...(from || {}) }, t0: now() };
       move.events.sort((a, b) => a.at - b.at);
       loop();
     }
     // opts.act: bestimmte Aktion (Test-Knöpfe), opts.target: 'oben' für Klettern, 'hier' bleibt auf der Kachel
     function go(opts = {}) {
-      if (!cfg) return;
+      if (!cfg || fling) return;
       if (move) stop();
       if (!pos || !pos.card.isConnected) pos = pickSpot(null);
       if (!pos) return;
@@ -670,11 +673,96 @@
     }
     // Ruhezustand: leichtes Wippen mit wenigen Bildern pro Sekunde, alle paar Minuten ein Ausflug
     setInterval(() => {
-      if (!cfg || move || !pos) return;
+      if (!cfg || move || fling || !pos) return;
       if (!pos.card.isConnected) { pos = pickSpot(null); if (!pos) return; }
       if (!sleeping() && !reduced.matches) render(restState());
       if (Date.now() >= nextAt && !sleeping() && document.visibilityState === 'visible' && !stage.querySelector('#overlayHost > *')) go();
     }, 100);
+
+    // ---------- Anfassen: antippen, ziehen und werfen ----------
+    let fling = null;
+    const toSvg = e => { const { sr, sc } = unit(); return { x: (e.clientX - sr.left) / sc / 3, y: (e.clientY - sr.top) / sc / 3 }; };
+    const TAP_SAY = ['Hihi, das kitzelt!', 'Hallo!', 'Huch!', 'Hey, du!', 'Noch mal!', 'Hab dich gesehen!'];
+    function grab(e) {
+      if (!cfg || !pos || stage.classList.contains('arranging')) return;
+      e.preventDefault(); e.stopPropagation();
+      try { E.hit.setPointerCapture(e.pointerId); } catch {}
+      const p = toSvg(e), t = now();
+      // Laufende Bewegung beenden, Figur bleibt da, wo sie gerade ist
+      let cur = restState();
+      if (move) { const st = stateAt(move.segs, t - move.t0, move.start, t, k); cur = { ...cur, x: st.x, y: st.y, m: st.m, txt: st.txt }; stop(); }
+      fling = { id: e.pointerId, sx: e.clientX, sy: e.clientY, t0: t, moved: false, held: true, x: cur.x, y: cur.y, m: cur.m, txt: cur.txt,
+        ox: cur.x - p.x, oy: cur.y - p.y, vx: 0, vy: 0, hist: [{ t, x: p.x, y: p.y }], dir: 1, last: t, bounces: 0 };
+      E.hit.style.cursor = 'grabbing';
+      flingLoop();
+    }
+    function onMove(e) {
+      if (!fling || !fling.held || e.pointerId !== fling.id) return;
+      if (Math.hypot(e.clientX - fling.sx, e.clientY - fling.sy) > 8) fling.moved = true;
+      const p = toSvg(e), t = now();
+      if (Math.abs(p.x + fling.ox - fling.x) > .5) fling.dir = Math.sign(p.x + fling.ox - fling.x);
+      fling.x = p.x + fling.ox; fling.y = p.y + fling.oy;
+      fling.hist.push({ t, x: p.x, y: p.y }); while (fling.hist.length > 2 && t - fling.hist[0].t > .1) fling.hist.shift();
+    }
+    function onUp(e) {
+      if (!fling || !fling.held || e.pointerId !== fling.id) return;
+      fling.held = false; E.hit.style.cursor = 'grab';
+      if (!fling.moved && now() - fling.t0 < .5) {
+        // Nur angetippt: an Ort und Stelle reagieren
+        fling = null; render(restState());
+        const mood = moodNow();
+        return here(mood === 'frech' ? pick(['grimasse', 'huepfen', 'freuen']) : pick(['freuen', 'winken', 'strecken']), pick(TAP_SAY));
+      }
+      // Wurf: Schwung aus den letzten Zentimetern der Bewegung
+      const h = fling.hist, a = h[0], b = h[h.length - 1], dt = Math.max(.016, b.t - a.t);
+      fling.vx = Math.max(-1500, Math.min(1500, (b.x - a.x) / dt)); fling.vy = Math.max(-1500, Math.min(1500, (b.y - a.y) / dt));
+      if (reduced.matches) { fling.vx = fling.vy = 0; }
+      fling.last = now();
+    }
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    function land(c, x, y, how) {
+      const f = fling; fling = null;
+      if (c) { pos = { x: Math.max(c.l + 12 * k, Math.min(c.r - 12 * k, x)), y: c.top, card: c.el }; }
+      else {
+        // Unten aufgeschlagen: auf die nächste Kachel der unteren Reihe springen
+        const list = cards(), low = Math.max(...list.map(c => c.top));
+        const near = list.filter(c => c.top > low - 3).sort((a, b) => Math.abs((a.l + a.r) / 2 - x) - Math.abs((b.l + b.r) / 2 - x))[0];
+        pos = near ? { x: Math.max(near.l + 12 * k, Math.min(near.r - 12 * k, x)), y: near.top, card: near.el } : pickSpot(null) || pos;
+      }
+      const from = { x: f.x, y: f.y, m: f.m, txt: f.txt, dir: f.dir };
+      const say = how === 'hart' ? pick(['Uff!', 'Aua!', 'Huii!', 'Nochmal!']) : pick(['Danke!', 'Gelandet!', 'Puh!']);
+      const p = plan({ x: f.x, y: f.y, card: c ? c.el : null }, { x: pos.x, y: pos.y, card: pos.card }, { act: how === 'hart' ? pick(['grimasse', 'freuen']) : 'winken', say, fig: true });
+      if (c) wobble(c.el, f.vx >= 0 ? 1 : -1, Math.min(1.4, .4 + Math.abs(f.vy) / 600));
+      start(p, from);
+    }
+    function flingLoop() {
+      if (!fling) return;
+      const f = fling, t = now(), dt = Math.min(.05, t - f.last); f.last = t;
+      f.m = Math.min(1, f.m + dt * 4); f.txt = Math.max(0, f.txt - dt * 6);
+      if (!f.held) {
+        // Flugbahn mit Schwerkraft, prallt von den Bildschirmrändern ab
+        const py = f.y;
+        f.vy += 900 * dt; f.vx *= Math.pow(.6, dt);
+        f.x += f.vx * dt; f.y += f.vy * dt;
+        if (Math.abs(f.vx) > 5) f.dir = Math.sign(f.vx);
+        if (f.x < 12 * k) { f.x = 12 * k; f.vx = -f.vx * .6; }
+        if (f.x > 640 - 12 * k) { f.x = 640 - 12 * k; f.vx = -f.vx * .6; }
+        if (f.y < 30 * k) { f.y = 30 * k; f.vy = Math.abs(f.vy) * .5; }
+        if (f.vy > 0) {
+          // Auf einer Kachel gelandet?
+          const c = cards().find(c => py <= c.top && f.y >= c.top && f.x >= c.l - 8 && f.x <= c.r + 8);
+          if (c) { f.y = c.top; return land(c, f.x, f.y, f.vy > 380 ? 'hart' : 'weich'); }
+        }
+        if (f.y > 356) {
+          f.y = 356; f.vy = -Math.abs(f.vy) * .55; f.bounces++;
+          if (f.bounces > 2 || Math.abs(f.vy) < 120) return land(null, f.x, f.y, 'hart');
+        }
+      }
+      render({ ...restState(), x: f.x, y: f.y, m: f.m, txt: f.txt, dir: f.dir, air: f.held ? .9 : .6, grim: f.held ? 0 : .5, t });
+      raf = requestAnimationFrame(flingLoop);
+    }
 
     function apply(c, isLight) {
       const next = c && c.fig && c.fig !== 'aus' ? Object.assign({}, DEFAULTS, c) : null;
@@ -682,6 +770,7 @@
       const nk = JSON.stringify([next, isLight]);
       if (nk === key) return;
       key = nk; light = !!isLight;
+      fling = null;
       if (!next) { stop(); cfg = null; svg.innerHTML = ''; svg.style.display = 'none'; return; }
       const reschedule = !cfg || cfg.every !== next.every;
       stop();
@@ -694,13 +783,13 @@
     // Hinweise vom Board: Störung aktiv, Besuchermodus; Aufgabe erledigt = kurz freuen
     function context(c) { ctx = Object.assign(ctx, c); }
     function cheer() {
-      if (!cfg || move || ctx.incident || sleeping() || reduced.matches || cfg.mood === 'frech') return;
+      if (!cfg || move || fling || ctx.incident || sleeping() || reduced.matches || cfg.mood === 'frech') return;
       if (!pos || !pos.card.isConnected) return;
       start(plan(pos, { x: pos.x, y: pos.y, card: pos.card }, { act: 'freuen' }));
     }
     // Ohne Ortswechsel: an Ort und Stelle Figur werden, etwas tun oder sagen, wieder AOK werden
     function here(act, say) {
-      if (!cfg || reduced.matches) return;
+      if (!cfg || reduced.matches || fling) return;
       if (move) stop();
       if (!pos || !pos.card.isConnected) pos = pickSpot(null);
       if (!pos) return;

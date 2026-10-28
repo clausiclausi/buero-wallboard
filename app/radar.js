@@ -9,7 +9,7 @@ module.exports = function createRadar({ DATA, config, log }) {
   const MAP_FILE = path.join(DATA, 'radar-karte.png');
   const GEO = (config.radarGeoserver || 'https://maps.dwd.de/geoserver/dwd').replace(/\/$/, ''), DWD = `${GEO}/wms`;
   const MAP = config.radarMapUrl || 'https://sgx.geodatenzentrum.de/wms_topplus_open';
-  const SIZE = 800;
+  const SIZE = 1400; // groß genug, um am Board bis vierfach hineinzuzoomen
   // Ausschnitt etwa 95 km um das Büro, wie in der WetterOnline-App (Minden bis Braunschweig)
   const R = 6378137, x = R * config.lon * Math.PI / 180, y = R * Math.log(Math.tan(Math.PI / 4 + config.lat * Math.PI / 360));
   const half = (config.radarKm || 95) * 1000 / Math.cos(config.lat * Math.PI / 180);
@@ -63,9 +63,12 @@ module.exports = function createRadar({ DATA, config, log }) {
     await updateMap();
     try {
       // Vergangenheit: Niederschlagsradar, alle 10 Minuten der letzten Stunde
-      const past = (await times('Niederschlagsradar')).filter(t => t > Date.now() - 65 * 60000);
+      let past = [];
+      try { past = (await times('Niederschlagsradar')).filter(t => t > Date.now() - 65 * 60000 && t <= Date.now() + 60000); }
+      catch (e) { log('Radarzeiten nicht lesbar:', e.message); }
+      // Ohne Zeitliste: die letzten 5-Minuten-Schritte selbst ausrechnen (DWD liefert mit etwa 10 Minuten Verzug)
+      if (!past.length) { const t0 = Math.floor((Date.now() - 10 * 60000) / 300000) * 300000; for (let i = 6; i >= 0; i--) past.push(t0 - i * 600000); }
       const latest = past[past.length - 1];
-      if (!latest) throw new Error('keine Radarzeiten');
       const pick = past.filter(t => (latest - t) % 600000 === 0).slice(-7);
       // Vorhersage: DWD-Niederschlagsvorhersage (RV), bis 90 Minuten voraus, wenn der Dienst sie anbietet
       let fc = [];
@@ -81,12 +84,16 @@ module.exports = function createRadar({ DATA, config, log }) {
           frames.push({ t: f.t, kind: f.kind });
         } catch (e) { log('Radarbild fehlt:', new Date(f.t).toISOString(), e.message); }
       }
-      if (!frames.some(f => f.kind === 'past')) throw new Error('keine Radarbilder');
+      // Notfalls nur das aktuellste Bild ohne Zeitangabe
+      if (!frames.some(f => f.kind === 'past')) {
+        imgs.unshift(await getBuf(wms(DWD, 'dwd:Niederschlagsradar')));
+        frames.unshift({ t: latest, kind: 'past' });
+      }
       images = imgs;
       state = { ok: true, updated: Date.now(), frames, map: !!mapBuf };
     } catch (e) {
       log('Radar nicht erreichbar:', e.message);
-      state = { ...state, ok: false, map: !!mapBuf };
+      state = { ...state, ok: false, updated: Date.now(), map: !!mapBuf };
     }
   }
 
