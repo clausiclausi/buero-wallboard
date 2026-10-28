@@ -140,6 +140,11 @@ main {
 .dep .min small { display: block; font-size: 14px; font-weight: 600; color: var(--crit); }
 .dep.gone { opacity: .45; } .dep.x .dir, .dep.x .min { text-decoration: line-through; color: var(--crit); }
 .tr-msg { font-size: 19px; color: var(--muted); padding: 4px; }
+.tr-src { flex: none; font-size: 12px; color: var(--muted); text-align: right; opacity: .8; }
+.tr-why { display: block; font-size: 13px; margin-top: 4px; opacity: .8; font-family: var(--font-mono); word-break: break-word; }
+.diag { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.diag div { display: grid; grid-template-columns: 26px 1fr; gap: 8px; font-size: 16px; padding: 6px 10px; border-radius: 10px; background: var(--bg); }
+.diag div b { display: block; } .diag div small { font-family: var(--font-mono); font-size: 13px; color: var(--muted); word-break: break-word; }
 .route { flex: none; display: flex; flex-direction: column; gap: 6px; padding-top: 10px; margin-top: 4px; border-top: 1px solid var(--line); }
 .route[hidden] { display: none; }
 .route h4 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -723,6 +728,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       <h3><svg class="icon"><use href="#i-train"/></svg>Abfahrten <span class="badge" id="trStop" style="max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span></h3>
       <div class="tr-list" id="transit"></div>
       <div class="route" id="route" hidden><h4 id="routeTo"></h4><div class="tr-list" id="routeList"></div></div>
+      <div class="tr-src">Fahrplandaten: DELFI · efa.de (Ersatz: VRR · www.vrr.de)</div>
     </section>
 
     <section class="card sec" data-k="sec" data-name="Sicherheit">
@@ -1225,7 +1231,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   function renderTransit() {
     const T = S.extras?.transit, el = $('#transit');
     $('#trStop').textContent = T?.stop?.name ? T.stop.name.replace(/^Hannover[ ,-]*/, '') : ''; $('#trStop').hidden = !T?.stop?.name;
-    if (!T || !T.deps) { el.innerHTML = `<div class="tr-msg">${T?.error ? esc(T.error) : 'Abfahrten werden geladen …'}</div>`; renderRoute(); return; }
+    if (!T || !T.deps) { el.innerHTML = `<div class="tr-msg">${T?.error ? esc(T.error) : 'Abfahrten werden geladen …'}${T?.why ? `<small class="tr-why">${esc(T.why)}</small>` : ''}</div>`; renderRoute(); return; }
     const now = Date.now();
     const deps = T.deps.filter(d => new Date(d.when) - now > -60000).slice(0, 8);
     el.innerHTML = deps.length ? deps.map(d => {
@@ -1235,6 +1241,9 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     }).join('') : '<div class="tr-msg">In der nächsten Stunde keine Abfahrten.</div>';
     if (T.ok === false) el.insertAdjacentHTML('afterbegin', `<div class="tr-msg">${esc(T.error || '')} · Stand ${new Date(T.updated || 0).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</div>`);
     renderRoute();
+    // In kleinen Kacheln Verbindungen kürzen, damit mindestens zwei Abfahrten ganz sichtbar bleiben
+    const rl = $('#routeList'), row = el.firstElementChild;
+    if (row && !$('#route').hidden) while (rl.children.length > 1 && el.clientHeight < row.offsetHeight * 2 + 8) rl.lastElementChild.remove();
     fitRows(el);
   }
   // Feste Verbindung zum Ziel, z. B. nach Hemmingen: nächste Fahrten mit Linien und Ankunft
@@ -1242,10 +1251,10 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     const R2 = S.extras?.route, box = $('#route'), el = $('#routeList');
     box.hidden = !R2 || settings().routeOn === false;
     if (box.hidden) return;
-    $('#routeTo').textContent = `Nach ${(R2.to?.name || 'Hemmingen').replace(/^(.*),\s*(.*)$/, '$2, $1')}`;
+    $('#routeTo').textContent = `Nach ${R2.to?.label || R2.to?.name || 'Hemmingen'}`;
     const now = Date.now(), hm = v => new Date(v).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
     const trips = (R2.trips || []).filter(x => x.dep > now - 60000).slice(0, 3);
-    if (!trips.length) { el.innerHTML = `<div class="tr-msg">${R2.ok === false ? esc(R2.error || '') : 'Verbindungen werden geladen …'}</div>`; return; }
+    if (!trips.length) { el.innerHTML = `<div class="tr-msg">${R2.ok === false ? esc(R2.error || '') : 'Verbindungen werden geladen …'}${R2.why ? `<small class="tr-why">${esc(R2.why)}</small>` : ''}</div>`; return; }
     el.innerHTML = trips.map(x => {
       const min = Math.max(0, Math.round((x.dep - now) / 60000)), late = Math.round((x.dep - (x.depPlan || x.dep)) / 60000);
       const legs = x.legs.map(l => `<span class="ln ${esc(l.kind)}">${esc(l.line)}</span>`).join('<span class="ar">›</span>');
@@ -1791,7 +1800,9 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <p class="hint" style="margin-bottom:10px">Haltestelle: <b id="sStopNow">${esc(st.transit?.name || S.extras?.transit?.stop?.name || 'Clausewitzstraße (Standard)')}</b></p>
         <div class="row"><input type="text" id="sStopQ" placeholder="Haltestelle suchen, z. B. Clausewitzstraße" style="flex:1;font:inherit;font-size:20px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px"><button class="btn" id="sStopGo">Suchen</button></div>
         <div class="chips" id="sStops" style="margin-top:10px"></div>
-        <p class="hint" style="margin-top:8px">Fahrplandaten der Deutschen Bahn, enthalten auch Stadtbahn und Bus.</p>
+        <p class="hint" style="margin-top:8px">Fahrplandaten: öffentliche Fahrplanauskunft efa.de (DELFI) mit Echtzeit für Üstra-Stadtbahn und Busse. Falls die nicht antwortet, springt die offene Auskunft des VRR (www.vrr.de) ein.</p>
+        <div class="row" style="margin-top:12px"><button class="btn" id="sDiag">Verbindungstest</button></div>
+        <div class="diag" id="sDiagOut"></div>
         <div class="field" style="margin-top:14px">Verbindung zu festem Ziel zeigen <button class="switch" id="sRouteOn" role="switch" aria-checked="${st.routeOn !== false}"></button></div>
         <p class="hint" style="margin-bottom:10px">Ziel: <b id="sRouteNow">${esc(st.route?.name || S.extras?.route?.to?.name || 'Birkenkamp, Hemmingen (Standard)')}</b></p>
         <div class="row"><input type="text" id="sRouteQ" placeholder="Ziel suchen, z. B. Hemmingen Birkenkamp" style="flex:1;font:inherit;font-size:20px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px"><button class="btn" id="sRouteGo">Suchen</button></div>
@@ -1858,7 +1869,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       const SW = ['#7FE0AE', '#2FBF71', '#3CD7FF', '#6FB7FF', '#C9A7FF', '#FF8FB1', '#FF9F5A', '#FFC857', '#FFFFFF'];
       const swatches = (val, key, withSame) => `<div class="mas-sw" data-key="${key}">${withSame ? `<button class="wide" data-c="" aria-pressed="${!val}">wie Figur</button>` : ''}${SW.map(c => `<button data-c="${c}" style="background:${c}" aria-pressed="${val === c}" title="${c}"></button>`).join('')}<input type="color" value="${val || m.color}" title="Eigene Farbe"></div>`;
       box.innerHTML = `<h4>AOK-Männchen</h4>
-        <div class="skins">${[['aus', 'Aus', 'Keine Figur auf dem Board.'], ...Object.entries(M.FIGS).map(([k, n]) => [k, n, { strich: 'O ist der Kopf, K Körper und Arme, A die Beine.', kugel: 'Rundes Kerlchen mit Fühler, hüpft.', katze: 'Kleine runde Katze mit Schwanz.', geist: 'Zerfällt in Lichtpunkte und schwebt.' }[k]])]
+        <div class="skins">${[['aus', 'Aus', 'Keine Figur auf dem Board.'], ...Object.entries(M.FIGS).map(([k, n]) => [k, n, { strich: 'O ist der Kopf, K Körper und Arme, A die Beine.', kugel: 'Rundes Kerlchen mit Fühler, hüpft.', katze: 'Kleine runde Katze mit Schwanz.', mieze: 'Getigerte Katze mit Schnurrhaaren, schleicht und schwingt den Schwanz.', hund: 'Kleiner Hund mit Schlappohren und Halsband, wedelt.', geist: 'Zerfällt in Lichtpunkte und schwebt.' }[k]])]
           .map(([k, n, d]) => `<button class="skin-opt" data-fig="${k}" aria-pressed="${m.fig === k}"><b>${n}</b><small>${d}</small></button>`).join('')}</div>
         ${m.fig === 'aus' ? '' : `
         <p class="hint" style="margin:14px 0 8px">Farbe der Figur</p>${swatches(m.color, 'color')}
@@ -1947,17 +1958,25 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         }
       }).catch(e => { stops.innerHTML = `<span class="hint">${esc(e.message)}</span>`; });
     };
+    scrim.querySelector('#sDiag').onclick = () => {
+      const out = scrim.querySelector('#sDiagOut');
+      out.innerHTML = '<span class="hint">Teste die Fahrplanauskunft … (bis zu einer Minute)</span>';
+      api('GET', '/api/diag').then(d => {
+        out.innerHTML = `<span class="hint">Test von ${new Date(d.at).toLocaleTimeString('de-DE')} · Version ${esc(S.version || '')}</span>` + d.results.map(r =>
+          `<div><span>${r.ok ? '✅' : '❌'}</span><span><b>${esc(r.name)}</b><small>${esc(r.detail)} · ${r.ms} ms</small></span></div>`).join('');
+      }).catch(e => { out.innerHTML = `<span class="hint">${esc(e.message)}</span>`; });
+    };
     const rOn = scrim.querySelector('#sRouteOn');
     rOn.onclick = () => { setSettings({ routeOn: settings().routeOn === false }); rOn.setAttribute('aria-checked', settings().routeOn !== false); };
     const routes = scrim.querySelector('#sRoutes');
     const findRoute = (q) => {
       if (!q) return;
       routes.innerHTML = '<span class="hint">Suche …</span>';
-      api('GET', '/api/transit/stops?q=' + encodeURIComponent(q)).then(list => {
+      api('GET', '/api/transit/stops?ziel=1&q=' + encodeURIComponent(q)).then(list => {
         routes.innerHTML = list.length ? '' : '<span class="hint">Nichts gefunden.</span>';
         for (const s of list) {
           const b = h(`<button type="button" aria-pressed="${settings().route?.id === s.id}">${esc(s.name)}</button>`);
-          b.onclick = () => { setSettings({ route: { id: s.id, name: s.name }, routeOn: true }); scrim.querySelector('#sRouteNow').textContent = s.name; rOn.setAttribute('aria-checked', true); routes.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); };
+          b.onclick = () => { setSettings({ route: { id: s.id, name: s.name, label: s.label }, routeOn: true }); scrim.querySelector('#sRouteNow').textContent = s.name; rOn.setAttribute('aria-checked', true); routes.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); };
           routes.append(b);
         }
       }).catch(e => { routes.innerHTML = `<span class="hint">${esc(e.message)}</span>`; });

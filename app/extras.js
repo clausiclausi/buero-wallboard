@@ -6,163 +6,130 @@ const path = require('path');
 
 module.exports = function createExtras({ DATA, config, log, getSettings, broadcast, localDate }) {
   const FILE = path.join(DATA, 'extras.json');
-  const TRANSIT = (config.transitUrl || 'https://v6.db.transport.rest').replace(/\/$/, '');
   let st = { transit: null, school: null, health: null, bsi: null };
   try { st = Object.assign(st, JSON.parse(fs.readFileSync(FILE, 'utf8'))); } catch {}
   const persist = () => { try { fs.writeFileSync(FILE, JSON.stringify(st)); } catch {} };
 
   async function get(url, type = 'json') {
     const r = await fetch(url, { headers: { 'User-Agent': 'Buero-Wallboard/1.0', Accept: type === 'json' ? 'application/json' : '*/*' }, signal: AbortSignal.timeout(20000) });
-    if (!r.ok) throw new Error(`${r.status}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
     return type === 'json' ? r.json() : r.text();
   }
+  // Fehlertext mit Ursache (z. B. ENOTFOUND, ECONNRESET, Zertifikat), damit man am Board sieht, woran es liegt
+  const why = e => `${e.message}${e.cause ? ` (${e.cause.code || e.cause.message})` : ''}`;
   const clean = (v, n) => String(v ?? '').replace(/[\u0000-\u001f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
 
-  /* ---------- Abfahrten ----------
-     Zuerst direkt die Fahrplanauskunft von bahn.de (enthält Üstra-Stadtbahn und Bus in Hannover),
-     wenn die nicht antwortet, der freie Spiegel db.transport.rest. */
-  const DBWEB = (config.dbwebUrl || 'https://int.bahn.de/web/api/reiseloesung').replace(/\/$/, '');
-  const DEFAULT_STOP = config.transitDefault || 'Clausewitzstraße, Hannover';
-  const BROWSER = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36 Edg/130.0', Accept: 'application/json', 'Accept-Language': 'de' };
-  async function getWeb(url) {
-    const r = await fetch(url, { headers: BROWSER, signal: AbortSignal.timeout(20000) });
-    if (!r.ok) throw new Error(`${r.status}`);
-    return r.json();
+  /* ---------- Abfahrten und feste Verbindung ----------
+     Öffentliche Fahrplanauskunft efa.de (DELFI, bundesweite Daten mit Echtzeit, enthält Üstra-Stadtbahn und Busse).
+     Ersatz, falls die nicht antwortet: die offene Auskunft des VRR mit denselben Daten (ohne Echtzeit für Hannover).
+     Beide live getestet am 28.10.2026. Quellenangabe steht in der Kachel. */
+  const BASES = [config.efaUrl || 'https://www.efa.de/efa', config.efaFallback || 'https://efa.vrr.de/standard'].map(b => b.replace(/\/$/, ''));
+  const DEFAULT_STOP = { id: 'de:03241:2841', name: 'Hannover, Clausewitzstraße' };
+  const DEFAULT_ROUTE = config.routeDefault || 'Hemmingen Birkenkamp';
+  const ID = /^[^\u0000-\u001f<>]{1,200}$/;
+  // alt: andere Parameter für die Ersatzquelle (Straßen haben dort eine andere Kennung, dann zählt der Name)
+  async function efa(req, params, alt) {
+    let err;
+    for (let i = 0; i < BASES.length; i++) {
+      try {
+        const q = new URLSearchParams({ outputFormat: 'rapidJSON', coordOutputFormat: 'WGS84[dd.ddddd]', ...params, ...(i && alt ? alt : {}) });
+        return await get(`${BASES[i]}/${req}?${q}`);
+      } catch (e) { err = e; log(`Fahrplan ${BASES[i]}:`, why(e)); }
+    }
+    throw err;
   }
-  const PRODUCT = { nationalExpress: 'zug', national: 'zug', regionalExpress: 'zug', regional: 'zug', suburban: 'sbahn', subway: 'stadtbahn', tram: 'stadtbahn', bus: 'bus', ferry: 'bus', taxi: 'bus',
-    ICE: 'zug', EC_IC: 'zug', IR: 'zug', REGIONAL: 'zug', SBAHN: 'sbahn', UBAHN: 'stadtbahn', TRAM: 'stadtbahn', BUS: 'bus', SCHIFF: 'bus', ANRUFPFLICHTIG: 'bus' };
-  const VM = ['ICE', 'EC_IC', 'IR', 'REGIONAL', 'SBAHN', 'BUS', 'SCHIFF', 'UBAHN', 'TRAM', 'ANRUFPFLICHTIG'].map(v => `&verkehrsmittel[]=${v}`).join('');
-  // Haltestellen von bahn.de: { extId, name, type: 'ST' }; von transport.rest: { id, name, type: 'stop' }
-  const stopList = list => (Array.isArray(list) ? list : []).map(s => s && (s.type === 'ST' || s.type === 'stop' || s.type === 'station')
-      ? { id: clean(String(s.extId || s.id || '').replace(/^0+/, ''), 20), name: clean(s.name, 60), dist: s.distance ?? s.dist ?? null } : null)
-    .filter(s => s && /^[A-Za-z0-9:_.-]{1,20}$/.test(s.id)).slice(0, 8);
-  async function both(web, rest) {
-    try { const l = stopList(await web()); if (l.length) return l; } catch (e) { log('bahn.de Haltestellen:', e.message); }
-    return stopList(await rest());
-  }
-  const nearby = () => both(
-    () => getWeb(`${DBWEB}/orte/nearby?lat=${config.lat}&long=${config.lon}&radius=1500&maxNo=8`),
-    () => get(`${TRANSIT}/locations/nearby?latitude=${config.lat}&longitude=${config.lon}&results=8&distance=1500`));
-  async function search(q) {
+  // EFA-Verkehrsmittelklassen: 0 Zug, 1 S-Bahn, 2 U-Bahn, 3 Stadtbahn, 4 Straßenbahn, 5–7 Bus, 9 Schiff, 10 Rufbus, 13–16 Regional-/Fernzug, ab 99 Fußweg
+  const KIND = c => [1].includes(c) ? 'sbahn' : [2, 3, 4].includes(c) ? 'stadtbahn' : [0, 13, 14, 15, 16].includes(c) ? 'zug' : 'bus';
+  const lineOf = tr => ({ line: clean(tr?.disassembledName || tr?.number || tr?.name || '', 10).replace(/^(STR|Bus|U)\s+/i, ''), kind: KIND(tr?.product?.class) });
+  const t = v => v ? new Date(v).getTime() : null;
+  // Anzeigename fürs Board: bei Straßen nur der Ort (keine Adresse am Board), bei Haltestellen der Name
+  const label = l => l.type === 'street' ? clean(String(l.name).split(',')[0].replace(/\s*\(.*?\)/, ''), 40) : clean(l.name, 60);
+
+  // ziel=true: auch Straßen finden (für die feste Verbindung), sonst nur Haltestellen
+  async function search(q, ziel = false) {
     q = clean(q, 60);
-    const one = t => both(
-      () => getWeb(`${DBWEB}/orte?suchbegriff=${encodeURIComponent(t)}&typ=HALTESTELLEN&limit=8`),
-      () => get(`${TRANSIT}/locations?query=${encodeURIComponent(t)}&results=8&addresses=false&poi=false`));
+    const one = async term => {
+      const r = await efa('XML_STOPFINDER_REQUEST', { type_sf: 'any', name_sf: term, anyObjFilter_sf: ziel ? 6 : 2, anyMaxSizeHitList: 10 });
+      return (r.locations || []).filter(l => (l.type === 'stop' || (ziel && l.type === 'street')) && ID.test(l.id || ''))
+        .slice(0, 8).map(l => ({ id: l.id, name: clean(l.name, 60), type: l.type, label: label(l), dist: null }));
+    };
     let list = await one(q);
     // „Clausewitzstraße“ allein findet sonst Haltestellen in ganz Deutschland
-    if (!/hannover/i.test(q)) {
-      const local = await one(`${q} Hannover`).catch(() => []);
+    if (!/hannover|hemmingen|laatzen|langenhagen|garbsen|seelze|ronnenberg/i.test(q)) {
+      const local = await one(`Hannover ${q}`).catch(() => []);
       list = [...local, ...list.filter(s => !local.some(l => l.id === s.id))].slice(0, 8);
     }
     return list;
   }
-  const localIso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
-  async function departures(id) {
+  async function nearby() {
     try {
-      const now = new Date(), [datum, zeit] = localIso(now).split('T');
-      const r = await getWeb(`${DBWEB}/abfahrten?ortExtId=${encodeURIComponent(id)}&datum=${datum}&zeit=${zeit.slice(0, 5)}${VM}`);
-      const list = (r.entries || []).map(d => {
-        const vm = d.verkehrmittel || d.verkehrsmittel || {}, plan = new Date(d.zeit), real = d.ezZeit ? new Date(d.ezZeit) : plan;
-        const line = vm.linienNummer && /^(BUS|TRAM|UBAHN)$/.test(vm.produktGattung) ? vm.linienNummer : vm.mittelText || vm.name;
-        return { line: clean(line, 12), kind: PRODUCT[vm.produktGattung] || 'bus', dir: clean(d.terminus, 40), when: real.toISOString(),
-          delay: Math.round((real - plan) / 60000), cancelled: (d.meldungen || []).some(m => /fällt aus|entfällt/i.test(m.text || '')), platform: clean(d.ezGleis || d.gleis, 6) };
-      });
-      if (r.entries) return list;
-    } catch (e) { log('bahn.de Abfahrten:', e.message); }
-    const r = await get(`${TRANSIT}/stops/${encodeURIComponent(id)}/departures?duration=90&results=14&remarks=false&linesOfStops=false`);
-    return (Array.isArray(r) ? r : r.departures || []).filter(d => d && (d.when || d.plannedWhen)).map(d => ({
-      line: clean(d.line?.name, 12), kind: PRODUCT[d.line?.product] || 'bus', dir: clean(d.direction, 40),
-      when: d.when || d.plannedWhen, delay: Math.round((d.delay || 0) / 60), cancelled: !!d.cancelled,
-      platform: clean(d.platform || d.plannedPlatform, 6),
-    }));
+      const r = await efa('XML_COORD_REQUEST', { coord: `${config.lon}:${config.lat}:WGS84[dd.ddddd]`, inclFilter: 1, type_1: 'STOP', radius_1: 1000, max: 8 });
+      const l = (r.locations || []).filter(x => ID.test(x.id || '')).map(x => ({ id: x.id, name: clean(x.name, 60), dist: x.properties?.distance ?? null }));
+      if (l.length) return l.sort((a, b) => (a.dist ?? 9e9) - (b.dist ?? 9e9)).slice(0, 8);
+    } catch (e) { log('Fahrplan Umkreis:', why(e)); }
+    return [DEFAULT_STOP];
+  }
+  async function departures(id) {
+    const r = await efa('XML_DM_REQUEST', { mode: 'direct', type_dm: 'stop', name_dm: id, useRealtime: 1, limit: 16, depType: 'stopEvents', includeCompleteStopSeq: 0, useAllStops: 1 });
+    if (!Array.isArray(r.stopEvents)) throw new Error('Antwort ohne Abfahrten');
+    return r.stopEvents.map(e => {
+      const plan = t(e.departureTimePlanned), real = t(e.departureTimeEstimated) || plan;
+      return { ...lineOf(e.transportation), dir: clean(e.transportation?.destination?.name, 40).replace(/^Hannover\//, ''), when: new Date(real).toISOString(),
+        delay: Math.round((real - plan) / 60000), live: !!e.departureTimeEstimated, cancelled: (e.realtimeStatus || []).includes('CANCELLED') || e.isCancelled === true,
+        platform: clean(e.location?.properties?.platform, 6) };
+    }).filter(d => d.when);
   }
   let autoStop = null;
   async function updateTransit() {
     let stop = getSettings().transit;
     try {
-      if (!stop || !stop.id) {
-        // Standard: Clausewitzstraße, sonst die nächste Haltestelle am Büro
-        if (!autoStop) autoStop = (await search(DEFAULT_STOP).catch(() => [])).find(s => /clausewitz/i.test(s.name)) || (await nearby())[0] || null;
-        stop = autoStop;
-      }
-      if (!stop) throw new Error('Keine Haltestelle gefunden');
+      if (!stop || !stop.id) stop = autoStop || DEFAULT_STOP;
       const deps = (await departures(stop.id)).filter(d => new Date(d.when) > Date.now() - 60000)
         .sort((a, b) => new Date(a.when) - new Date(b.when)).slice(0, 12);
       st.transit = { ok: true, stop: { id: stop.id, name: stop.name }, deps, updated: Date.now() };
     } catch (e) {
-      log('Abfahrten nicht erreichbar:', e.message);
-      st.transit = { ...(st.transit || {}), ok: false, error: 'Abfahrten gerade nicht erreichbar', stop: stop ? { id: stop.id, name: stop.name } : st.transit?.stop };
+      log('Abfahrten nicht erreichbar:', why(e));
+      st.transit = { ...(st.transit || {}), ok: false, error: 'Abfahrten gerade nicht erreichbar', why: clean(why(e), 200), stop: stop ? { id: stop.id, name: stop.name } : st.transit?.stop };
     }
     broadcast();
     updateRoute();
   }
 
   /* ---------- Verbindung von der Haltestelle zu einem festen Ziel (Standard: Hemmingen, Birkenkamp) ---------- */
-  const DEFAULT_ROUTE = config.routeDefault || 'Birkenkamp, Hemmingen';
-  const PG = ['ICE', 'EC_IC', 'IR', 'REGIONAL', 'SBAHN', 'BUS', 'SCHIFF', 'UBAHN', 'TRAM', 'ANRUFPFLICHTIG'];
-  const JOURNEYS = (config.dbwebJourneys || DBWEB.replace(/reiseloesung$/, 'angebote/fahrplan'));
-  const lineOf = vm => {
-    const g = vm.produktGattung || '';
-    const nr = vm.linienNummer && /^(BUS|TRAM|UBAHN|SBAHN)$/.test(g) ? vm.linienNummer : vm.mittelText || vm.name || vm.kurzText || '';
-    return { line: clean(String(nr).replace(/^(STR|Bus|U)\s+/, ''), 10), kind: PRODUCT[g] || 'bus' };
-  };
-  const t = v => v ? new Date(v).getTime() : null;
-  async function tripsWeb(fromId, toId) {
-    const body = {
-      abfahrtsHalt: `A=1@L=${fromId}@`, ankunftsHalt: `A=1@L=${toId}@`, anfrageZeitpunkt: localIso(new Date()), ankunftSuche: 'ABFAHRT',
-      klasse: 'KLASSE_2', produktgattungen: PG, schnelleVerbindungen: true, sitzplatzOnly: false, bikeCarriage: false,
-      reservierungsKontingenteVorhanden: false, nurDeutschlandTicketVerbindungen: false, deutschlandTicketVorhanden: false,
-      reisende: [{ typ: 'ERWACHSENER', ermaessigungen: [{ art: 'KEINE_ERMAESSIGUNG', klasse: 'KLASSENLOS' }], alter: [], anzahl: 1 }],
-    };
-    const r = await fetch(JOURNEYS, { method: 'POST', headers: { ...BROWSER, 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(20000) });
-    if (!r.ok) throw new Error(`${r.status}`);
-    const j = await r.json();
-    if (!Array.isArray(j.verbindungen)) throw new Error('keine Verbindungen');
-    return j.verbindungen.map(v => {
-      const legs = (v.verbindungsAbschnitte || []).filter(a => !/^(WALK|FUSSWEG|TRANSFER)$/.test(a.verkehrsmittel?.typ || a.typ || ''));
+  async function trips(fromId, to) {
+    const r = await efa('XML_TRIP_REQUEST2', { type_origin: 'any', name_origin: fromId, type_destination: 'any', name_destination: to.id, useRealtime: 1, calcNumberOfTrips: 6, itdTripDateTimeDepArr: 'dep' },
+      { name_destination: to.name });
+    if (!Array.isArray(r.journeys)) throw new Error('Antwort ohne Verbindungen');
+    return r.journeys.map(j => {
+      const all = j.legs || [], legs = all.filter(l => { const c = l.transportation?.product?.class; return c != null && c < 90; });
       if (!legs.length) return null;
-      const a = legs[0], z = legs[legs.length - 1];
-      const notes = legs.map(l => JSON.stringify([l.risNotizen, l.priorisierteMeldungen, l.himMeldungen])).join(' ');
+      const a = legs[0], z = all[all.length - 1];
       return {
-        dep: t(a.ezAbfahrtsZeitpunkt || a.abfahrtsZeitpunkt), depPlan: t(a.abfahrtsZeitpunkt),
-        arr: t(z.ezAnkunftsZeitpunkt || z.ankunftsZeitpunkt), arrPlan: t(z.ankunftsZeitpunkt),
-        legs: legs.map(l => lineOf(l.verkehrsmittel || {})),
-        cancelled: legs.some(l => l.halte?.some(h => h.canceled || h.cancelled)) || /fällt aus|Halt entfällt|cancelled/i.test(notes),
-        warn: /nicht erreichbar|not be reachable|brokentrip/i.test(notes),
+        dep: t(a.origin?.departureTimeEstimated || a.origin?.departureTimePlanned), depPlan: t(a.origin?.departureTimePlanned),
+        // Ankunft am Ziel inklusive Fußweg am Ende, wie in der Fahrplan-App
+        arr: t(z.destination?.arrivalTimeEstimated || z.destination?.arrivalTimePlanned), arrPlan: t(z.destination?.arrivalTimePlanned),
+        legs: legs.map(l => lineOf(l.transportation)), live: legs.some(l => l.origin?.departureTimeEstimated),
+        cancelled: legs.some(l => (l.realtimeStatus || []).includes('CANCELLED') || l.isCancelled === true),
       };
-    }).filter(Boolean);
-  }
-  async function tripsRest(fromId, toId) {
-    const r = await get(`${TRANSIT}/journeys?from=${encodeURIComponent(fromId)}&to=${encodeURIComponent(toId)}&results=5&stopovers=false&remarks=false`);
-    return (r.journeys || []).map(j => {
-      const legs = (j.legs || []).filter(l => !l.walking);
-      if (!legs.length) return null;
-      const a = legs[0], z = legs[legs.length - 1];
-      return { dep: t(a.departure || a.plannedDeparture), depPlan: t(a.plannedDeparture), arr: t(z.arrival || z.plannedArrival), arrPlan: t(z.plannedArrival),
-        legs: legs.map(l => ({ line: clean(String(l.line?.name || '').replace(/^(STR|Bus|U)\s+/, ''), 10), kind: PRODUCT[l.line?.product] || 'bus' })),
-        cancelled: legs.some(l => l.cancelled), warn: false };
     }).filter(Boolean);
   }
   let autoRoute = null;
   async function updateRoute() {
     const s = getSettings();
     if (s.routeOn === false) { if (st.route) { st.route = null; broadcast(); } return; }
-    const from = st.transit?.stop || s.transit;
+    const from = st.transit?.stop || s.transit || DEFAULT_STOP;
     let to = s.route;
     try {
-      if (!from?.id) throw new Error('Keine Haltestelle');
       if (!to || !to.id) {
-        if (!autoRoute) autoRoute = (await search(DEFAULT_ROUTE)).find(x => /birkenkamp/i.test(x.name)) || null;
+        if (!autoRoute) autoRoute = (await search(DEFAULT_ROUTE, true)).find(x => /birkenkamp/i.test(x.name)) || null;
         to = autoRoute;
       }
       if (!to) throw new Error('Ziel nicht gefunden');
-      let trips;
-      try { trips = await tripsWeb(from.id, to.id); } catch (e) { log('bahn.de Verbindungen:', e.message); trips = await tripsRest(from.id, to.id); }
-      trips = trips.filter(x => x.dep && x.arr && x.dep > Date.now() - 60000).sort((p, q) => p.dep - q.dep).slice(0, 5);
-      st.route = { ok: true, to: { id: to.id, name: to.name }, trips, updated: Date.now() };
+      const list = (await trips(from.id, to)).filter(x => x.dep && x.arr && x.dep > Date.now() - 60000).sort((p, q) => p.dep - q.dep).slice(0, 5);
+      st.route = { ok: true, to: { id: to.id, name: to.name, label: to.label || to.name }, trips: list, updated: Date.now() };
     } catch (e) {
-      log('Verbindung nicht erreichbar:', e.message);
-      st.route = { ...(st.route || {}), ok: false, error: 'Verbindung gerade nicht abrufbar', to: to ? { id: to.id, name: to.name } : st.route?.to };
+      log('Verbindung nicht erreichbar:', why(e));
+      st.route = { ...(st.route || {}), ok: false, error: 'Verbindung gerade nicht abrufbar', why: clean(why(e), 200), to: to ? { id: to.id, name: to.name, label: to.label || to.name } : st.route?.to };
     }
     broadcast();
   }
@@ -177,7 +144,7 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
         name: clean((h.name || []).find(n => n.language === 'DE')?.text || h.name?.[0]?.text || 'Schulferien', 40),
       })).filter(h => /^\d{4}-\d\d-\d\d$/.test(h.from) && /^\d{4}-\d\d-\d\d$/.test(h.to));
       if (list.length) { st.school = { list, updated: Date.now() }; persist(); broadcast(); }
-    } catch (e) { log('Schulferien nicht erreichbar:', e.message); }
+    } catch (e) { log('Schulferien nicht erreichbar:', why(e)); }
   }
 
   /* ---------- Pollenflug und UV-Index vom DWD ---------- */
@@ -190,12 +157,12 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
       const reg = (p.content || []).find(c => c.partregion_id === (config.pollenRegion || 32)) || (p.content || []).find(c => c.region_id === 30);
       if (reg) h.pollen = Object.entries(reg.Pollen || {}).map(([k, v]) => ({ name: POLLEN[k] || clean(k, 12), today: LEVEL[v.today] ?? 0, tomorrow: LEVEL[v.tomorrow] ?? 0 }))
         .sort((a, b) => b.today - a.today);
-    } catch (e) { log('Pollenflug nicht erreichbar:', e.message); }
+    } catch (e) { log('Pollenflug nicht erreichbar:', why(e)); }
     try {
       const u = await get('https://opendata.dwd.de/climate_environment/health/alerts/uvi.json');
       const c = (u.content || []).find(x => x.city === (config.uvCity || 'Hannover'));
       if (c) h.uv = { today: +c.forecast.today || 0, tomorrow: +c.forecast.tomorrow || 0 };
-    } catch (e) { log('UV-Index nicht erreichbar:', e.message); }
+    } catch (e) { log('UV-Index nicht erreichbar:', why(e)); }
     if (h.pollen || h.uv) { st.health = { ...(st.health || {}), ...h }; persist(); broadcast(); }
   }
 
@@ -209,7 +176,7 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
         return { title: clean(tag('title'), 110), date: new Date(tag('pubDate')).getTime() || 0 };
       }).filter(i => i.title).slice(0, 6);
       if (items.length) { st.bsi = { items, updated: Date.now() }; persist(); broadcast(); }
-    } catch (e) { log('BSI-Warnungen nicht erreichbar:', e.message); }
+    } catch (e) { log('BSI-Warnungen nicht erreichbar:', why(e)); }
   }
 
   // Abfahrten nur zu Bürozeiten jede Minute, sonst alle 15 Minuten
@@ -226,8 +193,41 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
     setInterval(updateSchool, 24 * 3600000);
   }
 
+  // Verbindungstest für die Einstellungen: jede Quelle einmal echt abfragen und das Ergebnis zeigen
+  async function diagnose() {
+    const out = [];
+    const step = async (name, fn) => {
+      const t0 = Date.now();
+      try { const detail = await fn(); out.push({ name, ok: true, detail: clean(detail, 160), ms: Date.now() - t0 }); }
+      catch (e) { out.push({ name, ok: false, detail: clean(why(e), 200), ms: Date.now() - t0 }); }
+    };
+    const s = getSettings(), stop = s.transit?.id ? s.transit : DEFAULT_STOP;
+    let dest = s.route?.id ? s.route : null;
+    await step('Internet (GitHub)', async () => { const r = await fetch('https://raw.githubusercontent.com/clausiclausi/buero-wallboard/main/app/version.json', { signal: AbortSignal.timeout(15000) }); return `HTTP ${r.status}`; });
+    await step('Fahrplan: Haltestellensuche', async () => {
+      const l = await search('Hannover Clausewitzstraße'); if (!l.length) throw new Error('keine Haltestelle gefunden');
+      return `${l.length} gefunden, z. B. ${l[0].name}`;
+    });
+    await step(`Fahrplan: Abfahrten ${stop.name}`, async () => {
+      const l = await departures(stop.id); if (!l.length) throw new Error('keine Abfahrten');
+      return `${l.length} Abfahrten, davon ${l.filter(d => d.live).length} mit Echtzeit`;
+    });
+    await step('Fahrplan: Verbindung zum Ziel', async () => {
+      if (!dest) dest = (await search(DEFAULT_ROUTE, true)).find(x => /birkenkamp/i.test(x.name));
+      if (!dest) throw new Error('Ziel nicht gefunden');
+      const l = await trips(stop.id, dest); if (!l.length) throw new Error('keine Verbindung gefunden');
+      return `${l.length} Verbindungen nach ${dest.label || dest.name}, z. B. ${l[0].legs.map(x => x.line).join(' › ')}`;
+    });
+    // Ersatzquelle einzeln prüfen, damit man sieht, ob es im Notfall weiterläuft
+    await step('Ersatzquelle VRR', async () => {
+      const r = await get(`${BASES[1]}/XML_STOPFINDER_REQUEST?${new URLSearchParams({ outputFormat: 'rapidJSON', type_sf: 'any', name_sf: 'Hannover Clausewitzstraße', anyObjFilter_sf: 2 })}`);
+      return `${(r.locations || []).length} gefunden`;
+    });
+    return { at: Date.now(), results: out };
+  }
+
   return {
-    start, nearby, search,
+    start, nearby, search, diagnose,
     refreshTransit: () => { autoStop = null; autoRoute = null; lastTransit = Date.now(); return updateTransit(); },
     view: () => ({ route: st.route, transit: st.transit, school: st.school?.list || [], health: st.health, bsi: st.bsi?.items || [] }),
   };

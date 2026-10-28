@@ -35,7 +35,7 @@
     klassisch: { name: 'Klassisch', css: "Georgia, 'Times New Roman', serif" },
     verspielt: { name: 'Verspielt', css: "'Comic Sans MS', 'Segoe Print', cursive" },
   };
-  const FIGS = { strich: 'Strichmännchen', kugel: 'Kugel', katze: 'Kätzchen', geist: 'Lichtgeist' };
+  const FIGS = { strich: 'Strichmännchen', kugel: 'Kugel', katze: 'Kätzchen', mieze: 'Katze (echt)', hund: 'Hündchen', geist: 'Lichtgeist' };
   const MOODS = { lieb: 'Lieb', frech: 'Frech', gemischt: 'Gemischt' };
   const ACTS = {
     winken: { name: 'Winken', mood: 'lieb' }, putzen: { name: 'Putzen', mood: 'lieb' }, schlafen: { name: 'Schlafen', mood: 'lieb' },
@@ -207,7 +207,102 @@
     while (out.length < n) out.push(out[out.length - 1]);
     return out.slice(0, n);
   }
-  const POSES = { strich: poseStick, kugel: poseBall, katze: poseCat };
+  // ---------- Gezeichnete Tiere: echte Katze und Hündchen (Seitenansicht, Blick nach rechts, Pfoten bei 0/0) ----------
+  // Beine, Schwanz, Kopf, Ohr und Augen sind eigene Gruppen und werden pro Bild gedreht.
+  const SPRITES = {
+    mieze: {
+      head: [18.5, -31], headR: 10, neck: [13, -27], tail: [-17, -21], ear: null,
+      hips: { lf1: [12, -17], lf2: [10, -16], lb1: [-14, -20], lb2: [-12, -17] },
+      svg: (B = '#8E8781', D = '#4F4945', W = '#F4EFEA', F = '#6F6964') => `
+        <g data-p="tail"><path d="M-17 -21 C-26 -23 -31 -33 -27 -44" fill="none" stroke="${B}" stroke-width="4.4" stroke-linecap="round"/>
+          <path d="M-24.4 -31 l3.6 -1.4 M-27.6 -37 l3.8 0" stroke="${D}" stroke-width="1.6" stroke-linecap="round"/><path d="M-27.6 -41 L-27 -44" stroke="${D}" stroke-width="4.4" stroke-linecap="round"/></g>
+        <g data-p="lf2"><path d="M10 -16 L10 -1" stroke="${F}" stroke-width="4.4" stroke-linecap="round"/></g>
+        <g data-p="lb2"><path d="M-12 -17 Q-15 -9 -11 -1" fill="none" stroke="${F}" stroke-width="4.8" stroke-linecap="round"/></g>
+        <ellipse cx="-1" cy="-21" rx="19" ry="9.5" fill="${B}"/>
+        <path d="M-12 -29.6 q2.4 5 0 9.6 M-6 -30.4 q2.4 5 0 9.6 M0 -30.4 q2.4 5 0 9.6 M6 -29.6 q2 4 0 8 M-17.4 -25 q3 3 2 7.4" stroke="${D}" stroke-width="1.7" fill="none" stroke-linecap="round" opacity=".6"/>
+        <ellipse cx="2" cy="-13.4" rx="12" ry="2.6" fill="${W}" opacity=".55"/>
+        <g data-p="lb1"><path d="M-14 -20 Q-19 -10 -13.5 -1" fill="none" stroke="${B}" stroke-width="5.4" stroke-linecap="round"/><path d="M-16.6 -12 l3 1" stroke="${D}" stroke-width="1.3" stroke-linecap="round" opacity=".6"/><ellipse cx="-12.6" cy="-1" rx="3.3" ry="1.6" fill="${W}"/></g>
+        <g data-p="lf1"><path d="M12 -17 L12.6 -1" stroke="${B}" stroke-width="4.9" stroke-linecap="round"/><path d="M10.4 -9 h4 M10.6 -6 h3.8" stroke="${D}" stroke-width="1.1" stroke-linecap="round" opacity=".55"/><ellipse cx="13.6" cy="-1" rx="3.1" ry="1.5" fill="${W}"/></g>
+        <ellipse cx="13.4" cy="-19.4" rx="6" ry="7.2" fill="${W}"/>
+        <g data-p="head">
+          <path d="M-8.4 -3.6 L-6.6 -15.4 L-0.6 -8.2 Z" fill="${B}" stroke="${D}" stroke-width=".7" stroke-linejoin="round"/><path d="M-6.8 -6 L-6.2 -12.4 L-3 -8.2 Z" fill="#E7A2A6"/>
+          <path d="M2 -8.4 L8.4 -15.4 L9.4 -3.8 Z" fill="${B}" stroke="${D}" stroke-width=".7" stroke-linejoin="round"/><path d="M4.2 -8.2 L7.8 -12.6 L8.2 -6 Z" fill="#E7A2A6"/>
+          <ellipse cx="0.6" cy="-1" rx="10.2" ry="8.8" fill="${B}"/>
+          <path d="M-1.2 -9.2 v3.2 M1.4 -9.6 v3.4 M4 -9.2 v3" stroke="${D}" stroke-width="1.1" stroke-linecap="round"/>
+          <path d="M-8.6 0.6 q2.6 .6 4 -1 M-8.8 3 q2.6 .2 3.8 -1" stroke="${D}" stroke-width="1" fill="none" stroke-linecap="round" opacity=".6"/>
+          <ellipse cx="6.2" cy="3.2" rx="5.2" ry="3.7" fill="${W}"/>
+          <g data-p="eye1"><ellipse cx="0.4" cy="-1.6" rx="2.5" ry="2.2" fill="#9CC23F" stroke="#2E2A26" stroke-width=".5"/><ellipse cx="0.7" cy="-1.6" rx=".55" ry="1.9" fill="#111"/><circle cx="1.4" cy="-2.5" r=".55" fill="#fff"/></g>
+          <g data-p="eye2"><ellipse cx="6.4" cy="-1.6" rx="2.2" ry="2.1" fill="#9CC23F" stroke="#2E2A26" stroke-width=".5"/><ellipse cx="6.7" cy="-1.6" rx=".5" ry="1.8" fill="#111"/><circle cx="7.3" cy="-2.4" r=".5" fill="#fff"/></g>
+          <path d="M8.8 1.2 l2.4 -.3 l-1.1 1.6 z" fill="#E28C98" stroke="#9C5C62" stroke-width=".3"/>
+          <path d="M10.1 2.6 q-.6 1.5 -2.1 1.3 M10.1 2.6 q.5 1.4 1.7 1.1" stroke="#5A4038" stroke-width=".55" fill="none" stroke-linecap="round"/>
+          <ellipse data-p="tongue" cx="9.6" cy="5" rx="1.3" ry="1.9" fill="#FF6F86" opacity="0"/>
+          <path d="M8.6 3 l7.4 -1.8 M8.6 3.6 l7.6 .4 M8.2 4.2 l6.6 2.2 M4 3 l-5 -1 M4 3.8 l-5 .6" stroke="#FFFFFF" stroke-width=".35" opacity=".85" stroke-linecap="round"/>
+        </g>`,
+    },
+    hund: {
+      head: [15, -29], headR: 11, neck: [10, -23], tail: [-14, -19], ear: [-4, -9],
+      hips: { lf1: [10, -13], lf2: [8, -12], lb1: [-11, -13], lb2: [-9.5, -12] },
+      svg: (B = '#DCA367', D = '#8A552A', W = '#FFF8EE', F = '#BD8550') => `
+        <g data-p="tail"><path d="M-14 -19 Q-21 -24 -20.4 -31.4" fill="none" stroke="${B}" stroke-width="3.8" stroke-linecap="round"/><path d="M-20.6 -29 L-20.4 -31.4" stroke="${W}" stroke-width="3.8" stroke-linecap="round"/></g>
+        <g data-p="lf2"><path d="M8 -12 L8 -1" stroke="${F}" stroke-width="4.8" stroke-linecap="round"/></g>
+        <g data-p="lb2"><path d="M-9.5 -12 L-9.5 -1" stroke="${F}" stroke-width="5" stroke-linecap="round"/></g>
+        <ellipse cx="-1" cy="-16" rx="15.4" ry="8.8" fill="${B}"/>
+        <path d="M-9 -23.6 q6 -3 12 -1.6 q-2 5 -7 5.4 q-4 0 -5 -3.8z" fill="${D}" opacity=".85"/>
+        <ellipse cx="1" cy="-11.6" rx="10.4" ry="3.6" fill="${W}"/>
+        <g data-p="lb1"><path d="M-11 -13.4 L-11.4 -1" stroke="${B}" stroke-width="5.6" stroke-linecap="round"/><ellipse cx="-10.4" cy="-.8" rx="3.5" ry="1.8" fill="${W}"/></g>
+        <g data-p="lf1"><path d="M10 -13 L10.2 -1" stroke="${B}" stroke-width="5.4" stroke-linecap="round"/><ellipse cx="11.2" cy="-.8" rx="3.3" ry="1.7" fill="${W}"/></g>
+        <path d="M7.4 -23.4 q4.6 4.4 10 2.8" stroke="#E04848" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="12.6" cy="-19.6" r="1.6" fill="#F2C94C" stroke="#B88A1C" stroke-width=".4"/>
+        <g data-p="head">
+          <ellipse cx="1" cy="-1" rx="11.2" ry="10.2" fill="${B}"/>
+          <path d="M3.2 -11 q-1.4 6 1 9.4 q4 1.2 6.2 -1 q-1 -5.4 -3.4 -8.4 z" fill="${W}"/>
+          <ellipse cx="7.8" cy="3.6" rx="6.2" ry="4.6" fill="${W}"/>
+          <ellipse cx="3.2" cy="3.4" rx="1.8" ry="1.1" fill="#FF9FB0" opacity=".55"/>
+          <g data-p="eye1"><ellipse cx="1" cy="-2.6" rx="2.7" ry="3" fill="#2A1D14"/><circle cx="1.9" cy="-3.7" r="1" fill="#fff"/><circle cx=".3" cy="-1.6" r=".45" fill="#fff" opacity=".8"/></g>
+          <g data-p="eye2"><ellipse cx="7.4" cy="-2.6" rx="2.4" ry="2.8" fill="#2A1D14"/><circle cx="8.2" cy="-3.6" r=".9" fill="#fff"/></g>
+          <path d="M-0.8 -6.6 q1.6 -1.4 3.4 -.4 M5.8 -6.6 q1.6 -1.2 3.2 0" stroke="${D}" stroke-width=".7" fill="none" stroke-linecap="round"/>
+          <ellipse cx="12.8" cy="1.4" rx="2.2" ry="1.7" fill="#2B2B2B"/><ellipse cx="12.2" cy=".9" rx=".7" ry=".45" fill="#fff" opacity=".7"/>
+          <path d="M12.2 3 q-.4 2.2 -3.2 2.2 M12.2 3 q.4 1.6 1.8 1.4" stroke="#4A3426" stroke-width=".7" fill="none" stroke-linecap="round"/>
+          <path data-p="tongue" d="M9.6 5 q.4 4.2 2.3 3.8 q1.5 -.4 .9 -3.8 z" fill="#FF7A8A" stroke="#D85468" stroke-width=".3" opacity="0"/>
+          <g data-p="ear"><path d="M-4 -9.4 q-8.4 .8 -7.6 11.6 q2.2 4.2 5.6 1.2 q1 -6.6 2 -12.8 z" fill="${D}"/></g>
+        </g>`,
+    },
+  };
+  // Zeichnet ein Tier für den Zustand s; liefert Kopf und Pfote für Deko, Sprechblase und Klopf-Ringe
+  function drawSprite(E, kind, s, x, y, kk, blink) {
+    const S = SPRITES[kind], P2 = E.sp, t = s.t, a = s.walk, dir = s.dir || 1;
+    const ph = s.dist * (kind === 'hund' ? .42 : .34);
+    const swing = Math.sin(ph) * 30 * a + Math.sin(t * 10) * 18 * s.climb;
+    const bob = Math.abs(Math.sin(ph)) * 1.2 * a;
+    const lift = (n, deg) => { const h = S.hips[n]; P2[n].setAttribute('transform', `rotate(${deg.toFixed(1)} ${h[0]} ${h[1]})`); };
+    const front = -70 * s.wave + Math.sin(t * 9) * 14 * s.wave - (40 - Math.sin(t * 12) * 25) * s.wipe - 60 * Math.max(s.carry, s.knock) - 75 * s.push - 30 * s.stretch;
+    const tuck = 35 * s.air;
+    lift('lf1', swing + front - tuck);
+    lift('lb2', swing + tuck - 85 * s.sit);
+    lift('lf2', -swing - 75 * s.push - 30 * s.stretch - tuck);
+    lift('lb1', -swing + 60 * s.kick + tuck - 85 * s.sit);
+    // Schwanz: Katze schwingt langsam, Hund wedelt
+    const happy = Math.max(s.wave, s.cheer, a * .5);
+    const wag = kind === 'hund' ? Math.sin(t * (9 + 9 * happy)) * (14 + 14 * happy) * (1 - s.sleep * .8) : Math.sin(t * 1.8) * 9 + Math.sin(t * 7) * 12 * happy - 30 * s.sit;
+    P2.tail.setAttribute('transform', `rotate(${wag.toFixed(1)} ${S.tail[0]} ${S.tail[1]})`);
+    // Kopf: nickt beim Laufen, senkt sich im Schlaf, kippt bei der Grimasse
+    const nod = Math.sin(ph * 2) * 3 * a + 18 * s.sleep - 10 * s.cheer + Math.sin(t * 20) * 4 * s.grim - 12 * s.stretch;
+    P2.head.setAttribute('transform', `translate(${S.head[0]} ${(S.head[1] + bob * .5).toFixed(1)}) rotate(${nod.toFixed(1)} ${S.neck[0] - S.head[0]} ${S.neck[1] - S.head[1]})`);
+    const open = Math.min(blink, 1 - .9 * Math.max(s.sleep, s.stretch * .9));
+    // Augen um ihren Mittelpunkt zusammenkneifen (Blinzeln, Schlafen)
+    for (const eye of [P2.eye1, P2.eye2]) eye.style.transform = `scaleY(${Math.max(.08, open).toFixed(2)})`;
+    P2.tongue.setAttribute('opacity', Math.max(s.grim, kind === 'hund' ? Math.max(s.cheer, a * .8) : 0).toFixed(2));
+    if (P2.ear) P2.ear.setAttribute('transform', `rotate(${(Math.sin(ph) * 10 * a - 25 * s.air + 8 * s.sleep).toFixed(1)} ${S.ear[0]} ${S.ear[1]})`);
+    // Ganzer Körper: Sitzen kippt nach hinten, Strecken zieht lang, Blick in Laufrichtung
+    const sitRot = -16 * s.sit, sx = 1 + .1 * s.stretch, sy = 1 - .06 * s.stretch + Math.sin(t * 1.6) * .015 * s.sleep;
+    const ox = x + dir * (7 * s.kick + Math.sin(t * 12) * 2 * s.wipe + 4 * s.push) * kk;
+    P2.root.setAttribute('transform', `translate(${ox.toFixed(1)} ${(y - bob * kk + 4 * s.sit * kk).toFixed(1)}) scale(${(dir * kk).toFixed(3)} ${kk.toFixed(3)}) rotate(${sitRot.toFixed(1)} -12 0) scale(${sx.toFixed(3)} ${sy.toFixed(3)})`);
+    const hx = ox + dir * S.head[0] * kk, hy = y + (S.head[1] - bob + 4 * s.sit) * kk;
+    const ph1 = S.hips.lf1, rad = (swing + front) * Math.PI / 180, len = -ph1[1];
+    const paw = P(ox + dir * (ph1[0] - Math.sin(rad) * len) * kk, y + (ph1[1] + Math.cos(rad) * len) * kk);
+    return { O: { cx: hx, cy: hy, rx: S.headR * kk, ry: S.headR * kk * .9 }, hand: paw, mouth: P(hx + dir * 9 * kk, hy + 4 * kk) };
+  }
+  // Die gezeichneten Tiere nutzen die Kätzchen-Striche nur für die Verwandlung aus den Buchstaben
+  const POSES = { strich: poseStick, kugel: poseBall, katze: poseCat, mieze: poseCat, hund: poseCat };
 
   function scaleGeo(g, ox, oy, k) {
     const f = q => q && P(ox + (q[0] - ox) * k, oy + (q[1] - oy) * k);
@@ -303,6 +398,16 @@
         E.oval = el('ellipse', { fill: FC, 'fill-opacity': 0, stroke: LC, 'stroke-width': sw }, E.fig);
         E.lines = Array.from({ length: 6 }, () => el('path', { stroke: LC, fill: 'none', 'stroke-width': sw, 'stroke-linecap': 'round' }, E.fig));
       }
+      E.sp = null;
+      if (SPRITES[cfg.fig]) {
+        // Gezeichnetes Tier in natürlichen Fellfarben, mit weichem Schatten statt Leuchten
+        E.fig.style.filter = 'drop-shadow(0 1px 1.2px rgba(0,0,0,.35))';
+        const root = el('g', { opacity: 0 }, E.fig);
+        root.innerHTML = SPRITES[cfg.fig].svg();
+        E.sp = { root };
+        root.querySelectorAll('[data-p]').forEach(n => { E.sp[n.dataset.p] = n; });
+        for (const eye of [E.sp.eye1, E.sp.eye2]) { eye.style.transformBox = 'fill-box'; eye.style.transformOrigin = '50% 50%'; }
+      }
       const eyeCol = cfg.fig === 'geist' ? (light ? '#1D1D1F' : '#FFFFFF') : '#0F1416';
       E.eyes = [0, 1].map(() => el('ellipse', { fill: eyeCol, opacity: 0 }, E.fig));
       E.hl = cfg.fig === 'geist' ? [] : [0, 1].map(() => el('circle', { fill: '#fff', opacity: 0 }, E.fig));
@@ -389,6 +494,17 @@
         });
         if (E.tip) { E.tip.setAttribute('cx', fp.tip[0].toFixed(1)); E.tip.setAttribute('cy', fp.tip[1].toFixed(1)); E.tip.setAttribute('opacity', eyeOn); }
         fp.mouth = P((fp.L[2][0][0] + fp.L[2][1][0]) / 2, (fp.L[2][0][1] + fp.L[2][1][1]) / 2);
+        if (E.sp) {
+          // Striche verschmelzen zur Katzenform und blenden dann ins gezeichnete Tier über
+          const show = sstep(.5, .92, s.m);
+          E.lines.forEach(ln => ln.setAttribute('opacity', (1 - show).toFixed(2)));
+          E.oval.setAttribute('opacity', (1 - show).toFixed(2));
+          [...E.eyes, ...E.hl, ...E.cheeks].forEach(e => e.setAttribute('opacity', 0));
+          if (E.tip) E.tip.setAttribute('opacity', 0);
+          E.sp.root.setAttribute('opacity', show.toFixed(2));
+          const g = drawSprite(E, cfg.fig, s, x, y, kk, blinkOpen);
+          fp.O = g.O; fp.hand = g.hand; fp.mouth = g.mouth; fp.spr = true;
+        }
       }
       // Deko sitzt oben auf dem Kopf und kippt beim Laufen leicht mit
       if (E.decoKind) {
@@ -401,11 +517,11 @@
       }
       // Zunge bei der Grimasse
       E.tongue.setAttribute('cx', fp.mouth[0].toFixed(1)); E.tongue.setAttribute('cy', (fp.mouth[1] + 2.4 * k).toFixed(1));
-      E.tongue.setAttribute('opacity', (sstep(.2, .5, s.grim) * eyeOn).toFixed(2));
+      E.tongue.setAttribute('opacity', (fp.spr ? 0 : sstep(.2, .5, s.grim) * eyeOn).toFixed(2));
       // Gähnen: Mund geht auf
       E.yawn.setAttribute('cx', fp.mouth[0].toFixed(1)); E.yawn.setAttribute('cy', (fp.mouth[1] + .5 * kk).toFixed(1));
       E.yawn.setAttribute('rx', (2.6 * kk * s.stretch).toFixed(2)); E.yawn.setAttribute('ry', (3.4 * kk * s.stretch).toFixed(2));
-      E.yawn.setAttribute('opacity', (sstep(.1, .4, s.stretch) * eyeOn).toFixed(2));
+      E.yawn.setAttribute('opacity', (fp.spr ? 0 : sstep(.1, .4, s.stretch) * eyeOn).toFixed(2));
       // Klopfen: Ringe an der Hand, Bildschirm zuckt kurz
       E.rings.forEach((r, i) => {
         const tp = s.tap < 0 ? -1 : (s.tap + i * .5) % 1;

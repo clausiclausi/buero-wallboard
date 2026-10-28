@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.21.0",
+    "date": "2026-10-28",
+    "changes": [
+      "Abfahrten und Verbindung nach Hemmingen laufen wieder: Fahrplandaten kommen jetzt von der öffentlichen Auskunft efa.de mit Live-Zeiten (bahn.de lässt das Board nicht mehr zu). Fällt efa.de aus, springt automatisch die Auskunft des VRR ein. Vorher echt getestet.",
+      "Einstellungen → Abfahrten → Verbindungstest: prüft jede Quelle einzeln und zeigt genau, was klappt und was nicht.",
+      "In kleinen Kacheln bleiben immer mindestens zwei Abfahrten sichtbar, die Hemmingen-Verbindungen passen sich an.",
+      "Neue Figuren: eine getigerte Katze, die echter aussieht, und ein Hündchen mit Schlappohren. Die bisherige Katze bleibt. Auswahl unter Einstellungen → Figur."
+    ]
+  },
+  {
     "version": "1.20.0",
     "date": "2026-10-28",
     "changes": [

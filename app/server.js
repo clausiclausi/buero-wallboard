@@ -48,8 +48,8 @@ const DEFAULT_LOANS = [
 ];
 let db = Object.assign({ tasks: [], events: [], scans: [], loans: DEFAULT_LOANS, incident: null, settings: {}, people: [], absences: [], notes: [] }, readJson(DB_FILE, {}));
 db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings);
-// Ab 1.18.1 ist die Clausewitzstraße Standard: alte Haltestellenwahl einmalig zurücksetzen
-if (!db.transitDefault) { db.settings.transit = null; db.transitDefault = 1; }
+// Ab 1.21.0 kommen Haltestellen aus der offenen EFA-Auskunft (andere Kennungen): alte Auswahl einmalig zurücksetzen
+if ((db.transitDefault || 0) < 2) { db.settings.transit = null; db.settings.route = null; db.transitDefault = 2; }
 
 // Passwort zum Entsperren des Besuchermodus (nur als Hash gespeichert, Standard: 123)
 const hashPw = (pw, salt) => crypto.scryptSync(String(pw), salt, 32).toString('hex');
@@ -163,7 +163,7 @@ function sanitizeSettings(b) {
   if (b.mascot && typeof b.mascot === 'object') {
     const m = b.mascot, hex = v => /^#[0-9a-fA-F]{6}$/.test(v || '') ? v : '';
     s.mascot = {
-      fig: oneOf(m.fig, ['aus', 'strich', 'kugel', 'katze', 'geist'], 'strich'), color: hex(m.color) || '#7FE0AE', text: hex(m.text),
+      fig: oneOf(m.fig, ['aus', 'strich', 'kugel', 'katze', 'mieze', 'hund', 'geist'], 'strich'), color: hex(m.color) || '#7FE0AE', text: hex(m.text),
       font: oneOf(m.font, ['strich', 'segoe', 'rund', 'technik', 'kraeftig', 'klassisch', 'verspielt'], 'strich'),
       every: oneOf(String(m.every), ['zufall', '5', '10', '15', '30', '60'], 'zufall'), size: oneOf(m.size, ['klein', 'mittel', 'gross'], 'mittel'), mood: oneOf(m.mood, ['lieb', 'frech', 'gemischt'], 'lieb'),
       alerts: m.alerts !== false, walk: isTime(m.walk) ? m.walk : '', deco: m.deco !== false,
@@ -180,12 +180,13 @@ function sanitizeSettings(b) {
   }
   if ('transit' in b) {
     const tr = b.transit;
-    s.transit = tr && typeof tr === 'object' && /^[A-Za-z0-9:_.-]{1,20}$/.test(String(tr.id || '')) ? { id: String(tr.id), name: clean(tr.name, 60) } : null;
+    s.transit = tr && typeof tr === 'object' && /^[A-Za-z0-9:_.-]{1,30}$/.test(String(tr.id || '')) ? { id: String(tr.id), name: clean(tr.name, 60) } : null;
   }
   if (b.radar && typeof b.radar === 'object') s.radar = { zoom: oneOf(+b.radar.zoom, [1, 1.5, 2, 3, 4], 1), play: b.radar.play !== false };
   if ('route' in b) {
     const r = b.route;
-    s.route = r && typeof r === 'object' && /^[A-Za-z0-9:_.-]{1,20}$/.test(String(r.id || '')) ? { id: String(r.id), name: clean(r.name, 60) } : null;
+    // Ziele können Straßen sein, deren Kennung Leerzeichen und Klammern enthält
+    s.route = r && typeof r === 'object' && /^[^\u0000-\u001f<>]{1,200}$/.test(String(r.id || '')) ? { id: String(r.id), name: clean(r.name, 60), label: clean(r.label || r.name, 40) } : null;
   }
   if ('routeOn' in b) s.routeOn = !!b.routeOn;
   if ('autoUpdate' in b) s.autoUpdate = oneOf(b.autoUpdate, ['sofort', 'nachts', 'aus'], 'sofort');
@@ -493,9 +494,10 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, db.settings);
     }
     // Haltestelle für die Abfahrten suchen (öffentliche Fahrplanauskunft)
+    if (req.method === 'GET' && p === '/api/diag') return send(res, 200, await extras.diagnose());
     if (req.method === 'GET' && p === '/api/transit/stops') {
       const q = url.searchParams.get('q') || '';
-      try { return send(res, 200, q.trim() ? await extras.search(q) : await extras.nearby()); }
+      try { return send(res, 200, q.trim() ? await extras.search(q, url.searchParams.get('ziel') === '1') : await extras.nearby()); }
       catch { return send(res, 502, { error: 'Fahrplanauskunft gerade nicht erreichbar' }); }
     }
     if (p === '/api/incident') {

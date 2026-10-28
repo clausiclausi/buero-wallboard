@@ -1,20 +1,22 @@
 {
-  "version": "1.20.0",
-  "notes": "Abfahrten-Kachel: darunter jetzt die Verbindung nach Hemmingen, Birkenkamp. Sie zeigt die nächsten Fahrten ab Clausewitzstraße mit Linien (z. B. 11 › 13 › 365), Verspätung und Ankunftszeit und wird jede Minute aktualisiert. Ziel änderbar oder abschaltbar unter Einstellungen → Abfahrten.",
+  "version": "1.21.0",
+  "notes": "Abfahrten und Verbindung nach Hemmingen laufen wieder: Fahrplandaten kommen jetzt von der öffentlichen Auskunft efa.de mit Live-Zeiten (bahn.de lässt das Board nicht mehr zu). Fällt efa.de aus, springt automatisch die Auskunft des VRR ein. Vorher echt getestet.",
   "changes": [
-    "Abfahrten-Kachel: darunter jetzt die Verbindung nach Hemmingen, Birkenkamp. Sie zeigt die nächsten Fahrten ab Clausewitzstraße mit Linien (z. B. 11 › 13 › 365), Verspätung und Ankunftszeit und wird jede Minute aktualisiert. Ziel änderbar oder abschaltbar unter Einstellungen → Abfahrten.",
-    "Ausgeblendete Kacheln lassen sich jetzt direkt unter Einstellungen → Kacheln mit einem Tipp wieder einblenden."
+    "Abfahrten und Verbindung nach Hemmingen laufen wieder: Fahrplandaten kommen jetzt von der öffentlichen Auskunft efa.de mit Live-Zeiten (bahn.de lässt das Board nicht mehr zu). Fällt efa.de aus, springt automatisch die Auskunft des VRR ein. Vorher echt getestet.",
+    "Einstellungen → Abfahrten → Verbindungstest: prüft jede Quelle einzeln und zeigt genau, was klappt und was nicht.",
+    "In kleinen Kacheln bleiben immer mindestens zwei Abfahrten sichtbar, die Hemmingen-Verbindungen passen sich an.",
+    "Neue Figuren: eine getigerte Katze, die echter aussieht, und ein Hündchen mit Schlappohren. Die bisherige Katze bleibt. Auswahl unter Einstellungen → Figur."
   ],
   "files": {
-    "changelog.json": "8ddca5180c13de69fd044f646c3e2759a7d34fc2e4b77b2076a68ea4e1ee0829",
+    "changelog.json": "6c8bff05d6ecfbae35966ad82b699dc3f7e62d7305750e7ec88ab4550915238e",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
-    "extras.js": "9e81095e745a8dd23d16e6c4a00b47f4de00fb3de4da7b3c37e5fc51edbd3064",
-    "public/board.html": "adf05dda11e9f107b13e2c0a4b68503baf0d3102c6eb848c33c0e1e569f45a41",
+    "extras.js": "0f68f2701d795ff8e0157497dbc66cb3f1583bf51b3c24dbc7a2c5b8d495e9e7",
+    "public/board.html": "216fdd434f093d1968468fb92197a046a5a4d1fcebefcfe5a655eca12982cfcb",
     "public/m.html": "51f4c46130b9710c6f2995f6a028d81ec9139521416ab7042636a67b49fd3c78",
-    "public/mascot.js": "48ffd3c448bec0d56de44edb1bd54741c4cb9c29ae4a200124a0a0e6a727e04c",
+    "public/mascot.js": "880c1e69a1d7f16509da00ec9c0fe70aae4bd28c1dc90d7a919a69ab1c2df196",
     "radar.js": "2de0dd59de4067ed5a90383e0f6b809fcba6522fa9299c1a4bc5595a464aeaff",
-    "server.js": "c8b9d1f7374b0d7acc7ac9619c6d5dbddd1f4608b539436bf60ba2c8d52afeab",
+    "server.js": "8635c55adc352da67798cb6edf6e6a996aa9a50a334830d6b19a05b201b4230a",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "eec8a5f4890b709aaed6dd0e0da8a0cf50582b4e4d452eb706a7bc824c5682b9"
+    "version.json": "dd2867b1cb791383d8b6f0ad0297dcf4579ca643270209c65db941aa2b17d64f"
   }
 }
