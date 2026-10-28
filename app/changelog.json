@@ -1,5 +1,14 @@
 [
   {
+    "version": "1.18.0",
+    "date": "2026-10-28",
+    "changes": [
+      "Neues Regenradar wie in der WetterOnline-App: hellgraue Landkarte rund um Hannover mit rotem Büro-Pin, echtes DWD-Radar der letzten Stunde plus Vorhersage, Zeitleiste spielt automatisch ab.",
+      "Das alte schwarze Radarbild ist entfernt.",
+      "Die Bilder holt das Notebook selbst vom DWD und vom Bundesamt für Kartographie. Keine Werbung, keine Cookies, kein fremder Dienst sieht das Board."
+    ]
+  },
+  {
     "version": "1.17.0",
     "date": "2026-10-28",
     "changes": [

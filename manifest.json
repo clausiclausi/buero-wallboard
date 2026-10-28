@@ -1,23 +1,21 @@
 {
-  "version": "1.17.0",
-  "notes": "Neue Kachel Abfahrten: die nächsten Bahnen und Busse mit Minuten und Verspätung. Haltestelle unter Einstellungen → Abfahrten wählen (Standard: nächste Haltestelle). Neue Kachel Sicherheit: aktuelle Warnungen des BSI für Verbraucher und ein IT-Tipp des Tages. Wetter: Pollenflug und UV-Index vom DWD.",
+  "version": "1.18.0",
+  "notes": "Neues Regenradar wie in der WetterOnline-App: hellgraue Landkarte rund um Hannover mit rotem Büro-Pin, echtes DWD-Radar der letzten Stunde plus Vorhersage, Zeitleiste spielt automatisch ab. Das alte schwarze Radarbild ist entfernt.",
   "changes": [
-    "Neue Kachel Abfahrten: die nächsten Bahnen und Busse mit Minuten und Verspätung. Haltestelle unter Einstellungen → Abfahrten wählen (Standard: nächste Haltestelle).",
-    "Neue Kachel Sicherheit: aktuelle Warnungen des BSI für Verbraucher und ein IT-Tipp des Tages.",
-    "Wetter: Pollenflug und UV-Index vom DWD.",
-    "Monatskalender: Schulferien Niedersachsen (blau unterstrichen) und Brückentage (gestrichelt).",
-    "AOK-Männchen trägt Jahreszeiten-Deko: Kürbis zu Halloween, Nikolausmütze im Advent, Wollmütze im Winter, Hasenohren zu Ostern (abschaltbar).",
-    "Neue Grundanordnung mit 8 Kacheln."
+    "Neues Regenradar wie in der WetterOnline-App: hellgraue Landkarte rund um Hannover mit rotem Büro-Pin, echtes DWD-Radar der letzten Stunde plus Vorhersage, Zeitleiste spielt automatisch ab.",
+    "Das alte schwarze Radarbild ist entfernt.",
+    "Die Bilder holt das Notebook selbst vom DWD und vom Bundesamt für Kartographie. Keine Werbung, keine Cookies, kein fremder Dienst sieht das Board."
   ],
   "files": {
-    "changelog.json": "2b2132fbec794708e5ba43a35ef7b2d6461e45797cdc9eeb3ef17d3acbf09c46",
+    "changelog.json": "ae29bd18855e935e01fcb14a387e0bc53902b28dd5dc8cd535d2fb257af4f697",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
     "extras.js": "cab56cefe11edfc2e242a43fb36f7d0e7a23731c029d1e3cb803d7dcb401c8e3",
-    "public/board.html": "32fcd9c45f6b193f3c1c27426a0f5aefd90e6b62e4555a9b0e0c72912991437f",
+    "public/board.html": "1dd07628a37a1665c7dbf6ccec13661e2ecf223fe1b0374dd7ac7cac1aab000d",
     "public/m.html": "51f4c46130b9710c6f2995f6a028d81ec9139521416ab7042636a67b49fd3c78",
     "public/mascot.js": "3a8a71036ec87f857a004892cf72386c39c6f80d9d2fc37d15339933ca593a26",
-    "server.js": "d4228c299b43e67b59923d7c0b1401d4de1b925098d4137e2d5e81ddd9ef4c00",
+    "radar.js": "a061446796240aa17b53107dc18b9835024fbd41bd779253e69648f1da167e72",
+    "server.js": "abc6db36775c4f32e8c599a7eb10a4f0c8af739c7f9a5783ba7f037d19538d40",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "94655024d74d0823c85e22040d202c3e4bfe84e81b0ef5afdc5ce05ed85f45fb"
+    "version.json": "f30093cdf64adf8ef820ecd6857ac9516a31137b9f360500b866c954179dcd7d"
   }
 }

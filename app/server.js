@@ -1,7 +1,7 @@
 // Büro-Wallboard: kleiner lokaler Server ohne externe Abhängigkeiten (Node.js >= 20).
 // - liefert das Board (/) und die Handy-Seite (/m)
 // - speichert alles in data/db.json, Fotos in data/photos
-// - holt Wetter, Regenradar und Unwetterwarnungen vom DWD (über Bright Sky) und gibt nur Zahlen weiter
+// - holt Wetter und Unwetterwarnungen vom DWD (über Bright Sky), das Regenradar direkt vom DWD, und gibt nur Zahlen weiter
 // - Geräte aus dem WLAN brauchen die PIN, das Board selbst (localhost) nicht
 'use strict';
 const http = require('http');
@@ -256,11 +256,11 @@ function broadcast() {
 /* ---------- Anzeige am Notebook (minimieren, schließen) ---------- */
 const display = require('./display')({ ROOT, DATA, config, log, broadcast: () => broadcast(), officeStart: () => db.settings.officeStart });
 const tunnel = require('./tunnel')({ ROOT, config, log, broadcast: () => broadcast() });
+const radar = require('./radar')({ DATA, config, log });
 const extras = require('./extras')({ DATA, config, log, getSettings: () => db.settings, broadcast: () => broadcast(), localDate });
 
 /* ---------- Wetter vom DWD über Bright Sky ---------- */
 let weather = { ok: false, updated: 0 };
-let radar = { ok: false, updated: 0 };
 async function getJson(url) {
   const r = await fetch(url, { headers: { 'User-Agent': 'Buero-Wallboard/1.0' }, signal: AbortSignal.timeout(20000) });
   if (!r.ok) throw new Error(`${r.status} ${url}`);
@@ -298,18 +298,6 @@ async function updateWeather() {
   broadcast();
 }
 function localDateOf(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
-
-async function updateRadar() {
-  try {
-    const r = await getJson(`https://api.brightsky.dev/radar?lat=${config.lat}&lon=${config.lon}&distance=60000&format=plain&tz=Europe/Berlin`);
-    const frames = (r.radar || []).filter((_, i) => i % 2 === 0).slice(0, 13)
-      .map(f => ({ t: f.timestamp, grid: f.precipitation_5 }));
-    radar = { ok: frames.length > 0, updated: Date.now(), frames, pos: r.latlon_position || null };
-  } catch (e) {
-    log('Radar nicht erreichbar:', e.message);
-    radar.ok = false;
-  }
-}
 
 /* ---------- Updates aus dem GitHub-Repository ----------
    Im Repository liegt manifest.json mit Version und SHA-256 jeder Datei unter app/.
@@ -438,7 +426,11 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'GET' && p === '/api/state') return send(res, 200, url.searchParams.get('full') ? fullView() : boardView());
     if (req.method === 'GET' && p === '/api/weather') return send(res, 200, weather);
-    if (req.method === 'GET' && p === '/api/radar') return send(res, 200, radar);
+    if (req.method === 'GET' && p === '/api/radar') return send(res, 200, radar.view());
+    if (req.method === 'GET' && p.startsWith('/api/radar/')) {
+      const img = radar.image(p.slice(11));
+      return img ? send(res, 200, img, 'image/png') : send(res, 404, 'Nicht gefunden', 'text/plain; charset=utf-8');
+    }
     if (req.method === 'GET' && p === '/api/stream') {
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive' });
       const c = { res, full: !!url.searchParams.get('full') };
@@ -565,10 +557,10 @@ server.listen(config.port, () => {
   // Nach Updates schauen im eingestellten Abstand (Standard alle 30 Sekunden)
   const updateLoop = () => checkUpdate().finally(() => setTimeout(updateLoop, (db.settings.updateEvery || 30) * 1000));
   setTimeout(updateLoop, 15000);
-  cleanup(); backup(); updateWeather(); updateRadar();
+  cleanup(); backup(); updateWeather(); radar.update();
   setInterval(updateWeather, 10 * 60000);
   extras.start();
-  setInterval(updateRadar, 5 * 60000);
+  setInterval(radar.update, 5 * 60000);
   setInterval(() => { cleanup(); }, 10 * 60000);
   setInterval(backup, 6 * 3600000);
 });
