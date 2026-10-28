@@ -1,5 +1,17 @@
 [
   {
+    "version": "1.17.0",
+    "date": "2026-10-28",
+    "changes": [
+      "Neue Kachel Abfahrten: die nächsten Bahnen und Busse mit Minuten und Verspätung. Haltestelle unter Einstellungen → Abfahrten wählen (Standard: nächste Haltestelle).",
+      "Neue Kachel Sicherheit: aktuelle Warnungen des BSI für Verbraucher und ein IT-Tipp des Tages.",
+      "Wetter: Pollenflug und UV-Index vom DWD.",
+      "Monatskalender: Schulferien Niedersachsen (blau unterstrichen) und Brückentage (gestrichelt).",
+      "AOK-Männchen trägt Jahreszeiten-Deko: Kürbis zu Halloween, Nikolausmütze im Advent, Wollmütze im Winter, Hasenohren zu Ostern (abschaltbar).",
+      "Neue Grundanordnung mit 8 Kacheln."
+    ]
+  },
+  {
     "version": "1.16.0",
     "date": "2026-10-28",
     "changes": [

@@ -46,7 +46,32 @@
     klopfen: { name: 'Termin-Klopfen', mood: 'info' },
   };
   const SIZES = { klein: .42, mittel: .55, gross: .72 };
-  const DEFAULTS = { fig: 'strich', color: '#7FE0AE', text: '', font: 'strich', every: 'zufall', size: 'mittel', mood: 'lieb', alerts: true, walk: '09:55' };
+  // Welche Deko gerade passt: Kürbis vor Halloween, Nikolausmütze im Advent, Wollmütze im Winter, Hasenohren zu Ostern
+  function season(d = new Date()) {
+    const m = d.getMonth() + 1, day = d.getDate();
+    if (m === 10 && day >= 20) return 'kuerbis';
+    if (m === 12 && day <= 26) return 'nikolaus';
+    if (m === 12 || m <= 2) return 'muetze';
+    const y = d.getFullYear(), a = y % 19, b = Math.floor(y / 100), c = y % 100, h = (19 * a + b - Math.floor(b / 4) - Math.floor((b - Math.floor((b + 8) / 25) + 1) / 3) + 15) % 30;
+    const l = (32 + 2 * (b % 4) + 2 * Math.floor(c / 4) - h - c % 4) % 7, mm = Math.floor((a + 11 * h + 22 * l) / 451);
+    const easter = new Date(y, Math.floor((h + l - 7 * mm + 114) / 31) - 1, ((h + l - 7 * mm + 114) % 31) + 1);
+    if (Math.abs(d - easter) < 7 * 864e5) return 'hase';
+    return '';
+  }
+  const OUT = 'stroke="#1B1410" stroke-width="0.09" stroke-linejoin="round"';
+  const DECO = {
+    nikolaus: `<path d="M-1.05 -0.05 Q-0.75 -1.45 0.45 -1.55 Q1.3 -1.55 1.6 -0.7 Q1.1 -1.05 0.75 -0.85 Q0.98 -0.45 1.05 -0.05 Z" fill="#E0403A" ${OUT}/>
+      <rect x="-1.18" y="-0.3" width="2.36" height="0.46" rx="0.23" fill="#FFFFFF" ${OUT}/><circle cx="1.6" cy="-0.68" r="0.27" fill="#FFFFFF" ${OUT}/>`,
+    muetze: `<path d="M-1.02 0 Q-1.02 -1.3 0 -1.3 Q1.02 -1.3 1.02 0 Z" fill="#4A86E8" ${OUT}/>
+      <path d="M-0.55 -1.12 L-0.55 -0.2 M0 -1.3 L0 -0.2 M0.55 -1.12 L0.55 -0.2" stroke="#2F62B8" stroke-width="0.12" fill="none"/>
+      <rect x="-1.12" y="-0.32" width="2.24" height="0.46" rx="0.18" fill="#2F62B8" ${OUT}/><circle cx="0" cy="-1.38" r="0.3" fill="#FFFFFF" ${OUT}/>`,
+    kuerbis: `<path d="M0 -1.25 Q0.05 -1.55 0.25 -1.62" stroke="#3E7D32" stroke-width="0.16" fill="none" stroke-linecap="round"/>
+      <ellipse cx="-0.42" cy="-0.6" rx="0.55" ry="0.62" fill="#F08A24" ${OUT}/><ellipse cx="0.42" cy="-0.6" rx="0.55" ry="0.62" fill="#F08A24" ${OUT}/>
+      <ellipse cx="0" cy="-0.62" rx="0.5" ry="0.66" fill="#F79A35" ${OUT}/><path d="M0.12 -1.25 q0.4 -0.25 0.6 0.02 q-0.35 0.12 -0.6 -0.02z" fill="#5FAE45"/>`,
+    hase: `<ellipse cx="-0.45" cy="-1.25" rx="0.28" ry="0.8" fill="#FFFFFF" ${OUT} transform="rotate(-12 -0.45 -1.25)"/><ellipse cx="-0.45" cy="-1.22" rx="0.12" ry="0.55" fill="#FFB3C1" transform="rotate(-12 -0.45 -1.22)"/>
+      <ellipse cx="0.45" cy="-1.25" rx="0.28" ry="0.8" fill="#FFFFFF" ${OUT} transform="rotate(12 0.45 -1.25)"/><ellipse cx="0.45" cy="-1.22" rx="0.12" ry="0.55" fill="#FFB3C1" transform="rotate(12 0.45 -1.22)"/>`,
+  };
+  const DEFAULTS = { fig: 'strich', color: '#7FE0AE', text: '', font: 'strich', every: 'zufall', size: 'mittel', mood: 'lieb', alerts: true, walk: '09:55', deco: true };
 
   // ---------- Posen (Koordinaten in 1/3 Board-Pixeln, Füße bei x/y) ----------
   function letterPose(x, y, t) {
@@ -290,6 +315,10 @@
       E.zzz = [0, 1, 2].map(i => { const z = el('text', { fill: LC, 'font-size': ((10 + i * 3) * k).toFixed(1), 'font-weight': 700, opacity: 0, style: "font-family:'Segoe UI',system-ui,sans-serif" }, svg); z.textContent = 'z'; return z; });
       E.held = el('text', { 'text-anchor': 'middle', 'dominant-baseline': 'central', opacity: 0 }, svg);
       E.yawn = el('ellipse', { fill: '#3A1F1A', opacity: 0 }, E.fig);
+      // Jahreszeiten-Deko auf dem Kopf, gezeichnet für einen Kopf mit Radius 1
+      E.deco = el('g', { opacity: 0 }, E.fig);
+      E.decoKind = cfg.deco === false ? '' : season();
+      E.deco.innerHTML = DECO[E.decoKind] || '';
       E.rings = [0, 1].map(() => el('circle', { fill: 'none', stroke: '#FFFFFF', 'stroke-width': 1.2, opacity: 0 }, svg));
       E.bubble = el('g', { opacity: 0 }, svg);
       E.bRect = el('rect', { rx: 5, fill: '#FFFFFF' }, E.bubble);
@@ -356,6 +385,15 @@
         });
         if (E.tip) { E.tip.setAttribute('cx', fp.tip[0].toFixed(1)); E.tip.setAttribute('cy', fp.tip[1].toFixed(1)); E.tip.setAttribute('opacity', eyeOn); }
         fp.mouth = P((fp.L[2][0][0] + fp.L[2][1][0]) / 2, (fp.L[2][0][1] + fp.L[2][1][1]) / 2);
+      }
+      // Deko sitzt oben auf dem Kopf und kippt beim Laufen leicht mit
+      if (E.decoKind) {
+        let hx, hy, r;
+        if (fp.O) { hx = fp.O.cx; r = fp.O.rx * (cfg.fig === 'kugel' || cfg.fig === 'katze' ? .8 : 1); hy = fp.O.cy - fp.O.ry * (E.decoKind === 'kuerbis' ? .78 : .55); }
+        else { hx = (fp.eyes[0][0] + fp.eyes[1][0]) / 2; hy = fp.eyes[0][1] - 5 * kk; r = 7 * kk; }
+        const tilt = (s.dir || 1) * (6 + Math.sin(t * 3) * 3 * s.walk);
+        E.deco.setAttribute('transform', `translate(${hx.toFixed(1)} ${hy.toFixed(1)}) rotate(${tilt.toFixed(1)}) scale(${r.toFixed(2)})`);
+        E.deco.setAttribute('opacity', (eyeOn * (1 - s.stretch * .8)).toFixed(2));
       }
       // Zunge bei der Grimasse
       E.tongue.setAttribute('cx', fp.mouth[0].toFixed(1)); E.tongue.setAttribute('cy', (fp.mouth[1] + 2.4 * k).toFixed(1));

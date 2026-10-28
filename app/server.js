@@ -38,7 +38,7 @@ const DEFAULT_SETTINGS = {
   theme: { preset: 'wald', colors: null },
   muted: false, lead: 15, volume: 0.6, rainHours: [10, 12, 17],
   visitor: false, officeStart: '06:00', officeEnd: '20:00', autoUpdate: 'sofort', updateEvery: 30, skin: 'standard',
-  mascot: { fig: 'strich', color: '#7FE0AE', text: '', font: 'strich', every: 'zufall', size: 'mittel', mood: 'lieb', alerts: true, walk: '09:55' },
+  mascot: { fig: 'strich', color: '#7FE0AE', text: '', font: 'strich', every: 'zufall', size: 'mittel', mood: 'lieb', alerts: true, walk: '09:55', deco: true },
 };
 const DEFAULT_LOANS = [
   { id: 'l1', type: 'Notebooks', icon: 'laptop', avail: 0, total: 0 },
@@ -164,17 +164,21 @@ function sanitizeSettings(b) {
       fig: oneOf(m.fig, ['aus', 'strich', 'kugel', 'katze', 'geist'], 'strich'), color: hex(m.color) || '#7FE0AE', text: hex(m.text),
       font: oneOf(m.font, ['strich', 'segoe', 'rund', 'technik', 'kraeftig', 'klassisch', 'verspielt'], 'strich'),
       every: oneOf(String(m.every), ['zufall', '5', '10', '15', '30', '60'], 'zufall'), size: oneOf(m.size, ['klein', 'mittel', 'gross'], 'mittel'), mood: oneOf(m.mood, ['lieb', 'frech', 'gemischt'], 'lieb'),
-      alerts: m.alerts !== false, walk: isTime(m.walk) ? m.walk : '',
+      alerts: m.alerts !== false, walk: isTime(m.walk) ? m.walk : '', deco: m.deco !== false,
     };
   }
   if ('layout' in b) {
     // Kachel-Anordnung im 12x6-Raster: [Spalte, Zeile, Breite, Höhe], nur vollständig und ohne Überlappung
-    const keys = ['cal', 'wx', 'loan', 'month', 'incident', 'notes'], L = b.layout || {};
+    const keys = ['cal', 'wx', 'loan', 'month', 'incident', 'notes', 'transit', 'sec'], L = b.layout || {};
     const hidden = Array.isArray(L.hidden) ? keys.filter(k => L.hidden.includes(k)) : [];
     const shown = keys.filter(k => !hidden.includes(k));
     const ok = a => Array.isArray(a) && a.length === 4 && a.every(Number.isInteger) && a[0] >= 1 && a[1] >= 1 && a[2] >= 2 && a[3] >= 2 && a[0] + a[2] <= 13 && a[1] + a[3] <= 7;
     const hit = (a, c) => a[0] < c[0] + c[2] && c[0] < a[0] + a[2] && a[1] < c[1] + c[3] && c[1] < a[1] + a[3];
     s.layout = keys.every(k => ok(L[k])) && shown.every((k, i) => shown.slice(i + 1).every(j => !hit(L[k], L[j]))) ? { ...Object.fromEntries(keys.map(k => [k, L[k]])), hidden } : null;
+  }
+  if ('transit' in b) {
+    const tr = b.transit;
+    s.transit = tr && typeof tr === 'object' && /^[A-Za-z0-9:_.-]{1,20}$/.test(String(tr.id || '')) ? { id: String(tr.id), name: clean(tr.name, 60) } : null;
   }
   if ('autoUpdate' in b) s.autoUpdate = oneOf(b.autoUpdate, ['sofort', 'nachts', 'aus'], 'sofort');
   if ('updateEvery' in b) s.updateEvery = oneOf(+b.updateEvery, [30, 60, 300, 1800], 30);
@@ -188,7 +192,7 @@ function boardView() {
     tasks: db.tasks.filter(t => t.date === today),
     events: db.events.filter(e => e.date === today || e.date === tomorrow),
     loans: db.loans, incident: db.incident, settings: db.settings, mobileUrl: mobileUrl(),
-    people: db.people, absences: db.absences, notes: db.notes,
+    people: db.people, absences: db.absences, notes: db.notes, extras: extras.view(),
     version: VERSION, changelog: CHANGELOG, lastUpdate: readJson(path.join(DATA, 'last-update.json'), null), display: display.view(),
     update: { available: update.available, notes: update.notes, changes: update.changes, error: update.error, checked: update.checked, busy: update.busy },
   };
@@ -252,6 +256,7 @@ function broadcast() {
 /* ---------- Anzeige am Notebook (minimieren, schließen) ---------- */
 const display = require('./display')({ ROOT, DATA, config, log, broadcast: () => broadcast(), officeStart: () => db.settings.officeStart });
 const tunnel = require('./tunnel')({ ROOT, config, log, broadcast: () => broadcast() });
+const extras = require('./extras')({ DATA, config, log, getSettings: () => db.settings, broadcast: () => broadcast(), localDate });
 
 /* ---------- Wetter vom DWD über Bright Sky ---------- */
 let weather = { ok: false, updated: 0 };
@@ -482,8 +487,16 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { ok: true });
     }
     if (req.method === 'PUT' && p === '/api/settings') {
-      Object.assign(db.settings, sanitizeSettings(await readBody(req, 10000))); save();
+      const patch = sanitizeSettings(await readBody(req, 10000));
+      Object.assign(db.settings, patch); save();
+      if ('transit' in patch) extras.refreshTransit();
       return send(res, 200, db.settings);
+    }
+    // Haltestelle für die Abfahrten suchen (öffentliche Fahrplanauskunft)
+    if (req.method === 'GET' && p === '/api/transit/stops') {
+      const q = url.searchParams.get('q') || '';
+      try { return send(res, 200, q.trim() ? await extras.search(q) : await extras.nearby()); }
+      catch { return send(res, 502, { error: 'Fahrplanauskunft gerade nicht erreichbar' }); }
     }
     if (p === '/api/incident') {
       if (req.method === 'DELETE') { db.incident = null; save(); return send(res, 200, { ok: true }); }
@@ -554,6 +567,7 @@ server.listen(config.port, () => {
   setTimeout(updateLoop, 15000);
   cleanup(); backup(); updateWeather(); updateRadar();
   setInterval(updateWeather, 10 * 60000);
+  extras.start();
   setInterval(updateRadar, 5 * 60000);
   setInterval(() => { cleanup(); }, 10 * 60000);
   setInterval(backup, 6 * 3600000);

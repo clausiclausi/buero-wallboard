@@ -1,18 +1,23 @@
 {
-  "version": "1.16.0",
-  "notes": "Scan-Funktion entfernt: keine Scan-Kachel mehr am Board, keine Scan-Seite und keine Inventarliste am Handy, kein Mailversand (Gmail) mehr.",
+  "version": "1.17.0",
+  "notes": "Neue Kachel Abfahrten: die nächsten Bahnen und Busse mit Minuten und Verspätung. Haltestelle unter Einstellungen → Abfahrten wählen (Standard: nächste Haltestelle). Neue Kachel Sicherheit: aktuelle Warnungen des BSI für Verbraucher und ein IT-Tipp des Tages. Wetter: Pollenflug und UV-Index vom DWD.",
   "changes": [
-    "Scan-Funktion entfernt: keine Scan-Kachel mehr am Board, keine Scan-Seite und keine Inventarliste am Handy, kein Mailversand (Gmail) mehr.",
-    "Neue Grundanordnung: Kalender, Notizen und Wetter oben, Leihgeräte, Monat und Störungen unten. Eigene Anordnungen mit der alten Scan-Kachel werden auf diese Grundanordnung gesetzt."
+    "Neue Kachel Abfahrten: die nächsten Bahnen und Busse mit Minuten und Verspätung. Haltestelle unter Einstellungen → Abfahrten wählen (Standard: nächste Haltestelle).",
+    "Neue Kachel Sicherheit: aktuelle Warnungen des BSI für Verbraucher und ein IT-Tipp des Tages.",
+    "Wetter: Pollenflug und UV-Index vom DWD.",
+    "Monatskalender: Schulferien Niedersachsen (blau unterstrichen) und Brückentage (gestrichelt).",
+    "AOK-Männchen trägt Jahreszeiten-Deko: Kürbis zu Halloween, Nikolausmütze im Advent, Wollmütze im Winter, Hasenohren zu Ostern (abschaltbar).",
+    "Neue Grundanordnung mit 8 Kacheln."
   ],
   "files": {
-    "changelog.json": "8ead70c3197cf0b3a5bcd6007e48edff1eba2b83a279fbe40709f16f09ac7cd6",
+    "changelog.json": "2b2132fbec794708e5ba43a35ef7b2d6461e45797cdc9eeb3ef17d3acbf09c46",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
-    "public/board.html": "da5958a501e32136e3b206b04f9e4e58cdf5345d1ff85c29321097e5c756e83e",
+    "extras.js": "cab56cefe11edfc2e242a43fb36f7d0e7a23731c029d1e3cb803d7dcb401c8e3",
+    "public/board.html": "32fcd9c45f6b193f3c1c27426a0f5aefd90e6b62e4555a9b0e0c72912991437f",
     "public/m.html": "51f4c46130b9710c6f2995f6a028d81ec9139521416ab7042636a67b49fd3c78",
-    "public/mascot.js": "0fddce41a0154a94e7d4cd67ae077905c0cec81994cdb98d626ff0fca0f9e89a",
-    "server.js": "2ca2a271d370b5f77903786ff76aeb08eb33693c8a6eed070d68a5badf04771d",
+    "public/mascot.js": "3a8a71036ec87f857a004892cf72386c39c6f80d9d2fc37d15339933ca593a26",
+    "server.js": "d4228c299b43e67b59923d7c0b1401d4de1b925098d4137e2d5e81ddd9ef4c00",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "a12d6631629a3cfb72ab8a397f5097868b997a6ad1b3449454ebfee875629eae"
+    "version.json": "94655024d74d0823c85e22040d202c3e4bfe84e81b0ef5afdc5ce05ed85f45fb"
   }
 }

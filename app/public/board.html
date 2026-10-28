@@ -122,12 +122,41 @@ main {
 .card h3 { margin: 0; font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); display: flex; align-items: center; gap: 12px; }
 .card h3 .badge { margin-left: auto; text-transform: none; letter-spacing: 0; font-size: 20px; padding: 4px 14px; border-radius: 999px; background: var(--surface-2); color: var(--text); }
 /* Standard-Anordnung im 12x6-Raster, eigene Anordnung überschreibt per style */
-.cal { grid-area: 1 / 1 / span 3 / span 5; }
+.cal { grid-area: 1 / 1 / span 3 / span 3; }
+.transit { grid-area: 1 / 4 / span 3 / span 3; }
+.notes { grid-area: 1 / 7 / span 3 / span 3; }
 .wx { grid-area: 1 / 10 / span 3 / span 3; }
 .loan { grid-area: 4 / 1 / span 3 / span 3; }
 .month { grid-area: 4 / 4 / span 3 / span 3; gap: calc(10px * var(--z, 1)); }
-.incident { grid-area: 4 / 7 / span 3 / span 6; }
-.notes { grid-area: 1 / 6 / span 3 / span 4; }
+.incident { grid-area: 4 / 7 / span 3 / span 3; }
+.sec { grid-area: 4 / 10 / span 3 / span 3; }
+/* Abfahrten */
+.tr-list { display: flex; flex-direction: column; gap: 6px; min-height: 0; overflow: hidden; flex: 1; }
+.dep { display: grid; grid-template-columns: 92px 1fr auto; gap: 12px; align-items: center; padding: 5px 10px; border-radius: 12px; background: var(--bg); font-size: 21px; }
+.dep .ln { font-weight: 800; font-size: 17px; text-align: center; padding: 3px 0; border-radius: 8px; background: var(--surface-2); white-space: nowrap; overflow: hidden; }
+.dep .ln.stadtbahn { background: #1E6FB8; color: #fff; } .dep .ln.bus { background: #8A4FBF; color: #fff; } .dep .ln.sbahn { background: #2E8B57; color: #fff; } .dep .ln.zug { background: #C8372B; color: #fff; }
+.dep .dir { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+.dep .min { font-family: var(--font-mono); font-weight: 700; text-align: right; white-space: nowrap; }
+.dep .min small { display: block; font-size: 14px; font-weight: 600; color: var(--crit); }
+.dep.gone { opacity: .45; } .dep.x .dir, .dep.x .min { text-decoration: line-through; color: var(--crit); }
+.tr-msg { font-size: 19px; color: var(--muted); padding: 4px; }
+/* Sicherheit */
+.sec-list { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; flex: 1; }
+.sec-item { display: flex; gap: 10px; align-items: flex-start; font-size: 19px; line-height: 1.3; padding: 8px 12px; border-radius: 12px; background: var(--bg); }
+.sec-item .icon { font-size: 24px; color: var(--warn); margin-top: 1px; }
+.sec-item small { display: block; color: var(--muted); font-size: 15px; }
+.tip { flex: none; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); font-size: 19px; line-height: 1.35; }
+.tip b { display: block; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.tip kbd { font-family: var(--font-mono); font-size: 17px; padding: 1px 7px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); }
+/* Pollen und UV in der Wetter-Kachel */
+.wx-health { display: flex; gap: 8px 14px; flex-wrap: wrap; font-size: 18px; color: var(--muted); }
+.wx-health span { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.wx-health i { width: 10px; height: 10px; border-radius: 50%; background: var(--ok); }
+.wx-health i.l2 { background: var(--warn); } .wx-health i.l3 { background: var(--crit); }
+/* Schulferien und Brückentage im Monat */
+.mgrid .d.sf { box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--rain) 70%, transparent); }
+.mgrid .d.bt { outline: 2px dashed color-mix(in srgb, var(--warn) 70%, transparent); outline-offset: -3px; }
+.month-foot .sf-dot { background: var(--rain) !important; }
 main > .card.off { display: none; }
 .note-list { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; }
 .note { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--bg); font-size: 21px; line-height: 1.3; font-weight: 500; }
@@ -380,7 +409,7 @@ footer .sp { margin-left: auto; }
   .update-pill:not(.info) { animation: ring 2.4s ease-out 6; }
   @keyframes ring { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 60%, transparent); } 70%, 100% { box-shadow: 0 0 0 18px transparent; } }
 }
-.notes { margin: 0; padding-left: 26px; display: flex; flex-direction: column; gap: 10px; font-size: 21px; line-height: 1.4; }
+ul.notes { margin: 0; padding-left: 26px; display: flex; flex-direction: column; gap: 10px; font-size: 21px; line-height: 1.4; }
 .notes-ver { font-size: 20px; font-weight: 700; margin: 0 0 8px; }
 .notes-ver span { color: var(--muted); font-weight: 500; }
 .choice { display: flex; flex-direction: column; gap: 14px; }
@@ -576,6 +605,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-train" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="13" rx="3"/><path d="M5 10h14M9 20l-2 2M15 20l2 2M8.5 13.5h.01M15.5 13.5h.01"/></symbol>
   <symbol id="i-cloud-rain" viewBox="0 0 24 24"><path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.2"/><path d="M16 14v6M8 14v6M12 16v6"/></symbol>
   <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.7-9h1.8a4.5 4.5 0 1 1 0 9Z"/></symbol>
   <symbol id="i-laptop" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="11" rx="2"/><path d="M2 20h20"/></symbol>
@@ -638,6 +668,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       <div class="rain-alert" id="rainAlert"><svg class="icon"><use href="#i-cloud-rain"/></svg><span id="rainText"></span></div>
       <div class="rain-times" id="rainTimes"></div>
       <div class="hours" id="hours"></div>
+      <div class="wx-health" id="wxHealth"></div>
       <div class="storm" id="storm"><span class="shape ok"></span><span id="stormText">Unwetterwarnungen werden geladen</span></div>
     </section>
 
@@ -656,6 +687,17 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     <section class="card incident" id="incCard" data-k="incident" data-name="Störungen">
       <h3>Störungen</h3>
       <div id="incBody" style="display:flex;flex-direction:column;gap:12px;flex:1"></div>
+    </section>
+
+    <section class="card transit" data-k="transit" data-name="Abfahrten">
+      <h3><svg class="icon"><use href="#i-train"/></svg>Abfahrten <span class="badge" id="trStop" style="max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span></h3>
+      <div class="tr-list" id="transit"></div>
+    </section>
+
+    <section class="card sec" data-k="sec" data-name="Sicherheit">
+      <h3><svg class="icon"><use href="#i-shield"/></svg>Sicherheit</h3>
+      <div class="sec-list" id="secList"></div>
+      <div class="tip" id="tip"></div>
     </section>
 
     <section class="card notes" data-k="notes" data-name="Notizen">
@@ -766,9 +808,9 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 
   /* ---------- Kacheln anordnen: 12x6-Raster, Lage und Größe je Kachel [Spalte, Zeile, Breite, Höhe] ---------- */
   const COLS = 12, ROWS = 6, MIN = 2;
-  const DEF_LAYOUT = { cal: [1, 1, 5, 3], notes: [6, 1, 4, 3], wx: [10, 1, 3, 3], loan: [1, 4, 3, 3], month: [4, 4, 3, 3], incident: [7, 4, 6, 3], hidden: [] };
+  const DEF_LAYOUT = { cal: [1, 1, 3, 3], transit: [4, 1, 3, 3], notes: [7, 1, 3, 3], wx: [10, 1, 3, 3], loan: [1, 4, 3, 3], month: [4, 4, 3, 3], incident: [7, 4, 3, 3], sec: [10, 4, 3, 3], hidden: [] };
   // Größe, für die der Inhalt gestaltet ist; größere Kacheln zeigen größere Schrift, kleinere kleinere
-  const BASE = { cal: [3, 3], wx: [3, 4], loan: [3, 3], month: [3, 3], incident: [3, 3], notes: [3, 3] };
+  const BASE = { cal: [3, 3], transit: [3, 3], sec: [3, 3], wx: [3, 4], loan: [3, 3], month: [3, 3], incident: [3, 3], notes: [3, 3] };
   const TILE_KEYS = Object.keys(BASE);
   const tiles = () => [...stage.querySelectorAll('main > .card[data-k]')];
   const fits = a => Array.isArray(a) && a.length === 4 && a.every(Number.isInteger) && a[0] >= 1 && a[1] >= 1 && a[2] >= MIN && a[3] >= MIN && a[0] + a[2] - 1 <= COLS && a[1] + a[3] - 1 <= ROWS;
@@ -791,7 +833,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   // Gespeicherte Anordnung ergänzen: neue Kacheln (z. B. Notizen) bekommen einen freien Platz, sonst bleiben sie ausgeblendet
   function layout() {
     const saved = settings().layout;
-    if (!saved || typeof saved !== 'object' || saved.scan) return DEF_LAYOUT;
+    if (!saved || typeof saved !== 'object' || saved.scan || !saved.transit) return DEF_LAYOUT;
     const L = { hidden: Array.isArray(saved.hidden) ? saved.hidden.filter(k => TILE_KEYS.includes(k)) : [] };
     const missing = [];
     for (const k of TILE_KEYS) fits(saved[k]) ? L[k] = saved[k].slice() : missing.push(k);
@@ -1138,6 +1180,67 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   }
   $('#addEv').onclick = openEventDialog;
 
+
+  /* ---------- Abfahrten ---------- */
+  function renderTransit() {
+    const T = S.extras?.transit, el = $('#transit');
+    $('#trStop').textContent = T?.stop?.name ? T.stop.name.replace(/^Hannover[ ,-]*/, '') : ''; $('#trStop').hidden = !T?.stop?.name;
+    if (!T || !T.deps) { el.innerHTML = `<div class="tr-msg">${T?.error ? esc(T.error) : 'Abfahrten werden geladen …'}</div>`; return; }
+    const now = Date.now();
+    const deps = T.deps.filter(d => new Date(d.when) - now > -60000).slice(0, 8);
+    el.innerHTML = deps.length ? deps.map(d => {
+      const min = Math.max(0, Math.round((new Date(d.when) - now) / 60000));
+      return `<div class="dep ${d.cancelled ? 'x' : ''}"><span class="ln ${esc(d.kind)}">${esc(d.line)}</span><span class="dir">${esc(d.dir)}</span>
+        <span class="min">${d.cancelled ? 'fällt aus' : min === 0 ? 'jetzt' : `${min} min`}${d.delay > 0 && !d.cancelled ? `<small>+${d.delay} Verspätung</small>` : ''}</span></div>`;
+    }).join('') : '<div class="tr-msg">In der nächsten Stunde keine Abfahrten.</div>';
+    if (T.ok === false) el.insertAdjacentHTML('afterbegin', `<div class="tr-msg">${esc(T.error || '')} · Stand ${new Date(T.updated || 0).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</div>`);
+    fitRows(el);
+  }
+  // Nur ganze Zeilen zeigen: was nicht mehr ganz in die Kachel passt, fällt weg
+  function fitRows(el) { while (el.children.length > 1 && el.scrollHeight > el.clientHeight + 2) el.lastElementChild.remove(); }
+
+  /* ---------- Sicherheit: Warnungen des BSI und IT-Tipp des Tages ---------- */
+  const TIPS = [
+    ['<kbd>Win</kbd> + <kbd>L</kbd> sperrt den PC sofort, wenn ihr den Platz verlasst.'],
+    ['<kbd>Win</kbd> + <kbd>V</kbd> öffnet den Verlauf der Zwischenablage.'],
+    ['<kbd>Win</kbd> + <kbd>Umschalt</kbd> + <kbd>S</kbd> macht einen Bildschirmausschnitt.'],
+    ['<kbd>Strg</kbd> + <kbd>Umschalt</kbd> + <kbd>T</kbd> holt den zuletzt geschlossenen Browser-Tab zurück.'],
+    ['<kbd>Win</kbd> + <kbd>.</kbd> öffnet die Emoji- und Sonderzeichen-Auswahl.'],
+    ['<kbd>Alt</kbd> + <kbd>Tab</kbd> wechselt zwischen offenen Fenstern, <kbd>Win</kbd> + <kbd>Tab</kbd> zeigt alle auf einmal.'],
+    ['<kbd>Win</kbd> + <kbd>Pfeil links/rechts</kbd> setzt ein Fenster an den Bildschirmrand.'],
+    ['<kbd>Win</kbd> + <kbd>E</kbd> öffnet den Explorer.'],
+    ['<kbd>Win</kbd> + <kbd>D</kbd> zeigt den Desktop, nochmal drücken holt alles zurück.'],
+    ['<kbd>Strg</kbd> + <kbd>Umschalt</kbd> + <kbd>Esc</kbd> öffnet direkt den Task-Manager.'],
+    ['<kbd>Win</kbd> + <kbd>P</kbd> schaltet schnell zwischen Bildschirm doppeln und erweitern um.'],
+    ['<kbd>Strg</kbd> + <kbd>F</kbd> sucht auf jeder Webseite und in fast jedem Programm.'],
+    ['In Outlook verschiebt <kbd>Strg</kbd> + <kbd>Umschalt</kbd> + <kbd>V</kbd> eine Mail in einen Ordner.'],
+    ['In Teams startet <kbd>Strg</kbd> + <kbd>Umschalt</kbd> + <kbd>M</kbd> das Mikrofon ein oder aus.'],
+    ['<kbd>F2</kbd> benennt die markierte Datei um.'],
+    ['<kbd>Strg</kbd> + <kbd>Z</kbd> macht fast alles rückgängig, auch versehentlich verschobene Dateien im Explorer.'],
+    ['Echte Firmen fragen nie per Mail nach Passwörtern. Im Zweifel beim Absender anrufen, Nummer aber nicht aus der Mail nehmen.'],
+    ['Vor dem Klicken mit der Maus auf einen Link zeigen: Unten erscheint die echte Adresse.'],
+    ['Ein langer Satz ist ein besseres Passwort als ein kurzes Wort mit Sonderzeichen.'],
+    ['Updates zeitnah installieren: Die meisten Angriffe nutzen längst bekannte Lücken.'],
+    ['Unbekannte USB-Sticks nie einstecken, auch nicht „nur kurz schauen“.'],
+    ['Mehr-Faktor-Anmeldung überall einschalten, wo es geht. Sie stoppt die meisten Konto-Übernahmen.'],
+    ['Druck und Eile in einer Mail („sofort bezahlen“) sind ein typisches Zeichen für Betrug.'],
+    ['Angehängte Rechnungen als .zip oder .html sind fast immer Schadsoftware.'],
+    ['Bildschirm beim Verlassen sperren, auch für zwei Minuten Kaffee holen.'],
+    ['Passwörter gehören in einen Passwort-Manager, nicht auf einen Zettel am Monitor.'],
+    ['Verdächtige Mail weiterleiten statt löschen, damit das Team andere warnen kann.'],
+    ['Öffentliches WLAN nur mit VPN nutzen.'],
+    ['<kbd>Strg</kbd> + <kbd>Umschalt</kbd> + <kbd>N</kbd> legt im Explorer einen neuen Ordner an.'],
+    ['<kbd>Win</kbd> + <kbd>I</kbd> öffnet die Einstellungen.'],
+  ];
+  function renderSec() {
+    const now = Date.now(), items = (S.extras?.bsi || []).filter(i => now - i.date < 4 * 864e5).slice(0, 2);
+    $('#secList').innerHTML = items.length ? items.map(i => `<div class="sec-item"><svg class="icon"><use href="#i-shield"/></svg><span>${esc(i.title)}<small>BSI-Warnung · ${new Date(i.date).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' })}</small></span></div>`).join('')
+      : '<div class="sec-item" style="color:var(--muted)">Keine neuen Warnungen des BSI für Verbraucher.</div>';
+    fitRows($('#secList'));
+    const d = new Date(), day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 864e5);
+    $('#tip').innerHTML = `<b>Tipp des Tages</b>${TIPS[day % TIPS.length][0]}`;
+  }
+
   /* ---------- Notizen ---------- */
   function renderNotes() {
     const el = $('#notes'); el.innerHTML = '';
@@ -1166,6 +1269,17 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   const COND = { dry: 'Trocken', fog: 'Nebel', rain: 'Regen', sleet: 'Schneeregen', snow: 'Schnee', hail: 'Hagel', thunderstorm: 'Gewitter' };
   const ICON_TXT = { 'clear-day': 'Sonnig', 'clear-night': 'Klar', 'partly-cloudy-day': 'Teils bewölkt', 'partly-cloudy-night': 'Teils bewölkt', cloudy: 'Bewölkt', fog: 'Nebel', wind: 'Windig', rain: 'Regen', sleet: 'Schneeregen', snow: 'Schnee', hail: 'Hagel', thunderstorm: 'Gewitter' };
   const compass = (deg) => deg == null ? '' : ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW'][Math.round(deg / 45) % 8];
+  // Pollenflug und UV-Index (DWD): nur das Wichtigste in einer Zeile
+  const POLL_TXT = ['keine', 'gering', 'mittel', 'hoch'];
+  function renderHealth() {
+    const H = S.extras?.health, out = [];
+    if (H?.pollen) {
+      const top = H.pollen.filter(p => p.today >= 1).slice(0, 2);
+      out.push(top.length ? top.map(p => `<span><i class="l${Math.min(3, Math.round(p.today))}"></i>${esc(p.name)} ${POLL_TXT[Math.min(3, Math.round(p.today))]}</span>`).join('') : '<span><i></i>Kaum Pollen</span>');
+    }
+    if (H?.uv) { const u = H.uv.today, lv = u >= 8 ? 3 : u >= 6 ? 3 : u >= 3 ? 2 : 1; out.push(`<span><i class="l${lv}"></i>UV ${u} ${u >= 6 ? 'hoch' : u >= 3 ? 'mittel' : 'niedrig'}</span>`); }
+    $('#wxHealth').innerHTML = out.join(''); $('#wxHealth').hidden = !out.length;
+  }
   function renderWeather() {
     const hNow = new Date().getHours();
     const sel = [...(settings().rainHours || [])].sort((a, b) => a - b);
@@ -1178,6 +1292,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     } else {
       $('#wxDesc').textContent = 'Wetterdaten gerade nicht erreichbar';
     }
+    renderHealth();
     const el = $('#hours'); el.innerHTML = '';
     for (let hh = 7; hh < 19; hh++) {
       const p = prob(hh);
@@ -1293,6 +1408,13 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   function holMap(y) { if (holCache.y !== y) holCache = { y, map: new Map([...holidays(y - 1), ...holidays(y), ...holidays(y + 1)]) }; return holCache.map; }
   const isWorkday = (d) => d.getDay() !== 0 && d.getDay() !== 6 && !holMap(d.getFullYear()).has(d.toDateString());
   function workdays(from, to) { let n = 0; for (const d = parseD(from); d <= parseD(to); d.setDate(d.getDate() + 1)) if (isWorkday(d)) n++; return n; }
+  // Schulferien Niedersachsen (öffentliche Daten) und Brückentage (Mo vor Feiertag am Di, Fr nach Feiertag am Do)
+  const schoolOn = (k) => (S.extras?.school || []).find(s => s.from <= k && s.to >= k);
+  function bridgeDay(d) {
+    const wd = d.getDay(); if (wd !== 1 && wd !== 5) return false;
+    const n = new Date(d); n.setDate(d.getDate() + (wd === 1 ? 1 : -1));
+    return holMap(n.getFullYear()).has(n.toDateString()) && !holMap(d.getFullYear()).has(d.toDateString());
+  }
   const absentOn = (k) => (S.absences || []).filter(a => a.from <= k && a.to >= k && person(a.person));
 
   let monthOffset = 0, monthBack = null;
@@ -1321,9 +1443,11 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         const h2 = hol.get(d.toDateString()), out = d.getMonth() !== mo;
         if (h2 && !out) inMonth.push(`${d.getDate()}. ${h2}`);
         const abs = absentOn(dkey(d)).slice(0, 4);
-        const cls = ['d', i >= 5 ? 'we' : '', out ? 'out' : '', h2 ? 'hol' : '', cw ? 'curw' : '', d.toDateString() === key ? 'today' : ''].join(' ');
+        const dk = dkey(d), sf = schoolOn(dk), bt = bridgeDay(d);
+        if (bt && !out) inMonth.push(`${d.getDate()}. Brückentag`);
+        const cls = ['d', i >= 5 ? 'we' : '', out ? 'out' : '', h2 ? 'hol' : '', sf ? 'sf' : '', bt ? 'bt' : '', cw ? 'curw' : '', d.toDateString() === key ? 'today' : ''].join(' ');
         const bars = abs.length ? `<span class="bars">${abs.map(a => `<i style="background:${person(a.person).color}"></i>`).join('')}</span>` : '';
-        html += `<div class="${cls}"${h2 ? ` title="${esc(h2)}"` : ''}>${d.getDate()}${bars}</div>`;
+        html += `<div class="${cls}"${h2 || sf ? ` title="${esc(h2 || sf.name)}"` : ''}>${d.getDate()}${bars}</div>`;
         d.setDate(d.getDate() + 1);
       }
     }
@@ -1351,7 +1475,9 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     $('#vacList').innerHTML = lines.join('');
     const footRoom = lines.length < 3;
     $('#monthFoot').hidden = !footRoom;
-    $('#monthFoot').innerHTML = inMonth.length ? inMonth.map(t => `<span><i></i>${esc(t)}</span>`).join('') : '<span>Keine Feiertage in diesem Monat (Niedersachsen)</span>';
+    const mStart = dkey(new Date(y, mo, 1)), mEnd = dkey(last);
+    const sfIn = (S.extras?.school || []).filter(s => s.from <= mEnd && s.to >= mStart).map(s => `<span><i class="sf-dot"></i>${esc(s.name)} ${fmtD(s.from)}–${fmtD(s.to)}</span>`);
+    $('#monthFoot').innerHTML = (inMonth.length || sfIn.length) ? inMonth.map(t => `<span><i></i>${esc(t)}</span>`).join('') + sfIn.join('') : '<span>Keine Feiertage in diesem Monat (Niedersachsen)</span>';
     if (!people.length && footRoom) $('#monthFoot').innerHTML += '<span>· Antippen, um Urlaub einzutragen</span>';
   }
 
@@ -1579,6 +1705,12 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <div class="chips" id="sRain">${[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(v => `<button type="button" data-h="${v}" aria-pressed="${st.rainHours.includes(v)}">${v}:00</button>`).join('')}</div>
         <p class="hint" style="margin-top:10px">Amtliche Unwetterwarnungen des DWD werden immer angezeigt.</p>
       </div>
+      <div><h4>Abfahrten</h4>
+        <p class="hint" style="margin-bottom:10px">Haltestelle: <b id="sStopNow">${esc(st.transit?.name || S.extras?.transit?.stop?.name || 'automatisch die nächste')}</b></p>
+        <div class="row"><input type="text" id="sStopQ" placeholder="Haltestelle suchen, z. B. Hannover Kröpcke" style="flex:1;font:inherit;font-size:20px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px"><button class="btn" id="sStopGo">Suchen</button></div>
+        <div class="chips" id="sStops" style="margin-top:10px"></div>
+        <p class="hint" style="margin-top:8px">Fahrplandaten der Deutschen Bahn, enthalten auch Stadtbahn und Bus.</p>
+      </div>
       <div><h4>Bürozeiten (Mo–Fr)</h4>
         <label class="field">Beginn <input type="time" id="sStart" value="${st.officeStart}"></label>
         <label class="field">Ende <input type="time" id="sEnd" value="${st.officeEnd}"></label>
@@ -1649,7 +1781,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <div class="mas-font">${Object.entries(M.FONTS).map(([k, f]) => `<button data-font="${k}" aria-pressed="${m.font === k}"><b style="${f.css ? `font-family:${f.css};font-weight:700` : 'font-family:var(--font-mono);font-weight:500'}">AOK</b><small>${f.name.replace(' (wie die Figur)', '')}</small></button>`).join('')}</div>
         <div class="field" style="margin-top:14px">Charakter <div class="seg" id="mMood">${Object.entries(M.MOODS).map(([v, l]) => `<button data-mood="${v}" aria-pressed="${(m.mood || 'lieb') === v}">${l}</button>`).join('')}</div></div>
         <p class="hint">Lieb: winkt, putzt, schläft, klettert und freut sich über erledigte Aufgaben. Frech: tritt gegen Kacheln, hüpft darauf herum, schneidet Grimassen und tritt Buchstaben weg, die er wieder einsetzt. Bei einer Störung bleibt die Figur ruhig, im Besuchermodus ist sie immer lieb.</p>
-        <div class="field" style="margin-top:14px">An Termine erinnern <button class="switch" id="mAlerts" role="switch" aria-checked="${m.alerts !== false}"></button></div>
+        <div class="field" style="margin-top:14px">Jahreszeiten-Deko (Mütze, Kürbis …) <button class="switch" id="mDeco" role="switch" aria-checked="${m.deco !== false}"></button></div>
+        <div class="field">An Termine erinnern <button class="switch" id="mAlerts" role="switch" aria-checked="${m.alerts !== false}"></button></div>
         <p class="hint">Klopft 10 und 5 Minuten vor einem Termin oder einer Aufgabe mit Erinnerung an den Bildschirm. Die Kalender-Kachel meidet die Figur dann.</p>
         <label class="field" style="margin-top:10px">„Wir gehen gleich spazieren?“ um <input type="time" id="mWalk" value="${m.walk || ''}" style="max-width:160px"></label>
         <p class="hint">Mo–Fr. Feld leeren schaltet den Hinweis aus. Zum Bürobeginn gähnt und streckt sich die Figur.</p>
@@ -1669,6 +1802,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       box.querySelectorAll('[data-size]').forEach(b => b.onclick = () => put({ size: b.dataset.size }));
       box.querySelectorAll('[data-mood]').forEach(b => b.onclick = () => put({ mood: b.dataset.mood }));
       const al = box.querySelector('#mAlerts'); if (al) al.onclick = () => put({ alerts: m.alerts === false });
+      const dc = box.querySelector('#mDeco'); if (dc) dc.onclick = () => put({ deco: m.deco === false });
       const wk = box.querySelector('#mWalk'); if (wk) wk.onchange = () => put({ walk: wk.value });
       box.querySelectorAll('[data-test]').forEach(b => b.onclick = () => { close(); setTimeout(() => mascot?.test(b.dataset.test), 400); });
       const ev = box.querySelector('#mEvery'); if (ev) ev.onchange = () => put({ every: ev.value });
@@ -1696,6 +1830,22 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       setSettings({ rainHours: on ? settings().rainHours.filter(x => x !== v) : [...settings().rainHours, v] });
       b.setAttribute('aria-pressed', !on);
     });
+    const stops = scrim.querySelector('#sStops');
+    const showStops = (q) => {
+      stops.innerHTML = '<span class="hint">Suche …</span>';
+      api('GET', '/api/transit/stops' + (q ? '?q=' + encodeURIComponent(q) : '')).then(list => {
+        stops.innerHTML = '';
+        if (!list.length) stops.innerHTML = '<span class="hint">Nichts gefunden.</span>';
+        for (const s of list) {
+          const b = h(`<button type="button" aria-pressed="${settings().transit?.id === s.id}">${esc(s.name)}${s.dist != null ? ` · ${s.dist} m` : ''}</button>`);
+          b.onclick = () => { setSettings({ transit: { id: s.id, name: s.name } }); scrim.querySelector('#sStopNow').textContent = s.name; stops.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); };
+          stops.append(b);
+        }
+      }).catch(e => { stops.innerHTML = `<span class="hint">${esc(e.message)}</span>`; });
+    };
+    scrim.querySelector('#sStopGo').onclick = () => showStops(scrim.querySelector('#sStopQ').value.trim());
+    scrim.querySelector('#sStopQ').onkeydown = (e) => { if (e.key === 'Enter') showStops(e.target.value.trim()); };
+    showStops('');
     scrim.querySelector('#sStart').onchange = (e) => setSettings({ officeStart: e.target.value });
     scrim.querySelector('#sEnd').onchange = (e) => setSettings({ officeEnd: e.target.value });
     scrim.querySelector('#sTest').onclick = () => { unlockAudio(); setTimeout(() => chime(true), 80); };
@@ -1825,7 +1975,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   });
 
   /* ---------- Verbindung zum Server ---------- */
-  function renderAll() { applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderNotes(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); }
+  function renderAll() { applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderNotes(); renderTransit(); renderSec(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); }
   function connect() {
     const es = new EventSource('/api/stream');
     es.onopen = () => { connected = true; };
@@ -1851,7 +2001,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   tickClock(); renderMonth(); renderAll(); tickStand(); drawRadar();
   connect(); loadWeather(); loadRadar();
   setInterval(() => { tickClock(); tickStand(); }, 1000);
-  setInterval(() => { renderTasks(); renderCalendar(); renderIncident(); renderMonth(); checkReminders(); checkSleep(); }, 15000);
+  setInterval(() => { renderTasks(); renderCalendar(); renderIncident(); renderMonth(); renderTransit(); renderSec(); checkReminders(); checkSleep(); }, 15000);
   setInterval(loadWeather, 5 * 60000);
   setInterval(loadRadar, 5 * 60000);
   // Sicherheitsnetz für den Dauerbetrieb: jede Nacht um 3 Uhr neu laden
