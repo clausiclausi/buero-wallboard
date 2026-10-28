@@ -257,6 +257,7 @@ nav button[aria-current="page"] { color: var(--text); }
     <h1>Inventarliste</h1>
     <div class="row" style="margin-top:10px"><input id="qList" placeholder="Suchen (Nummer, Typ, Ort)"><a class="btn small" href="/api/scans.csv" style="flex:none;text-decoration:none;display:grid;place-items:center;color:var(--text)">Export CSV</a></div>
     <div class="list" id="scanList" style="margin-top:12px"></div>
+    <button class="btn danger" id="delDone" style="margin-top:14px;width:100%" hidden>Alle übernommenen löschen</button>
   </section>
 </main>
 
@@ -540,7 +541,13 @@ nav button[aria-current="page"] { color: var(--text); }
 
   /* ---------- Inventarliste ---------- */
   $('#qList').oninput = renderScans;
+  $('#delDone').onclick = async () => {
+    const done = S.scans.filter(s => s.done);
+    if (!done.length || !confirm(`${done.length} übernommene Einträge endgültig löschen? Fotos werden mitgelöscht.`)) return;
+    run(Promise.all(done.map(s => api('DELETE', `/api/scans/${s.id}`))), 'Gelöscht');
+  };
   function renderScans() {
+    $('#delDone').hidden = !S.scans.some(s => s.done);
     const q = $('#qList').value.toLowerCase(), el = $('#scanList'); el.innerHTML = '';
     const list = [...S.scans].sort((a, b) => b.created - a.created)
       .filter(s => !q || [s.inv, s.serial, s.type, s.location, s.note].join(' ').toLowerCase().includes(q));

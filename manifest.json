@@ -1,20 +1,20 @@
 {
-  "version": "1.14.0",
-  "notes": "Handy: Live-Scanner. „Scannen“ öffnet die Kamera mit Rahmen, QR-Code oder Strichcode hineinhalten, die Nummer wird sofort erkannt und eingetragen. Funktioniert über die sichere Adresse (Zugang von unterwegs).",
+  "version": "1.15.0",
+  "notes": "Scan-Eingang: Papierkorb bei übernommenen Einträgen. Einmal antippen zeigt „Endgültig löschen?“, nochmal antippen löscht den Eintrag samt Foto. Handy, Inventarliste: Knopf „Alle übernommenen löschen“.",
   "changes": [
-    "Handy: Live-Scanner. „Scannen“ öffnet die Kamera mit Rahmen, QR-Code oder Strichcode hineinhalten, die Nummer wird sofort erkannt und eingetragen. Funktioniert über die sichere Adresse (Zugang von unterwegs).",
-    "Im Büro-WLAN (ohne HTTPS) sperren Handys die Live-Kamera. Dort macht „Scannen“ ein Foto, die Nummer wird danach erkannt."
+    "Scan-Eingang: Papierkorb bei übernommenen Einträgen. Einmal antippen zeigt „Endgültig löschen?“, nochmal antippen löscht den Eintrag samt Foto.",
+    "Handy, Inventarliste: Knopf „Alle übernommenen löschen“."
   ],
   "files": {
-    "changelog.json": "1bc4c53f2f5baebb17ac5008b94f53914f7a0a9525c7d386e115e8e4d3240e14",
+    "changelog.json": "5bba512b6cf8cb9bbc54a13dee1691675cfa5b8c2207e7f9d326951df316577e",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
     "mail.js": "29f1923f00a57552c5d04234ae9505a7c2ba313ae7b534ddfd9683dd18bc9025",
-    "public/board.html": "87c2bcbd49f593ef11018782dedfa508c38edb6bbf92ee37065c277db7a020d4",
-    "public/m.html": "6da87d42a25437a5e0410f8b208ddb11f3bc8a708c86c768fd638fdb5c30bece",
+    "public/board.html": "28466e31c2ccfb525f979c81aa036c998d3925425c96b14957ec62054e4f4b9d",
+    "public/m.html": "07155c97817395b0c20ee71a96f2f8bea23429f18031c4c9cdba77b3b1e66619",
     "public/mascot.js": "0fddce41a0154a94e7d4cd67ae077905c0cec81994cdb98d626ff0fca0f9e89a",
     "public/zxing.js": "f82cb14d1d3541b71ab7312abe7bd87a31aa620f2580544abe36e107c20225a0",
     "server.js": "2abd7ea1a2dceced1ee141e4b6d539ad1760d3fed5c24102a194bce3810d956f",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "c9d227ae8951249c3336ed8e9dbf46527b379bc1f494ea8d00ffe33add0fcf9f"
+    "version.json": "47f0d2bee62e2c3aa7d7122db4485b0858b168c00848c091bd6721ccbc0ce87c"
   }
 }

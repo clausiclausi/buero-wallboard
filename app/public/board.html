@@ -187,6 +187,10 @@ main > .card.off { display: none; }
   border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; font-size: 19px; font-weight: 600;
   background: var(--surface-2); display: flex; align-items: center; justify-content: center; gap: 8px;
 }
+.scan-acts { display: flex; gap: 8px; min-width: 0; }
+.scan-acts .scan-btn:first-child { flex: 1; min-width: 0; }
+.scan-btn.trash { flex: none; width: 50px; padding: 10px 0; color: var(--muted); }
+.scan-btn.trash.sure { color: var(--crit); border-color: var(--crit); flex: 1; width: auto; padding: 10px 12px; }
 .scan-btn.open { border-color: var(--warn); color: var(--warn); background: transparent; }
 .scan-btn.open:hover { background: var(--surface-2); }
 .scan-foot { margin-top: auto; font-size: 18px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
@@ -1207,9 +1211,16 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <div class="scan-what"><b>${esc(s.type)}</b><code>${esc(s.inv || 'ohne Inventarnr.')}</code></div>
         <div class="scan-note"><span class="arrow">→</span><span class="private">${esc(s.location || 'Ablageort fehlt')}</span></div>
         <div class="scan-when">${when}</div>
-        <button class="scan-btn ${s.done ? '' : 'open'}">${s.done ? '<svg class="icon"><use href="#i-check"/></svg>In Liste' : 'In Liste übernehmen'}</button>
+        <div class="scan-acts"><button class="scan-btn ${s.done ? '' : 'open'}">${s.done ? '<svg class="icon"><use href="#i-check"/></svg>In Liste' : 'In Liste übernehmen'}</button>${s.done ? '<button class="scan-btn trash" title="Endgültig löschen"><svg class="icon"><use href="#i-trash"/></svg></button>' : ''}</div>
       </div>`);
       row.querySelector('button').onclick = () => api('PATCH', `/api/scans/${s.id}`, { done: !s.done });
+      // Papierkorb: erst antippen zeigt „Löschen?“, zweites Antippen löscht endgültig (auch Foto und Inventareintrag)
+      const tr = row.querySelector('.trash');
+      if (tr) tr.onclick = () => {
+        if (tr.classList.contains('sure')) return api('DELETE', `/api/scans/${s.id}`);
+        tr.classList.add('sure'); tr.textContent = 'Endgültig löschen?'; tr.previousElementSibling.hidden = true;
+        setTimeout(() => { if (tr.isConnected) { tr.classList.remove('sure'); tr.previousElementSibling.hidden = false; tr.innerHTML = '<svg class="icon"><use href="#i-trash"/></svg>'; } }, 4000);
+      };
       el.append(row);
     });
     const open = S.scans.filter(s => !s.done).length;

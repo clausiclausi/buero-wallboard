@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.15.0",
+    "date": "2026-10-28",
+    "changes": [
+      "Scan-Eingang: Papierkorb bei übernommenen Einträgen. Einmal antippen zeigt „Endgültig löschen?“, nochmal antippen löscht den Eintrag samt Foto.",
+      "Handy, Inventarliste: Knopf „Alle übernommenen löschen“."
+    ]
+  },
+  {
     "version": "1.14.0",
     "date": "2026-10-28",
     "changes": [
