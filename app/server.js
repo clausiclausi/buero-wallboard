@@ -183,6 +183,11 @@ function sanitizeSettings(b) {
     s.transit = tr && typeof tr === 'object' && /^[A-Za-z0-9:_.-]{1,20}$/.test(String(tr.id || '')) ? { id: String(tr.id), name: clean(tr.name, 60) } : null;
   }
   if (b.radar && typeof b.radar === 'object') s.radar = { zoom: oneOf(+b.radar.zoom, [1, 1.5, 2, 3, 4], 1), play: b.radar.play !== false };
+  if ('route' in b) {
+    const r = b.route;
+    s.route = r && typeof r === 'object' && /^[A-Za-z0-9:_.-]{1,20}$/.test(String(r.id || '')) ? { id: String(r.id), name: clean(r.name, 60) } : null;
+  }
+  if ('routeOn' in b) s.routeOn = !!b.routeOn;
   if ('autoUpdate' in b) s.autoUpdate = oneOf(b.autoUpdate, ['sofort', 'nachts', 'aus'], 'sofort');
   if ('updateEvery' in b) s.updateEvery = oneOf(+b.updateEvery, [30, 60, 300, 1800], 30);
   return s;
@@ -484,7 +489,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'PUT' && p === '/api/settings') {
       const patch = sanitizeSettings(await readBody(req, 10000));
       Object.assign(db.settings, patch); save();
-      if ('transit' in patch) extras.refreshTransit();
+      if ('transit' in patch || 'route' in patch || 'routeOn' in patch) extras.refreshTransit();
       return send(res, 200, db.settings);
     }
     // Haltestelle für die Abfahrten suchen (öffentliche Fahrplanauskunft)

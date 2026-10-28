@@ -140,6 +140,20 @@ main {
 .dep .min small { display: block; font-size: 14px; font-weight: 600; color: var(--crit); }
 .dep.gone { opacity: .45; } .dep.x .dir, .dep.x .min { text-decoration: line-through; color: var(--crit); }
 .tr-msg { font-size: 19px; color: var(--muted); padding: 4px; }
+.route { flex: none; display: flex; flex-direction: column; gap: 6px; padding-top: 10px; margin-top: 4px; border-top: 1px solid var(--line); }
+.route[hidden] { display: none; }
+.route h4 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trip { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 5px 10px; border-radius: 12px; background: var(--bg); font-size: 20px; }
+.trip .tm { font-family: var(--font-mono); font-weight: 700; white-space: nowrap; }
+.trip .tm small { font-size: 14px; color: var(--crit); margin-left: 4px; }
+.trip .tm i { display: block; font-style: normal; font-size: 13px; font-weight: 600; color: var(--muted); }
+.trip .legs { display: flex; align-items: center; gap: 4px; min-width: 0; overflow: hidden; }
+.trip .legs .ln { font-weight: 800; font-size: 15px; padding: 2px 7px; border-radius: 7px; color: #fff; background: #1E6FB8; white-space: nowrap; }
+.trip .legs .ln.bus { background: #8A4FBF; } .trip .legs .ln.sbahn { background: #2E8B57; } .trip .legs .ln.zug { background: #C8372B; }
+.trip .legs .ar { color: var(--muted); font-size: 14px; }
+.trip .an { font-family: var(--font-mono); font-size: 17px; color: var(--muted); white-space: nowrap; text-align: right; }
+.trip .an b { color: var(--text); font-size: 20px; }
+.trip.x .tm, .trip.x .an b { text-decoration: line-through; color: var(--crit); }
 /* Sicherheit */
 .sec-list { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; flex: 1; }
 .sec-item { display: flex; gap: 10px; align-items: flex-start; font-size: 19px; line-height: 1.3; padding: 8px 12px; border-radius: 12px; background: var(--bg); }
@@ -708,6 +722,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     <section class="card transit" data-k="transit" data-name="Abfahrten">
       <h3><svg class="icon"><use href="#i-train"/></svg>Abfahrten <span class="badge" id="trStop" style="max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span></h3>
       <div class="tr-list" id="transit"></div>
+      <div class="route" id="route" hidden><h4 id="routeTo"></h4><div class="tr-list" id="routeList"></div></div>
     </section>
 
     <section class="card sec" data-k="sec" data-name="Sicherheit">
@@ -870,6 +885,14 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   }
   function applyLayout(L = layout()) { tiles().forEach(el => { placeTile(el, L[el.dataset.k]); el.classList.toggle('off', (L.hidden || []).includes(el.dataset.k)); }); }
 
+  // Ausgeblendete Kachel wieder zeigen: alter Platz, sonst ein freier Platz, sonst null (kein Platz)
+  function unhide(L, k) {
+    const rest = { ...L, hidden: L.hidden.filter(j => j !== k) };
+    if (shownKeys(rest).some(j => j !== k && overlap(rest[k], rest[j]))) { const spot = freeSpot(rest, k); if (!spot) return null; rest[k] = spot; }
+    return rest;
+  }
+  const tileName = k => tiles().find(e => e.dataset.k === k)?.dataset.name || k;
+
   function arrange() {
     if (stage.querySelector('.arr')) return;
     const main = stage.querySelector('main');
@@ -895,11 +918,12 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       const hid = bar?.querySelector('.arr-hid');
       if (hid) {
         hid.innerHTML = '';
+        if (L.hidden.length) hid.append(h('<span class="hint">Ausgeblendet:</span>'));
         for (const k of L.hidden) {
-          const btn = h(`<button type="button">+ ${esc(tiles().find(e => e.dataset.k === k)?.dataset.name || k)}</button>`);
+          const btn = h(`<button type="button">+ ${esc(tileName(k))}</button>`);
           btn.onclick = () => {
-            const rest = { ...L, hidden: L.hidden.filter(j => j !== k) };
-            if (shownKeys(rest).some(j => j !== k && overlap(rest[k], rest[j]))) { const spot = freeSpot(rest, k); if (!spot) { bar.querySelector('span').innerHTML = '<b>Kein Platz frei.</b> Bitte erst eine Kachel kleiner ziehen.'; return; } rest[k] = spot; }
+            const rest = unhide(L, k);
+            if (!rest) { bar.querySelector('span').innerHTML = '<b>Kein Platz frei.</b> Bitte erst eine Kachel kleiner ziehen.'; return; }
             L = rest; draw();
           };
           hid.append(btn);
@@ -1201,7 +1225,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   function renderTransit() {
     const T = S.extras?.transit, el = $('#transit');
     $('#trStop').textContent = T?.stop?.name ? T.stop.name.replace(/^Hannover[ ,-]*/, '') : ''; $('#trStop').hidden = !T?.stop?.name;
-    if (!T || !T.deps) { el.innerHTML = `<div class="tr-msg">${T?.error ? esc(T.error) : 'Abfahrten werden geladen …'}</div>`; return; }
+    if (!T || !T.deps) { el.innerHTML = `<div class="tr-msg">${T?.error ? esc(T.error) : 'Abfahrten werden geladen …'}</div>`; renderRoute(); return; }
     const now = Date.now();
     const deps = T.deps.filter(d => new Date(d.when) - now > -60000).slice(0, 8);
     el.innerHTML = deps.length ? deps.map(d => {
@@ -1210,7 +1234,25 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <span class="min">${d.cancelled ? 'fällt aus' : min === 0 ? 'jetzt' : `${min} min`}${d.delay > 0 && !d.cancelled ? `<small>+${d.delay} Verspätung</small>` : ''}</span></div>`;
     }).join('') : '<div class="tr-msg">In der nächsten Stunde keine Abfahrten.</div>';
     if (T.ok === false) el.insertAdjacentHTML('afterbegin', `<div class="tr-msg">${esc(T.error || '')} · Stand ${new Date(T.updated || 0).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</div>`);
+    renderRoute();
     fitRows(el);
+  }
+  // Feste Verbindung zum Ziel, z. B. nach Hemmingen: nächste Fahrten mit Linien und Ankunft
+  function renderRoute() {
+    const R2 = S.extras?.route, box = $('#route'), el = $('#routeList');
+    box.hidden = !R2 || settings().routeOn === false;
+    if (box.hidden) return;
+    $('#routeTo').textContent = `Nach ${(R2.to?.name || 'Hemmingen').replace(/^(.*),\s*(.*)$/, '$2, $1')}`;
+    const now = Date.now(), hm = v => new Date(v).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    const trips = (R2.trips || []).filter(x => x.dep > now - 60000).slice(0, 3);
+    if (!trips.length) { el.innerHTML = `<div class="tr-msg">${R2.ok === false ? esc(R2.error || '') : 'Verbindungen werden geladen …'}</div>`; return; }
+    el.innerHTML = trips.map(x => {
+      const min = Math.max(0, Math.round((x.dep - now) / 60000)), late = Math.round((x.dep - (x.depPlan || x.dep)) / 60000);
+      const legs = x.legs.map(l => `<span class="ln ${esc(l.kind)}">${esc(l.line)}</span>`).join('<span class="ar">›</span>');
+      return `<div class="trip ${x.cancelled ? 'x' : ''}"><span class="tm">${hm(x.dep)}${late > 0 && !x.cancelled ? `<small>+${late}</small>` : ''}<i>${x.cancelled ? 'fällt aus' : min === 0 ? 'jetzt' : `in ${min} min`}</i></span><span class="legs">${legs}</span>
+        <span class="an">an <b>${hm(x.arr)}</b></span></div>`;
+    }).join('');
+    if (R2.ok === false) el.insertAdjacentHTML('afterbegin', `<div class="tr-msg">${esc(R2.error || '')} · Stand ${hm(R2.updated || 0)}</div>`);
   }
   // Nur ganze Zeilen zeigen: was nicht mehr ganz in die Kachel passt, fällt weg
   function fitRows(el) { while (el.children.length > 1 && el.scrollHeight > el.clientHeight + 2) el.lastElementChild.remove(); }
@@ -1728,7 +1770,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       <div><h4>Handy-Zugang</h4><div class="mobile-url">${esc(S.mobileUrl)}</div><p class="hint" style="margin-top:8px">Im Büro-WLAN am Handy öffnen. Die PIN steht in der Datei PIN.txt im Ordner C:\\Wallboard.</p></div>
       <div><h4>Design</h4><div class="skins" id="sSkins"></div></div>
       <div><h4>Kacheln</h4><p class="hint" style="margin-bottom:10px">Kacheln verschieben, tauschen und größer oder kleiner ziehen. Die Schrift passt sich an.</p>
-        <div class="row"><button class="btn" id="sArrange">Kacheln anordnen</button></div></div>
+        <div class="row"><button class="btn" id="sArrange">Kacheln anordnen</button></div>
+        <p class="hint" id="sHidHint" style="margin:12px 0 8px"></p><div class="chips" id="sHidden"></div></div>
       <div id="sMascot"><h4>AOK-Männchen</h4></div>
       <div><h4>Farb-Setup</h4><div class="presets" id="sPresets"></div></div>
       <div><h4>Farben einzeln anpassen</h4><div class="colors" id="sColors"></div></div>
@@ -1749,6 +1792,10 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <div class="row"><input type="text" id="sStopQ" placeholder="Haltestelle suchen, z. B. Clausewitzstraße" style="flex:1;font:inherit;font-size:20px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px"><button class="btn" id="sStopGo">Suchen</button></div>
         <div class="chips" id="sStops" style="margin-top:10px"></div>
         <p class="hint" style="margin-top:8px">Fahrplandaten der Deutschen Bahn, enthalten auch Stadtbahn und Bus.</p>
+        <div class="field" style="margin-top:14px">Verbindung zu festem Ziel zeigen <button class="switch" id="sRouteOn" role="switch" aria-checked="${st.routeOn !== false}"></button></div>
+        <p class="hint" style="margin-bottom:10px">Ziel: <b id="sRouteNow">${esc(st.route?.name || S.extras?.route?.to?.name || 'Birkenkamp, Hemmingen (Standard)')}</b></p>
+        <div class="row"><input type="text" id="sRouteQ" placeholder="Ziel suchen, z. B. Hemmingen Birkenkamp" style="flex:1;font:inherit;font-size:20px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px"><button class="btn" id="sRouteGo">Suchen</button></div>
+        <div class="chips" id="sRoutes" style="margin-top:10px"></div>
       </div>
       <div><h4>Bürozeiten (Mo–Fr)</h4>
         <label class="field">Beginn <input type="time" id="sStart" value="${st.officeStart}"></label>
@@ -1852,6 +1899,22 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     scrim.onclick = (e) => { if (e.target === scrim) close(); };
     scrim.querySelector('#sClose').onclick = close;
     scrim.querySelector('#sArrange').onclick = () => { close(); arrange(); };
+    // Ausgeblendete Kacheln direkt hier wieder einblenden
+    const showHidden = () => {
+      const L = layout(), box = scrim.querySelector('#sHidden'), hint = scrim.querySelector('#sHidHint');
+      box.innerHTML = '';
+      hint.textContent = L.hidden.length ? 'Ausgeblendete Kacheln, zum Einblenden antippen:' : 'Alle Kacheln werden angezeigt.';
+      for (const k of L.hidden) {
+        const btn = h(`<button type="button">+ ${esc(tileName(k))}</button>`);
+        btn.onclick = () => {
+          const rest = unhide(layout(), k);
+          if (!rest) { hint.innerHTML = '<b>Kein Platz frei.</b> Unter „Kacheln anordnen“ erst eine Kachel kleiner ziehen.'; return; }
+          setSettings({ layout: rest }); applyLayout(rest); showHidden();
+        };
+        box.append(btn);
+      }
+    };
+    showHidden();
     const sw = scrim.querySelector('#sSound');
     sw.onclick = () => { setSettings({ muted: !settings().muted }); sw.setAttribute('aria-checked', !settings().muted); };
     const rp = scrim.querySelector('#sRadarPlay');
@@ -1884,6 +1947,23 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         }
       }).catch(e => { stops.innerHTML = `<span class="hint">${esc(e.message)}</span>`; });
     };
+    const rOn = scrim.querySelector('#sRouteOn');
+    rOn.onclick = () => { setSettings({ routeOn: settings().routeOn === false }); rOn.setAttribute('aria-checked', settings().routeOn !== false); };
+    const routes = scrim.querySelector('#sRoutes');
+    const findRoute = (q) => {
+      if (!q) return;
+      routes.innerHTML = '<span class="hint">Suche …</span>';
+      api('GET', '/api/transit/stops?q=' + encodeURIComponent(q)).then(list => {
+        routes.innerHTML = list.length ? '' : '<span class="hint">Nichts gefunden.</span>';
+        for (const s of list) {
+          const b = h(`<button type="button" aria-pressed="${settings().route?.id === s.id}">${esc(s.name)}</button>`);
+          b.onclick = () => { setSettings({ route: { id: s.id, name: s.name }, routeOn: true }); scrim.querySelector('#sRouteNow').textContent = s.name; rOn.setAttribute('aria-checked', true); routes.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); };
+          routes.append(b);
+        }
+      }).catch(e => { routes.innerHTML = `<span class="hint">${esc(e.message)}</span>`; });
+    };
+    scrim.querySelector('#sRouteGo').onclick = () => findRoute(scrim.querySelector('#sRouteQ').value.trim());
+    scrim.querySelector('#sRouteQ').onkeydown = (e) => { if (e.key === 'Enter') findRoute(e.target.value.trim()); };
     scrim.querySelector('#sStopGo').onclick = () => showStops(scrim.querySelector('#sStopQ').value.trim());
     scrim.querySelector('#sStopQ').onkeydown = (e) => { if (e.key === 'Enter') showStops(e.target.value.trim()); };
     showStops('');

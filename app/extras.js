@@ -94,6 +94,77 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
       st.transit = { ...(st.transit || {}), ok: false, error: 'Abfahrten gerade nicht erreichbar', stop: stop ? { id: stop.id, name: stop.name } : st.transit?.stop };
     }
     broadcast();
+    updateRoute();
+  }
+
+  /* ---------- Verbindung von der Haltestelle zu einem festen Ziel (Standard: Hemmingen, Birkenkamp) ---------- */
+  const DEFAULT_ROUTE = config.routeDefault || 'Birkenkamp, Hemmingen';
+  const PG = ['ICE', 'EC_IC', 'IR', 'REGIONAL', 'SBAHN', 'BUS', 'SCHIFF', 'UBAHN', 'TRAM', 'ANRUFPFLICHTIG'];
+  const JOURNEYS = (config.dbwebJourneys || DBWEB.replace(/reiseloesung$/, 'angebote/fahrplan'));
+  const lineOf = vm => {
+    const g = vm.produktGattung || '';
+    const nr = vm.linienNummer && /^(BUS|TRAM|UBAHN|SBAHN)$/.test(g) ? vm.linienNummer : vm.mittelText || vm.name || vm.kurzText || '';
+    return { line: clean(String(nr).replace(/^(STR|Bus|U)\s+/, ''), 10), kind: PRODUCT[g] || 'bus' };
+  };
+  const t = v => v ? new Date(v).getTime() : null;
+  async function tripsWeb(fromId, toId) {
+    const body = {
+      abfahrtsHalt: `A=1@L=${fromId}@`, ankunftsHalt: `A=1@L=${toId}@`, anfrageZeitpunkt: localIso(new Date()), ankunftSuche: 'ABFAHRT',
+      klasse: 'KLASSE_2', produktgattungen: PG, schnelleVerbindungen: true, sitzplatzOnly: false, bikeCarriage: false,
+      reservierungsKontingenteVorhanden: false, nurDeutschlandTicketVerbindungen: false, deutschlandTicketVorhanden: false,
+      reisende: [{ typ: 'ERWACHSENER', ermaessigungen: [{ art: 'KEINE_ERMAESSIGUNG', klasse: 'KLASSENLOS' }], alter: [], anzahl: 1 }],
+    };
+    const r = await fetch(JOURNEYS, { method: 'POST', headers: { ...BROWSER, 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(20000) });
+    if (!r.ok) throw new Error(`${r.status}`);
+    const j = await r.json();
+    if (!Array.isArray(j.verbindungen)) throw new Error('keine Verbindungen');
+    return j.verbindungen.map(v => {
+      const legs = (v.verbindungsAbschnitte || []).filter(a => !/^(WALK|FUSSWEG|TRANSFER)$/.test(a.verkehrsmittel?.typ || a.typ || ''));
+      if (!legs.length) return null;
+      const a = legs[0], z = legs[legs.length - 1];
+      const notes = legs.map(l => JSON.stringify([l.risNotizen, l.priorisierteMeldungen, l.himMeldungen])).join(' ');
+      return {
+        dep: t(a.ezAbfahrtsZeitpunkt || a.abfahrtsZeitpunkt), depPlan: t(a.abfahrtsZeitpunkt),
+        arr: t(z.ezAnkunftsZeitpunkt || z.ankunftsZeitpunkt), arrPlan: t(z.ankunftsZeitpunkt),
+        legs: legs.map(l => lineOf(l.verkehrsmittel || {})),
+        cancelled: legs.some(l => l.halte?.some(h => h.canceled || h.cancelled)) || /fällt aus|Halt entfällt|cancelled/i.test(notes),
+        warn: /nicht erreichbar|not be reachable|brokentrip/i.test(notes),
+      };
+    }).filter(Boolean);
+  }
+  async function tripsRest(fromId, toId) {
+    const r = await get(`${TRANSIT}/journeys?from=${encodeURIComponent(fromId)}&to=${encodeURIComponent(toId)}&results=5&stopovers=false&remarks=false`);
+    return (r.journeys || []).map(j => {
+      const legs = (j.legs || []).filter(l => !l.walking);
+      if (!legs.length) return null;
+      const a = legs[0], z = legs[legs.length - 1];
+      return { dep: t(a.departure || a.plannedDeparture), depPlan: t(a.plannedDeparture), arr: t(z.arrival || z.plannedArrival), arrPlan: t(z.plannedArrival),
+        legs: legs.map(l => ({ line: clean(String(l.line?.name || '').replace(/^(STR|Bus|U)\s+/, ''), 10), kind: PRODUCT[l.line?.product] || 'bus' })),
+        cancelled: legs.some(l => l.cancelled), warn: false };
+    }).filter(Boolean);
+  }
+  let autoRoute = null;
+  async function updateRoute() {
+    const s = getSettings();
+    if (s.routeOn === false) { if (st.route) { st.route = null; broadcast(); } return; }
+    const from = st.transit?.stop || s.transit;
+    let to = s.route;
+    try {
+      if (!from?.id) throw new Error('Keine Haltestelle');
+      if (!to || !to.id) {
+        if (!autoRoute) autoRoute = (await search(DEFAULT_ROUTE)).find(x => /birkenkamp/i.test(x.name)) || null;
+        to = autoRoute;
+      }
+      if (!to) throw new Error('Ziel nicht gefunden');
+      let trips;
+      try { trips = await tripsWeb(from.id, to.id); } catch (e) { log('bahn.de Verbindungen:', e.message); trips = await tripsRest(from.id, to.id); }
+      trips = trips.filter(x => x.dep && x.arr && x.dep > Date.now() - 60000).sort((p, q) => p.dep - q.dep).slice(0, 5);
+      st.route = { ok: true, to: { id: to.id, name: to.name }, trips, updated: Date.now() };
+    } catch (e) {
+      log('Verbindung nicht erreichbar:', e.message);
+      st.route = { ...(st.route || {}), ok: false, error: 'Verbindung gerade nicht abrufbar', to: to ? { id: to.id, name: to.name } : st.route?.to };
+    }
+    broadcast();
   }
 
   /* ---------- Schulferien Niedersachsen (OpenHolidays) ---------- */
@@ -157,7 +228,7 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
 
   return {
     start, nearby, search,
-    refreshTransit: () => { autoStop = null; lastTransit = Date.now(); return updateTransit(); },
-    view: () => ({ transit: st.transit, school: st.school?.list || [], health: st.health, bsi: st.bsi?.items || [] }),
+    refreshTransit: () => { autoStop = null; autoRoute = null; lastTransit = Date.now(); return updateTransit(); },
+    view: () => ({ route: st.route, transit: st.transit, school: st.school?.list || [], health: st.health, bsi: st.bsi?.items || [] }),
   };
 };

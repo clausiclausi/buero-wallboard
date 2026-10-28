@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.20.0",
+    "date": "2026-10-28",
+    "changes": [
+      "Abfahrten-Kachel: darunter jetzt die Verbindung nach Hemmingen, Birkenkamp. Sie zeigt die nächsten Fahrten ab Clausewitzstraße mit Linien (z. B. 11 › 13 › 365), Verspätung und Ankunftszeit und wird jede Minute aktualisiert. Ziel änderbar oder abschaltbar unter Einstellungen → Abfahrten.",
+      "Ausgeblendete Kacheln lassen sich jetzt direkt unter Einstellungen → Kacheln mit einem Tipp wieder einblenden."
+    ]
+  },
+  {
     "version": "1.19.0",
     "date": "2026-10-28",
     "changes": [

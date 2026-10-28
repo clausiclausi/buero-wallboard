@@ -1,22 +1,20 @@
 {
-  "version": "1.19.0",
-  "notes": "Regenradar: mit + und − bis vierfach hineinzoomen. Der Pause-Knopf stoppt die Animation, Antippen der Zeitleiste zeigt einen bestimmten Zeitpunkt. Automatisches Abspielen lässt sich unter Einstellungen → Wetter abschalten.",
+  "version": "1.20.0",
+  "notes": "Abfahrten-Kachel: darunter jetzt die Verbindung nach Hemmingen, Birkenkamp. Sie zeigt die nächsten Fahrten ab Clausewitzstraße mit Linien (z. B. 11 › 13 › 365), Verspätung und Ankunftszeit und wird jede Minute aktualisiert. Ziel änderbar oder abschaltbar unter Einstellungen → Abfahrten.",
   "changes": [
-    "Regenradar: mit + und − bis vierfach hineinzoomen. Der Pause-Knopf stoppt die Animation, Antippen der Zeitleiste zeigt einen bestimmten Zeitpunkt. Automatisches Abspielen lässt sich unter Einstellungen → Wetter abschalten.",
-    "Regenradar erscheint nach einem Neustart jetzt von selbst, statt bis zu 5 Minuten „nicht erreichbar“ zu zeigen.",
-    "Abfahrten: Standard ist jetzt die Haltestelle Clausewitzstraße. Die Suche fragt direkt bei bahn.de an und findet auch Üstra-Haltestellen.",
-    "AOK-Männchen: antippen, und es reagiert. Festhalten und ziehen, loslassen mit Schwung wirft es über das Board, und es landet auf einer Kachel."
+    "Abfahrten-Kachel: darunter jetzt die Verbindung nach Hemmingen, Birkenkamp. Sie zeigt die nächsten Fahrten ab Clausewitzstraße mit Linien (z. B. 11 › 13 › 365), Verspätung und Ankunftszeit und wird jede Minute aktualisiert. Ziel änderbar oder abschaltbar unter Einstellungen → Abfahrten.",
+    "Ausgeblendete Kacheln lassen sich jetzt direkt unter Einstellungen → Kacheln mit einem Tipp wieder einblenden."
   ],
   "files": {
-    "changelog.json": "cd72596e48ebdb9461685ed60948d90edba87e10d788e70b6e65287b46c896d4",
+    "changelog.json": "8ddca5180c13de69fd044f646c3e2759a7d34fc2e4b77b2076a68ea4e1ee0829",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
-    "extras.js": "1af577f822cb9dbea9cd055364202224c3e3e345ba2ba6b6cc08c4734ee9c626",
-    "public/board.html": "a46d837696b2bef450a8bdc023744940b562d86af61d6d755083c3a9fc2ac9e8",
+    "extras.js": "9e81095e745a8dd23d16e6c4a00b47f4de00fb3de4da7b3c37e5fc51edbd3064",
+    "public/board.html": "adf05dda11e9f107b13e2c0a4b68503baf0d3102c6eb848c33c0e1e569f45a41",
     "public/m.html": "51f4c46130b9710c6f2995f6a028d81ec9139521416ab7042636a67b49fd3c78",
     "public/mascot.js": "48ffd3c448bec0d56de44edb1bd54741c4cb9c29ae4a200124a0a0e6a727e04c",
     "radar.js": "2de0dd59de4067ed5a90383e0f6b809fcba6522fa9299c1a4bc5595a464aeaff",
-    "server.js": "67a0f840b5d8bcd27ce47b95a212b9a24a935b6d410231c849ccacd7d833d3ed",
+    "server.js": "c8b9d1f7374b0d7acc7ac9619c6d5dbddd1f4608b539436bf60ba2c8d52afeab",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "e1010afecda6f8d7a51cde2876c8f53346634e14f87b4bdfc78b38180e1d9b1b"
+    "version.json": "eec8a5f4890b709aaed6dd0e0da8a0cf50582b4e4d452eb706a7bc824c5682b9"
   }
 }
