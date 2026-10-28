@@ -115,14 +115,6 @@ const schemas = {
     if (!clean(b.title, 40) || !isTime(b.time)) return null;
     return { title: clean(b.title, 40), meta: clean(b.meta, 24), time: b.time, date: isDate(b.date) ? b.date : localDate(0) };
   },
-  scans: b => {
-    if (!clean(b.inv, 30) && !clean(b.serial, 40)) return null;
-    return {
-      type: oneOf(b.type, DEVICE_TYPES, 'Sonstiges'), inv: clean(b.inv, 30), serial: clean(b.serial, 40),
-      condition: oneOf(b.condition, ['neu', 'gebraucht', 'defekt', ''], ''), location: clean(b.location, 40),
-      note: clean(b.note, 200), done: !!b.done,
-    };
-  },
   // Personen nur als Kürzel mit Farbe, keine Klarnamen
   people: b => {
     const short = clean(b.short, 4).toUpperCase().replace(/[^A-Z0-9ÄÖÜ]/g, '');
@@ -147,7 +139,7 @@ const schemas = {
 // Felder, die beim Ändern erlaubt sind
 const patchable = {
   tasks: ['title', 'time', 'remind', 'done'], events: ['title', 'meta', 'time', 'date'],
-  scans: ['type', 'inv', 'serial', 'condition', 'location', 'note', 'done'], loans: ['type', 'icon', 'avail', 'total'],
+  loans: ['type', 'icon', 'avail', 'total'],
   people: ['short', 'color'], absences: ['person', 'from', 'to', 'kind'], notes: ['text'],
 };
 
@@ -177,7 +169,7 @@ function sanitizeSettings(b) {
   }
   if ('layout' in b) {
     // Kachel-Anordnung im 12x6-Raster: [Spalte, Zeile, Breite, Höhe], nur vollständig und ohne Überlappung
-    const keys = ['cal', 'scan', 'wx', 'loan', 'month', 'incident', 'notes'], L = b.layout || {};
+    const keys = ['cal', 'wx', 'loan', 'month', 'incident', 'notes'], L = b.layout || {};
     const hidden = Array.isArray(L.hidden) ? keys.filter(k => L.hidden.includes(k)) : [];
     const shown = keys.filter(k => !hidden.includes(k));
     const ok = a => Array.isArray(a) && a.length === 4 && a.every(Number.isInteger) && a[0] >= 1 && a[1] >= 1 && a[2] >= 2 && a[3] >= 2 && a[0] + a[2] <= 13 && a[1] + a[3] <= 7;
@@ -195,8 +187,6 @@ function boardView() {
   return {
     tasks: db.tasks.filter(t => t.date === today),
     events: db.events.filter(e => e.date === today || e.date === tomorrow),
-    scans: db.scans.filter(s => !s.done || Date.now() - s.created < 86400000).slice(-12)
-      .map(s => ({ id: s.id, type: s.type, inv: s.inv, location: s.location, created: s.created, done: s.done })),
     loans: db.loans, incident: db.incident, settings: db.settings, mobileUrl: mobileUrl(),
     people: db.people, absences: db.absences, notes: db.notes,
     version: VERSION, changelog: CHANGELOG, lastUpdate: readJson(path.join(DATA, 'last-update.json'), null), display: display.view(),
@@ -204,7 +194,7 @@ function boardView() {
   };
 }
 function fullView() {
-  return { ...boardView(), tasks: db.tasks, events: db.events, scans: db.scans.map(s => ({ ...s, photo: !!s.photo })), tunnel: tunnel.status() };
+  return { ...boardView(), tasks: db.tasks, events: db.events, tunnel: tunnel.status() };
 }
 function mobileUrl() {
   const ips = Object.values(os.networkInterfaces()).flat().filter(i => i && i.family === 'IPv4' && !i.internal).map(i => i.address);
@@ -261,7 +251,6 @@ function broadcast() {
 
 /* ---------- Anzeige am Notebook (minimieren, schließen) ---------- */
 const display = require('./display')({ ROOT, DATA, config, log, broadcast: () => broadcast(), officeStart: () => db.settings.officeStart });
-const mail = require('./mail')({ DATA, PHOTOS, config, log, getScans: () => db.scans, csv });
 const tunnel = require('./tunnel')({ ROOT, config, log, broadcast: () => broadcast() });
 
 /* ---------- Wetter vom DWD über Bright Sky ---------- */
@@ -422,12 +411,6 @@ function serveFile(res, file) {
   fs.readFile(file, (err, buf) => err ? send(res, 404, 'Nicht gefunden', 'text/plain; charset=utf-8')
     : send(res, 200, buf, MIME[path.extname(file)] || 'application/octet-stream'));
 }
-function csv(rows) {
-  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  return '﻿' + [['Erfasst', 'Gerätetyp', 'Inventarnummer', 'Seriennummer', 'Zustand', 'Ablageort', 'Notiz', 'In Liste übernommen'],
-    ...rows.map(s => [new Date(s.created).toLocaleString('de-DE'), s.type, s.inv, s.serial, s.condition, s.location, s.note, s.done ? 'ja' : 'nein'])]
-    .map(r => r.map(q).join(';')).join('\r\n');
-}
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
@@ -460,15 +443,7 @@ const server = http.createServer(async (req, res) => {
       req.on('close', () => { clearInterval(ping); clients.delete(c); });
       return;
     }
-    if (req.method === 'GET' && p === '/api/scans.csv') {
-      res.setHeader('Content-Disposition', `attachment; filename="inventar-${localDate(0)}.csv"`);
-      return send(res, 200, csv(db.scans), 'text/csv; charset=utf-8');
-    }
     let m;
-    if (req.method === 'GET' && (m = p.match(/^\/api\/photo\/([a-f0-9]{12})$/))) {
-      const s = db.scans.find(x => x.id === m[1]);
-      return s && s.photo ? serveFile(res, path.join(PHOTOS, s.photo)) : send(res, 404, { error: 'Kein Foto' });
-    }
     if (req.method === 'POST' && p === '/api/update/check') { await checkUpdate(); return send(res, 200, { available: update.available, error: update.error }); }
     if (req.method === 'POST' && p === '/api/update/install') {
       try { await installUpdate(); return send(res, 200, { ok: true }); }
@@ -478,24 +453,6 @@ const server = http.createServer(async (req, res) => {
       const b = { ...Object.fromEntries(url.searchParams), ...await readBody(req, 1000) };
       try { return send(res, 200, display.set(String(b.mode), b.minutes)); }
       catch (e) { return send(res, 400, { error: e.message }); }
-    }
-    if (p === '/api/mail') {
-      if (req.method === 'GET') return send(res, 200, mail.view());
-      if (req.method === 'PUT') {
-        if (viaProxy(req)) return send(res, 403, { error: 'Nur im Büro-WLAN möglich' });
-        const b = await readBody(req, 4000);
-        // Konto und Empfänger nur mit dem Board-Passwort ändern
-        if (['from', 'pass', 'clearPass', 'recipients', 'domain'].some(k => k in b) && !checkPw(String(b.password ?? ''))) return send(res, 403, { error: 'Passwort stimmt nicht' });
-        try { return send(res, 200, mail.update(b)); } catch (e) { return send(res, 400, { error: e.message }); }
-      }
-    }
-    if (req.method === 'POST' && p === '/api/mail/test') {
-      try { await mail.sendTest(); return send(res, 200, { ok: true }); } catch (e) { return send(res, 502, { error: e.message }); }
-    }
-    if (req.method === 'POST' && (m = p.match(/^\/api\/scans\/([a-z0-9]{1,16})\/mail$/))) {
-      const s = db.scans.find(x => x.id === m[1]);
-      if (!s) return send(res, 404, { error: 'Nicht gefunden' });
-      try { await mail.sendScan(s); return send(res, 200, { ok: true }); } catch (e) { return send(res, 502, { error: e.message }); }
     }
     if (p === '/api/tunnel') {
       if (req.method === 'GET') { await tunnel.refresh(); return send(res, 200, tunnel.status()); }
@@ -536,7 +493,7 @@ const server = http.createServer(async (req, res) => {
         save(); return send(res, 200, db.incident);
       }
     }
-    if ((m = p.match(/^\/api\/(tasks|events|scans|loans|people|absences|notes)(?:\/([a-z0-9]{1,16}))?$/))) {
+    if ((m = p.match(/^\/api\/(tasks|events|loans|people|absences|notes)(?:\/([a-z0-9]{1,16}))?$/))) {
       const [, coll, id] = m;
       // Urlaube am Board nur mit Passwort ändern; am Handy reicht die PIN
       if ((coll === 'people' || coll === 'absences') && isLocal(req)) {
@@ -544,17 +501,12 @@ const server = http.createServer(async (req, res) => {
         if (!checkPw(pw)) return send(res, 403, { error: 'Passwort nötig' });
       }
       if (req.method === 'POST' && !id) {
-        const b = await readBody(req, coll === 'scans' ? 8_000_000 : 5000);
+        const b = await readBody(req, 5000);
         const item = schemas[coll](b);
         if (!item) return send(res, 400, { error: 'Angaben unvollständig' });
         if (coll === 'notes' && db.notes.length >= 12) return send(res, 400, { error: 'Höchstens 12 Notizen, bitte erst eine löschen' });
         item.id = newId(); item.created = Date.now();
-        if (coll === 'scans' && typeof b.photo === 'string') {
-          const pm = b.photo.match(/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/);
-          if (pm) { item.photo = `${item.id}.${pm[1] === 'jpeg' ? 'jpg' : pm[1]}`; fs.writeFileSync(path.join(PHOTOS, item.photo), Buffer.from(pm[2], 'base64')); }
-        }
         db[coll].push(item); save();
-        if (coll === 'scans') mail.onScan(item);
         return send(res, 201, item);
       }
       const item = db[coll].find(x => x.id === id);
@@ -567,7 +519,6 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, item);
       }
       if (req.method === 'DELETE') {
-        if (item.photo) fs.rm(path.join(PHOTOS, item.photo), () => {});
         db[coll] = db[coll].filter(x => x !== item);
         if (coll === 'people') db.absences = db.absences.filter(a => a.person !== item.id);
         save();

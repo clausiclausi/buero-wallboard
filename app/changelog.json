@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.16.0",
+    "date": "2026-10-28",
+    "changes": [
+      "Scan-Funktion entfernt: keine Scan-Kachel mehr am Board, keine Scan-Seite und keine Inventarliste am Handy, kein Mailversand (Gmail) mehr.",
+      "Neue Grundanordnung: Kalender, Notizen und Wetter oben, Leihgeräte, Monat und Störungen unten. Eigene Anordnungen mit der alten Scan-Kachel werden auf diese Grundanordnung gesetzt."
+    ]
+  },
+  {
     "version": "1.15.0",
     "date": "2026-10-28",
     "changes": [

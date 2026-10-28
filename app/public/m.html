@@ -42,14 +42,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .icon-btn { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); flex: none; font-size: 18px; }
 .list { display: flex; flex-direction: column; gap: 8px; }
 .empty { color: var(--muted); font-size: 15px; padding: 6px 2px; }
-nav { position: fixed; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(6, 1fr); background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); z-index: 5; }
+nav { position: fixed; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); z-index: 5; }
 nav button { border: 0; background: none; padding: 10px 2px 12px; font-size: 12px; font-weight: 600; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 3px; }
 nav button svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 nav button[aria-current="page"] { color: var(--text); }
 .toast { position: fixed; left: 16px; right: 16px; bottom: calc(90px + env(safe-area-inset-bottom)); background: var(--text); color: var(--bg); padding: 12px 14px; border-radius: 12px; font-weight: 700; z-index: 9; }
 .toast.err { background: var(--crit); color: #fff; }
-.photo-prev { width: 100%; max-height: 220px; object-fit: contain; border-radius: 12px; background: #000; }
-.thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; flex: none; background: var(--surface-2); }
 .badge { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; }
 .badge.open { color: var(--warn); }
 .badge.ok { color: var(--ok); }
@@ -59,17 +57,6 @@ nav button[aria-current="page"] { color: var(--text); }
 .inc.none { color: var(--ok); }
 .stepper { display: flex; align-items: center; gap: 6px; }
 .stepper b { min-width: 2.2em; text-align: center; font-size: 20px; }
-.codefield { display: flex; gap: 8px; }
-.codefield input { flex: 1; min-width: 0; }
-.codefield .btn { flex: none; padding: 0 14px; display: flex; align-items: center; gap: 6px; font-size: 15px; }
-.codefield .btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.live { position: fixed; inset: 0; z-index: 20; background: #000; display: flex; flex-direction: column; }
-.live video { flex: 1; min-height: 0; width: 100%; object-fit: cover; }
-.live .frame { position: absolute; left: 10%; right: 10%; top: 28%; height: 30%; border: 3px solid var(--ok); border-radius: 18px; box-shadow: 0 0 0 100vmax rgba(0,0,0,.35); pointer-events: none; }
-.live .frame::after { content: ""; position: absolute; left: 6%; right: 6%; top: 50%; height: 2px; background: var(--crit); animation: scanline 1.6s ease-in-out infinite alternate; }
-@keyframes scanline { from { transform: translateY(-40px); } to { transform: translateY(40px); } }
-.live .bar { padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); background: var(--surface); display: flex; flex-direction: column; gap: 10px; }
-.live .bar p { margin: 0; color: var(--muted); font-size: 15px; text-align: center; }
 .login { max-width: 360px; margin: 18vh auto 0; display: flex; flex-direction: column; gap: 14px; text-align: center; }
 .login input { font-size: 28px; letter-spacing: 8px; text-align: center; font-family: var(--mono); }
 [hidden] { display: none !important; }
@@ -86,36 +73,8 @@ nav button[aria-current="page"] { color: var(--text); }
 </section>
 
 <main id="app" hidden>
-  <!-- Scannen -->
-  <section data-tab="scan">
-    <h1>Gerät erfassen</h1>
-    <p class="hint">Auf dem Board erscheinen nur Gerätetyp, Inventarnummer und Ablageort. Foto, Seriennummer, Zustand und Notiz sieht nur das Team hier.</p>
-    <h2>Foto und Barcode</h2>
-    <div class="card">
-      <img id="sPrev" class="photo-prev" alt="Foto vom Gerät" hidden>
-      <div class="row">
-        <label class="btn" style="text-align:center">Foto aufnehmen<input id="sPhoto" type="file" accept="image/*" capture="environment" hidden></label>
-      </div>
-      <p class="hint" id="sCodeHint">Ist ein Code auf dem Foto, wird die Nummer automatisch eingetragen.</p>
-    </div>
-    <h2>Angaben</h2>
-    <form class="card" id="scanForm" autocomplete="off">
-      <label class="f">Gerätetyp
-        <select id="sType"><option>Notebook</option><option>Monitor</option><option>Smartphone</option><option>Tablet</option><option>Drucker</option><option>Dockingstation</option><option>Headset</option><option>Lieferung</option><option>Sonstiges</option></select></label>
-      <div class="f">Inventarnummer <div class="codefield"><input id="sInv" maxlength="30" placeholder="z. B. INV-24-0815" aria-label="Inventarnummer"><label class="btn"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10 8v8M14 8v8M17 8v8"/></svg>Scannen<input type="file" accept="image/*" capture="environment" data-code="sInv" hidden></label></div></div>
-      <div class="f">Seriennummer <div class="codefield"><input id="sSerial" maxlength="40" placeholder="optional" aria-label="Seriennummer"><label class="btn"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10 8v8M14 8v8M17 8v8"/></svg>Scannen<input type="file" accept="image/*" capture="environment" data-code="sSerial" hidden></label></div></div>
-      <p class="hint" id="sScanHint">„Scannen“ öffnet die Kamera. QR-Code oder Strichcode (z. B. EAN) groß und scharf fotografieren, die Nummer wird eingetragen.</p>
-      <div class="f" style="display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted);font-weight:600">Zustand
-        <div class="seg" id="sCond"><button type="button" data-v="neu">neu</button><button type="button" data-v="gebraucht">gebraucht</button><button type="button" data-v="defekt">defekt</button></div></div>
-      <label class="f">Wohin / Ablageort (sichtbar auf dem Board) <input id="sLoc" maxlength="40" placeholder="z. B. Lager 2.14, Fach B"></label>
-      <label class="f">Notiz (nur intern) <textarea id="sNote" maxlength="200" placeholder="optional"></textarea></label>
-      <p class="hint">Bitte keine Namen von Personen eintragen.</p>
-      <button class="btn primary" type="submit" id="sSave">Speichern</button>
-    </form>
-  </section>
-
   <!-- Aufgaben -->
-  <section data-tab="tasks" hidden>
+  <section data-tab="tasks">
     <h1>Aufgaben</h1>
     <form class="card" id="taskForm" autocomplete="off">
       <label class="f">Was <input id="tTitle" maxlength="60" required placeholder="z. B. Druckerwartung begleiten"></label>
@@ -201,32 +160,6 @@ nav button[aria-current="page"] { color: var(--text); }
       </div>
       <div class="row" id="tunBtns"><button class="btn" id="tunRetry">Nochmal versuchen</button><button class="btn danger" id="tunOff">Fernzugang ausschalten</button></div>
     </div>
-    <h2>Scans per E-Mail</h2>
-    <div class="card" id="mailCard">
-      <div class="inc" id="mailNow"></div>
-      <p class="hint" id="mailErr" hidden></p>
-      <label class="f">Versand</label>
-      <div class="seg" id="mMode"><button type="button" data-v="sofort">Sofort bei jedem Scan</button><button type="button" data-v="taeglich">Einmal am Tag</button><button type="button" data-v="aus">Aus</button></div>
-      <label class="f" id="mTimeRow">Uhrzeit der Tagesmail <input type="time" id="mTime" value="16:00"></label>
-      <label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="mPhoto" style="width:auto"> Foto anhängen</label>
-      <details id="mSetup">
-        <summary style="font-weight:700;cursor:pointer;padding:6px 0">Konto und Empfänger</summary>
-        <div style="display:flex;flex-direction:column;gap:12px;margin-top:10px">
-          <label class="f">Absender (Gmail-Adresse des Boards) <input type="email" id="mFrom" autocomplete="off" placeholder="z. B. buero.wallboard@gmail.com"></label>
-          <label class="f">App-Passwort von Google <input type="password" id="mPass" autocomplete="new-password" placeholder="16 Zeichen"></label>
-          <label class="f">Empfänger (bis zu 3)
-            <input type="email" id="mR0" autocomplete="off" placeholder="name@eure-firma.de">
-            <input type="email" id="mR1" autocomplete="off">
-            <input type="email" id="mR2" autocomplete="off">
-          </label>
-          <label class="f">Nur an diese Firmen-Endung senden <input type="text" id="mDomain" autocomplete="off" placeholder="@eure-firma.de"></label>
-          <label class="f">Board-Passwort (zum Speichern nötig) <input type="password" id="mPw" autocomplete="off"></label>
-          <p class="hint">Zugangsdaten bleiben auf dem Notebook und werden hier nie wieder angezeigt. Nicht per Chat oder Mail verschicken.</p>
-          <button class="btn primary" type="button" id="mSave">Konto und Empfänger speichern</button>
-        </div>
-      </details>
-      <button class="btn" type="button" id="mTest">Testmail senden</button>
-    </div>
     <h2>Störung</h2>
     <div id="incNow"></div>
     <h2>Melden oder ändern</h2>
@@ -251,23 +184,13 @@ nav button[aria-current="page"] { color: var(--text); }
       <button class="btn primary" type="submit">Hinzufügen</button>
     </form>
   </section>
-
-  <!-- Inventarliste -->
-  <section data-tab="list" hidden>
-    <h1>Inventarliste</h1>
-    <div class="row" style="margin-top:10px"><input id="qList" placeholder="Suchen (Nummer, Typ, Ort)"><a class="btn small" href="/api/scans.csv" style="flex:none;text-decoration:none;display:grid;place-items:center;color:var(--text)">Export CSV</a></div>
-    <div class="list" id="scanList" style="margin-top:12px"></div>
-    <button class="btn danger" id="delDone" style="margin-top:14px;width:100%" hidden>Alle übernommenen löschen</button>
-  </section>
 </main>
 
 <nav id="nav" hidden>
-  <button data-go="scan" aria-current="page"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M11 8v8M15 8v8M18 8v8"/></svg>Scannen</button>
-  <button data-go="tasks"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Aufgaben</button>
+  <button data-go="tasks" aria-current="page"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Aufgaben</button>
   <button data-go="events"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Termine</button>
   <button data-go="incident"><svg viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></svg>Board</button>
   <button data-go="loans"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="11" rx="2"/><path d="M2 20h20"/></svg>Geräte</button>
-  <button data-go="list"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Liste</button>
 </nav>
 
 <script>
@@ -277,7 +200,7 @@ nav button[aria-current="page"] { color: var(--text); }
   const pad = (n) => String(n).padStart(2, '0');
   const dayKey = (off = 0) => { const d = new Date(); d.setDate(d.getDate() + off); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
   const fmtDate = (k) => { if (k === dayKey(0)) return 'Heute'; if (k === dayKey(1)) return 'Morgen'; const [y, m, d] = k.split('-'); return `${d}.${m}.`; };
-  let S = { tasks: [], events: [], scans: [], loans: [], incident: null };
+  let S = { tasks: [], events: [], loans: [], incident: null };
 
   function toast(msg, err) {
     const n = document.createElement('div'); n.className = 'toast' + (err ? ' err' : ''); n.textContent = msg;
@@ -311,138 +234,6 @@ nav button[aria-current="page"] { color: var(--text); }
     window.scrollTo(0, 0);
   }
   document.querySelectorAll('nav button').forEach(b => b.onclick = () => go(b.dataset.go));
-
-  /* ---------- Scannen ---------- */
-  let photoData = null, cond = '';
-  document.querySelectorAll('#sCond button').forEach(b => b.onclick = () => {
-    cond = cond === b.dataset.v ? '' : b.dataset.v;
-    document.querySelectorAll('#sCond button').forEach(x => x.setAttribute('aria-pressed', x.dataset.v === cond));
-  });
-  $('#sPhoto').onchange = async (e) => {
-    const file = e.target.files[0]; if (!file) return;
-    const img = await createImageBitmap(file).catch(() => null);
-    if (!img) return toast('Foto konnte nicht gelesen werden', true);
-    // verkleinern, damit es schnell hochlädt
-    const s = Math.min(1, 1600 / Math.max(img.width, img.height));
-    const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
-    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-    photoData = c.toDataURL('image/jpeg', 0.8);
-    $('#sPrev').src = photoData; $('#sPrev').hidden = false;
-    const v = await readCode(c);
-    if (v) {
-      if (!$('#sInv').value) $('#sInv').value = v.slice(0, 30); else if (!$('#sSerial').value) $('#sSerial').value = v.slice(0, 40);
-      $('#sCodeHint').textContent = `Code erkannt: ${v}`;
-    } else $('#sCodeHint').textContent = 'Kein Code auf dem Foto erkannt. Nummer bei Bedarf über „Scannen“ oder per Hand eintragen.';
-  };
-
-  /* ---------- QR-Codes und Strichcodes lesen ----------
-     Erst die eingebaute Erkennung des Handys, sonst die mitgelieferte ZXing-Bibliothek (funktioniert auch ohne Internet und ohne HTTPS). */
-  let zx = null;
-  const loadZx = () => zx || (zx = new Promise((ok, fail) => { const s = document.createElement('script'); s.src = '/static/zxing.js'; s.onload = () => ok(window.ZXing); s.onerror = fail; document.head.append(s); }));
-  // Aus dem Code die Nummer machen: Links auf die letzte Pfadangabe kürzen, Leerzeichen am Rand weg
-  function codeText(raw) {
-    let v = String(raw || '').trim();
-    if (/^https?:\/\//i.test(v)) { try { const u = new URL(v); v = u.searchParams.get('id') || u.searchParams.get('sn') || u.pathname.split('/').filter(Boolean).pop() || v; } catch {} }
-    return v.replace(/[\u0000-\u001f]/g, '').trim();
-  }
-  async function readCode(canvas, fast) {
-    if ('BarcodeDetector' in window) {
-      try { const codes = await new BarcodeDetector().detect(canvas); if (codes.length) return codeText(codes[0].rawValue); } catch {}
-    }
-    try {
-      const Z = await loadZx();
-      const hints = new Map();
-      hints.set(Z.DecodeHintType.TRY_HARDER, true);
-      hints.set(Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.QR_CODE, Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.EAN_8, Z.BarcodeFormat.UPC_A, Z.BarcodeFormat.UPC_E,
-        Z.BarcodeFormat.CODE_128, Z.BarcodeFormat.CODE_39, Z.BarcodeFormat.ITF, Z.BarcodeFormat.DATA_MATRIX]);
-      const reader = new Z.MultiFormatReader(); reader.setHints(hints);
-      // Mehrere Größen probieren, kleine Codes auf großen Fotos werden so besser gefunden
-      for (const max of fast ? [1280] : [1600, 1000, 2400]) {
-        const s = Math.min(1, max / Math.max(canvas.width, canvas.height));
-        let src = canvas;
-        if (s < 1) { src = document.createElement('canvas'); src.width = Math.round(canvas.width * s); src.height = Math.round(canvas.height * s); src.getContext('2d').drawImage(canvas, 0, 0, src.width, src.height); }
-        try { return codeText(reader.decode(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(src)))).getText()); } catch {}
-      }
-    } catch {}
-    return '';
-  }
-  async function fileToCanvas(file, max = 2400) {
-    const img = await createImageBitmap(file).catch(() => null);
-    if (!img) return null;
-    const s = Math.min(1, max / Math.max(img.width, img.height));
-    const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
-    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-    return c;
-  }
-  /* Live-Scanner: Kamera läuft, jedes Bild wird nach einem Code durchsucht. Geht nur über HTTPS (oder localhost),
-     im Büro-WLAN über http bleibt das Foto mit anschließender Erkennung. */
-  const canLive = () => !!(window.isSecureContext && navigator.mediaDevices?.getUserMedia);
-  async function liveScan(field) {
-    const ov = document.createElement('div'); ov.className = 'live';
-    ov.innerHTML = `<video playsinline muted autoplay></video><div class="frame"></div>
-      <div class="bar"><p id="liveMsg">QR-Code oder Strichcode in den Rahmen halten</p><button class="btn" type="button" id="liveStop">Abbrechen</button></div>`;
-    document.body.append(ov);
-    const video = ov.querySelector('video'), msg = ov.querySelector('#liveMsg');
-    let stream = null, done = false;
-    const stop = () => { done = true; stream?.getTracks().forEach(t => t.stop()); ov.remove(); };
-    ov.querySelector('#liveStop').onclick = stop;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
-    } catch {
-      msg.textContent = 'Kamera nicht freigegeben. Bitte in den Browser-Einstellungen die Kamera erlauben.'; return;
-    }
-    video.srcObject = stream; await video.play().catch(() => {});
-    loadZx().catch(() => {});
-    const c = document.createElement('canvas');
-    while (!done) {
-      if (video.videoWidth) {
-        // Nur den Bereich im Rahmen auswerten: schneller und genauer
-        const vw = video.videoWidth, vh = video.videoHeight;
-        const sw = Math.round(vw * .9), sh = Math.round(vh * .6);
-        c.width = Math.min(sw, 1280); c.height = Math.round(sh * c.width / sw);
-        c.getContext('2d').drawImage(video, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, c.width, c.height);
-        const v = await readCode(c, true);
-        if (v && !done) {
-          field.value = v.slice(0, +field.maxLength || 40);
-          $('#sScanHint').textContent = `Erkannt: ${v}`;
-          navigator.vibrate?.(120);
-          stop(); toast('Code erkannt: ' + v); return;
-        }
-      }
-      await new Promise(r => setTimeout(r, 120));
-    }
-  }
-  function renderScanHint() {
-    const el = $('#sScanHint'); if (/^Erkannt|gelesen|Kein Code/.test(el.textContent)) return;
-    if (canLive()) { el.textContent = '„Scannen“ öffnet die Kamera. Code in den Rahmen halten, die Nummer wird sofort eingetragen.'; return; }
-    const url = S.tunnel?.funnel && S.tunnel?.url;
-    el.innerHTML = '„Scannen“ macht ein Foto vom Code, die Nummer wird danach erkannt. Code groß und scharf aufnehmen.'
-      + (url ? ` Live-Kamera ohne Foto: <a href="${esc(url.replace(/\/$/, ''))}/m" style="color:var(--ok)">sichere Adresse öffnen</a>.` : ' Live-Kamera ohne Foto geht, sobald der Zugang von unterwegs eingerichtet ist.');
-  }
-  document.querySelectorAll('input[data-code]').forEach(inp => inp.closest('label').addEventListener('click', (e) => {
-    if (!canLive()) return; // kein HTTPS: Foto aufnehmen, danach wird erkannt
-    e.preventDefault(); liveScan($('#' + inp.dataset.code));
-  }));
-  document.querySelectorAll('input[data-code]').forEach(inp => inp.onchange = async () => {
-    const file = inp.files[0]; inp.value = ''; if (!file) return;
-    const field = $('#' + inp.dataset.code), hint = $('#sScanHint');
-    hint.textContent = 'Code wird gelesen …';
-    const c = await fileToCanvas(file);
-    const v = c ? await readCode(c) : '';
-    if (v) { field.value = v.slice(0, +field.maxLength || 40); hint.textContent = `Erkannt: ${v}`; toast('Code erkannt'); }
-    else { hint.textContent = 'Kein Code erkannt. Bitte näher ran, gerade halten und auf gutes Licht achten, oder die Nummer eintippen.'; toast('Kein Code erkannt', true); }
-  });
-  $('#scanForm').onsubmit = (e) => {
-    e.preventDefault();
-    if (!$('#sInv').value.trim() && !$('#sSerial').value.trim()) return toast('Bitte Inventar- oder Seriennummer angeben', true);
-    $('#sSave').disabled = true;
-    run(api('POST', '/api/scans', { type: $('#sType').value, inv: $('#sInv').value, serial: $('#sSerial').value, condition: cond, location: $('#sLoc').value, note: $('#sNote').value, photo: photoData })
-      .then(() => {
-        e.target.reset(); photoData = null; cond = ''; $('#sPrev').hidden = true; $('#sPhoto').value = '';
-        document.querySelectorAll('#sCond button').forEach(x => x.setAttribute('aria-pressed', false));
-        $('#sCodeHint').textContent = 'Ist ein Code auf dem Foto, wird die Nummer automatisch eingetragen.';
-      }), 'Gespeichert, erscheint jetzt auf dem Board').finally(() => $('#sSave').disabled = false);
-  };
 
   /* ---------- Aufgaben ---------- */
   $('#taskForm').onsubmit = (e) => {
@@ -539,36 +330,6 @@ nav button[aria-current="page"] { color: var(--text); }
     run(api('POST', '/api/loans', { type: $('#lType').value, total, avail: total, icon: 'box' }).then(() => e.target.reset()), 'Hinzugefügt');
   };
 
-  /* ---------- Inventarliste ---------- */
-  $('#qList').oninput = renderScans;
-  $('#delDone').onclick = async () => {
-    const done = S.scans.filter(s => s.done);
-    if (!done.length || !confirm(`${done.length} übernommene Einträge endgültig löschen? Fotos werden mitgelöscht.`)) return;
-    run(Promise.all(done.map(s => api('DELETE', `/api/scans/${s.id}`))), 'Gelöscht');
-  };
-  function renderScans() {
-    $('#delDone').hidden = !S.scans.some(s => s.done);
-    const q = $('#qList').value.toLowerCase(), el = $('#scanList'); el.innerHTML = '';
-    const list = [...S.scans].sort((a, b) => b.created - a.created)
-      .filter(s => !q || [s.inv, s.serial, s.type, s.location, s.note].join(' ').toLowerCase().includes(q));
-    if (!list.length) el.innerHTML = '<div class="empty">Noch keine Geräte erfasst.</div>';
-    list.forEach(s => {
-      const n = document.createElement('div'); n.className = 'item';
-      n.innerHTML = `${s.photo ? `<img class="thumb" loading="lazy" src="/api/photo/${s.id}" alt="">` : '<span class="thumb"></span>'}
-        <div class="main"><b>${esc(s.type)} · ${esc(s.inv || '–')}</b>
-          <small>${s.serial ? 'SN ' + esc(s.serial) + ' · ' : ''}${s.condition ? esc(s.condition) + ' · ' : ''}${esc(s.location || 'kein Ablageort')}</small>
-          ${s.note ? `<small>${esc(s.note)}</small>` : ''}
-          <small>${new Date(s.created).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })} · <span class="badge ${s.done ? 'ok' : 'open'}">${s.done ? 'in Liste' : 'offen'}</span></small></div>
-        ${M?.ready ? '<button class="icon-btn" data-mail title="Per Mail senden">✉</button>' : ''}<button class="icon-btn" title="${s.done ? 'Wieder öffnen' : 'In Liste übernehmen'}">✓</button><button class="icon-btn" title="Löschen">✕</button>`;
-      const mb = n.querySelector('[data-mail]');
-      if (mb) mb.onclick = () => { mb.disabled = true; run(api('POST', `/api/scans/${s.id}/mail`), 'Per Mail gesendet').finally(() => { mb.disabled = false; loadMail(); }); };
-      const [d, x] = n.querySelectorAll('button:not([data-mail])');
-      d.onclick = () => run(api('PATCH', `/api/scans/${s.id}`, { done: !s.done }));
-      x.onclick = () => { if (x.dataset.sure) run(api('DELETE', `/api/scans/${s.id}`), 'Gelöscht'); else { x.dataset.sure = 1; x.textContent = '?'; toast('Zum Löschen nochmal tippen'); setTimeout(() => { delete x.dataset.sure; x.textContent = '✕'; }, 3000); } };
-      el.append(n);
-    });
-  }
-
   /* ---------- Start ---------- */
   /* ---------- Anzeige am Notebook ---------- */
   function renderDisplay() {
@@ -618,41 +379,6 @@ nav button[aria-current="page"] { color: var(--text); }
   $('#tunRetry').onclick = () => run(api('POST', '/api/tunnel', { token: '' }), 'Wird erneut versucht');
   $('#tunOff').onclick = () => { if (confirm('Fernzugang ausschalten? Danach ist das Board nur noch im Büro-WLAN erreichbar.')) run(api('DELETE', '/api/tunnel'), 'Fernzugang ausgeschaltet'); };
 
-  /* ---------- Scans per E-Mail ---------- */
-  let M = null;
-  const loadMail = () => api('GET', '/api/mail').then(v => { M = v; renderMail(); }).catch(() => {});
-  function renderMail() {
-    if (!M) return;
-    const el = $('#mailNow');
-    const n = M.recipients.length;
-    if (!M.ready) { el.className = 'inc'; el.textContent = 'Noch nicht eingerichtet'; }
-    else if (M.mode === 'aus') { el.className = 'inc'; el.textContent = 'Aus'; }
-    else { el.className = 'inc none'; el.textContent = `Aktiv: ${M.mode === 'sofort' ? 'bei jedem Scan' : 'täglich um ' + M.dailyTime + ' Uhr'} an ${n} ${n === 1 ? 'Empfänger' : 'Empfänger'}`; }
-    $('#mailErr').hidden = !M.lastError; $('#mailErr').textContent = M.lastError ? 'Letzter Fehler: ' + M.lastError : '';
-    document.querySelectorAll('#mMode button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === M.mode));
-    $('#mTimeRow').hidden = M.mode !== 'taeglich';
-    if (document.activeElement !== $('#mTime')) $('#mTime').value = M.dailyTime;
-    $('#mPhoto').checked = M.photo;
-    if (!$('#mSetup').open) {
-      $('#mFrom').value = M.from; $('#mDomain').value = M.domain;
-      [0, 1, 2].forEach(i => $('#mR' + i).value = M.recipients[i] || '');
-      $('#mPass').placeholder = M.hasPass ? 'gespeichert (nur zum Ändern ausfüllen)' : '16 Zeichen';
-    }
-    $('#mSetup').open = $('#mSetup').open || !M.ready;
-    renderScans();
-  }
-  const putMail = (b, ok) => run(api('PUT', '/api/mail', b).then(v => { M = v; renderMail(); }), ok);
-  document.querySelectorAll('#mMode button').forEach(b => b.onclick = () => putMail({ mode: b.dataset.v }, 'Gespeichert'));
-  $('#mTime').onchange = () => putMail({ dailyTime: $('#mTime').value }, 'Gespeichert');
-  $('#mPhoto').onchange = () => putMail({ photo: $('#mPhoto').checked }, 'Gespeichert');
-  $('#mSave').onclick = () => {
-    const b = { from: $('#mFrom').value.trim(), recipients: [0, 1, 2].map(i => $('#mR' + i).value.trim()).filter(Boolean), domain: $('#mDomain').value.trim(), password: $('#mPw').value };
-    if ($('#mPass').value.trim()) b.pass = $('#mPass').value;
-    $('#mSave').disabled = true;
-    run(api('PUT', '/api/mail', b).then(v => { M = v; $('#mPass').value = ''; $('#mPw').value = ''; $('#mSetup').open = false; renderMail(); }), 'Gespeichert').finally(() => $('#mSave').disabled = false);
-  };
-  $('#mTest').onclick = () => { $('#mTest').disabled = true; run(api('POST', '/api/mail/test').finally(loadMail), 'Testmail ist raus. Bitte im Postfach nachsehen.').finally(() => $('#mTest').disabled = false); };
-
   /* ---------- Urlaub & Abwesenheit ---------- */
   const PALETTE = ['#5EA8FF', '#FF8A65', '#C792EA', '#4DD0E1', '#F06292', '#AED581', '#FFB74D', '#90A4AE', '#E57373', '#7986CB'];
   const fmtD = (k) => { const [y, m, d] = k.split('-'); return `${+d}.${+m}.`; };
@@ -691,17 +417,17 @@ nav button[aria-current="page"] { color: var(--text); }
     });
   }
 
-  function renderAll() { renderScanHint(); renderTasks(); renderNotes(); renderEvents(); renderIncident(); renderDisplay(); renderTunnel(); renderLoans(); renderScans(); renderAbsences(); }
+  function renderAll() { renderTasks(); renderNotes(); renderEvents(); renderIncident(); renderDisplay(); renderTunnel(); renderLoans(); renderAbsences(); }
   let es = null;
   function start() {
     $('#login').hidden = true; $('#app').hidden = false; $('#nav').hidden = false;
     $('#tDate').value = dayKey(0); $('#eDate').value = dayKey(0);
     const d = new Date(); d.setMinutes(Math.ceil(d.getMinutes() / 15) * 15 + 30);
     $('#tTime').value = $('#eTime').value = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    let tab = 'scan'; try { tab = sessionStorage.getItem('tab') || 'scan'; } catch {}
+    let tab = 'tasks'; try { tab = sessionStorage.getItem('tab') || 'tasks'; } catch {}
+    if (!document.querySelector(`main > section[data-tab="${tab}"]`)) tab = 'tasks';
     go(tab);
     if (es) es.close();
-    loadMail();
     es = new EventSource('/api/stream?full=1');
     es.onmessage = (e) => { S = JSON.parse(e.data); renderAll(); };
   }

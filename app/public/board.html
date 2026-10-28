@@ -6,7 +6,7 @@
 <title>Büro-Wallboard</title>
 <style>
 /* Layout: feste 1920×1080-Bühne (16:9), die auf jede Bildschirmgröße skaliert.
-   Kopfzeile · Aufgabenleiste · 4-Spalten-Raster (Kalender | Scan-Eingang ×2 | Wetter hoch / Systeme | Tickets | SLA). */
+   Kopfzeile · Aufgabenleiste · 12x6-Raster mit frei anordenbaren Kacheln. */
 :root {
   --bg: #0E2A1F;
   --surface: #143627;
@@ -122,13 +122,12 @@ main {
 .card h3 { margin: 0; font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); display: flex; align-items: center; gap: 12px; }
 .card h3 .badge { margin-left: auto; text-transform: none; letter-spacing: 0; font-size: 20px; padding: 4px 14px; border-radius: 999px; background: var(--surface-2); color: var(--text); }
 /* Standard-Anordnung im 12x6-Raster, eigene Anordnung überschreibt per style */
-.cal { grid-area: 1 / 1 / span 3 / span 3; }
-.scan { grid-area: 1 / 4 / span 3 / span 6; }
+.cal { grid-area: 1 / 1 / span 3 / span 5; }
 .wx { grid-area: 1 / 10 / span 3 / span 3; }
 .loan { grid-area: 4 / 1 / span 3 / span 3; }
 .month { grid-area: 4 / 4 / span 3 / span 3; gap: calc(10px * var(--z, 1)); }
-.incident { grid-area: 4 / 7 / span 3 / span 3; }
-.notes { grid-area: 4 / 10 / span 3 / span 3; }
+.incident { grid-area: 4 / 7 / span 3 / span 6; }
+.notes { grid-area: 1 / 6 / span 3 / span 4; }
 main > .card.off { display: none; }
 .note-list { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; }
 .note { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--bg); font-size: 21px; line-height: 1.3; font-weight: 500; }
@@ -167,33 +166,6 @@ main > .card.off { display: none; }
 .ev .ev-title { font-size: 22px; font-weight: 600; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ev .ev-meta { font-size: 17px; color: var(--muted); font-weight: 500; margin-left: 8px; }
 .ev.compact .ev-title { font-weight: 500; }
-
-/* Scan-Eingang */
-.scan-list { display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
-.scan-row {
-  display: grid; grid-template-columns: 52px 1.1fr 1.6fr 120px 190px; gap: 18px; align-items: center;
-  padding: 6px 14px; border-radius: 16px; background: var(--bg);
-}
-.scan-row.done { opacity: .45; }
-.scan-ico { width: 46px; height: 46px; border-radius: 14px; background: var(--surface-2); display: grid; place-items: center; font-size: 28px; color: var(--muted); }
-.scan-what { min-width: 0; }
-.scan-what b { display: block; font-size: 24px; font-weight: 600; }
-.scan-what code { font-family: var(--font-mono); font-size: 20px; color: var(--muted); }
-.scan-note { font-size: 22px; line-height: 1.25; min-width: 0; display: flex; gap: 10px; align-items: baseline; white-space: nowrap; }
-.scan-note .private { overflow: hidden; text-overflow: ellipsis; }
-.scan-note .arrow { color: var(--muted); }
-.scan-when { font-size: 19px; color: var(--muted); }
-.scan-btn {
-  border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; font-size: 19px; font-weight: 600;
-  background: var(--surface-2); display: flex; align-items: center; justify-content: center; gap: 8px;
-}
-.scan-acts { display: flex; gap: 8px; min-width: 0; }
-.scan-acts .scan-btn:first-child { flex: 1; min-width: 0; }
-.scan-btn.trash { flex: none; width: 50px; padding: 10px 0; color: var(--muted); }
-.scan-btn.trash.sure { color: var(--crit); border-color: var(--crit); flex: 1; width: auto; padding: 10px 12px; }
-.scan-btn.open { border-color: var(--warn); color: var(--warn); background: transparent; }
-.scan-btn.open:hover { background: var(--surface-2); }
-.scan-foot { margin-top: auto; font-size: 18px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
 
 /* Wetter */
 .wx-now { display: flex; align-items: center; gap: 18px; }
@@ -426,8 +398,6 @@ footer .sp { margin-left: auto; }
 /* Kleine Kacheln: Nebensachen ausblenden */
 @container (max-height: 600px) { .card.wx .hours, .card.wx .rain-times { display: none; } }
 @container (max-height: 420px) { .card.wx .storm:not(.warn) { display: none; } }
-@container (max-width: 760px) { .card .scan-row { grid-template-columns: 52px 1fr 1fr auto; } .card .scan-row .scan-when, .card .scan-foot { display: none; } }
-@container (max-width: 560px) { .card .scan-row { grid-template-columns: 52px 1fr auto; row-gap: 2px; } .card .scan-row .scan-ico { grid-row: 1 / span 2; } .card .scan-row .scan-note { grid-column: 2; grid-row: 2; } .card .scan-row .scan-btn { grid-column: 3; grid-row: 1 / span 2; } }
 
 html:not([data-skin="standard"]) {
   --ease: cubic-bezier(.16, 1, .3, 1);
@@ -652,11 +622,6 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       <div class="cal-list" id="calendar"></div>
     </section>
 
-    <section class="card scan" data-k="scan" data-name="Scan-Eingang">
-      <h3><svg class="icon"><use href="#i-scan"/></svg>Scan-Eingang <span class="badge" id="scanBadge"></span></h3>
-      <div class="scan-list" id="scans"></div>
-      <div class="scan-foot"><svg class="icon"><use href="#i-shield"/></svg>Nur Gerätetyp, Inventarnummer und Ablageort. Seriennummer, Zustand und Foto sieht nur das Team auf dem Handy.</div>
-    </section>
 
     <section class="card wx" data-k="wx" data-name="Wetter Büro">
       <h3>Wetter Büro</h3>
@@ -729,7 +694,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   }
 
   /* ---------- Zustand vom Server ---------- */
-  let S = { tasks: [], events: [], scans: [], loans: [], incident: null, mobileUrl: '',
+  let S = { tasks: [], events: [], loans: [], incident: null, mobileUrl: '',
     settings: { theme: { preset: 'wald', colors: null }, muted: false, lead: 15, volume: 0.6, rainHours: [10, 12, 17], visitor: false, officeStart: '06:00', officeEnd: '20:00' } };
   let W = { ok: false }, R = { ok: false };
   let lastData = 0, connected = false;
@@ -801,9 +766,9 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 
   /* ---------- Kacheln anordnen: 12x6-Raster, Lage und Größe je Kachel [Spalte, Zeile, Breite, Höhe] ---------- */
   const COLS = 12, ROWS = 6, MIN = 2;
-  const DEF_LAYOUT = { cal: [1, 1, 3, 3], scan: [4, 1, 6, 3], wx: [10, 1, 3, 3], loan: [1, 4, 3, 3], month: [4, 4, 3, 3], incident: [7, 4, 3, 3], notes: [10, 4, 3, 3], hidden: [] };
+  const DEF_LAYOUT = { cal: [1, 1, 5, 3], notes: [6, 1, 4, 3], wx: [10, 1, 3, 3], loan: [1, 4, 3, 3], month: [4, 4, 3, 3], incident: [7, 4, 6, 3], hidden: [] };
   // Größe, für die der Inhalt gestaltet ist; größere Kacheln zeigen größere Schrift, kleinere kleinere
-  const BASE = { cal: [3, 3], scan: [6, 3], wx: [3, 4], loan: [3, 3], month: [3, 3], incident: [3, 3], notes: [3, 3] };
+  const BASE = { cal: [3, 3], wx: [3, 4], loan: [3, 3], month: [3, 3], incident: [3, 3], notes: [3, 3] };
   const TILE_KEYS = Object.keys(BASE);
   const tiles = () => [...stage.querySelectorAll('main > .card[data-k]')];
   const fits = a => Array.isArray(a) && a.length === 4 && a.every(Number.isInteger) && a[0] >= 1 && a[1] >= 1 && a[2] >= MIN && a[3] >= MIN && a[0] + a[2] - 1 <= COLS && a[1] + a[3] - 1 <= ROWS;
@@ -826,7 +791,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   // Gespeicherte Anordnung ergänzen: neue Kacheln (z. B. Notizen) bekommen einen freien Platz, sonst bleiben sie ausgeblendet
   function layout() {
     const saved = settings().layout;
-    if (!saved || typeof saved !== 'object') return DEF_LAYOUT;
+    if (!saved || typeof saved !== 'object' || saved.scan) return DEF_LAYOUT;
     const L = { hidden: Array.isArray(saved.hidden) ? saved.hidden.filter(k => TILE_KEYS.includes(k)) : [] };
     const missing = [];
     for (const k of TILE_KEYS) fits(saved[k]) ? L[k] = saved[k].slice() : missing.push(k);
@@ -1196,36 +1161,6 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     $('#overlayHost').append(scrim); scrim.querySelector('#nText').focus();
   }
   $('#addNote').onclick = openNoteDialog;
-
-  /* ---------- Scan-Eingang ---------- */
-  const SCAN_ICON = { Notebook: 'laptop', Monitor: 'monitor', Smartphone: 'phone', Tablet: 'phone', Drucker: 'printer' };
-  function renderScans() {
-    const el = $('#scans'); el.innerHTML = '';
-    const sorted = [...S.scans].sort((a, b) => (a.done - b.done) || (b.created - a.created));
-    if (!sorted.length) el.append(h('<div class="cal-empty" style="font-size:22px;padding:12px 4px">Noch nichts gescannt. Am Handy unter „Scannen“ erfassen.</div>'));
-    sorted.slice(0, 3).forEach(s => {
-      const ago = Math.max(0, Math.round((Date.now() - s.created) / 60000));
-      const when = ago < 60 ? `vor ${ago} min` : ago < 1440 ? `vor ${Math.floor(ago / 60)} h` : 'gestern';
-      const row = h(`<div class="scan-row ${s.done ? 'done' : ''}">
-        <div class="scan-ico"><svg class="icon"><use href="#i-${SCAN_ICON[s.type] || 'box'}"/></svg></div>
-        <div class="scan-what"><b>${esc(s.type)}</b><code>${esc(s.inv || 'ohne Inventarnr.')}</code></div>
-        <div class="scan-note"><span class="arrow">→</span><span class="private">${esc(s.location || 'Ablageort fehlt')}</span></div>
-        <div class="scan-when">${when}</div>
-        <div class="scan-acts"><button class="scan-btn ${s.done ? '' : 'open'}">${s.done ? '<svg class="icon"><use href="#i-check"/></svg>In Liste' : 'In Liste übernehmen'}</button>${s.done ? '<button class="scan-btn trash" title="Endgültig löschen"><svg class="icon"><use href="#i-trash"/></svg></button>' : ''}</div>
-      </div>`);
-      row.querySelector('button').onclick = () => api('PATCH', `/api/scans/${s.id}`, { done: !s.done });
-      // Papierkorb: erst antippen zeigt „Löschen?“, zweites Antippen löscht endgültig (auch Foto und Inventareintrag)
-      const tr = row.querySelector('.trash');
-      if (tr) tr.onclick = () => {
-        if (tr.classList.contains('sure')) return api('DELETE', `/api/scans/${s.id}`);
-        tr.classList.add('sure'); tr.textContent = 'Endgültig löschen?'; tr.previousElementSibling.hidden = true;
-        setTimeout(() => { if (tr.isConnected) { tr.classList.remove('sure'); tr.previousElementSibling.hidden = false; tr.innerHTML = '<svg class="icon"><use href="#i-trash"/></svg>'; } }, 4000);
-      };
-      el.append(row);
-    });
-    const open = S.scans.filter(s => !s.done).length;
-    $('#scanBadge').textContent = (open ? `${open} offen` : 'alles übernommen') + (sorted.length > 3 ? ` · ${sorted.length - 3} weitere` : '');
-  }
 
   /* ---------- Wetter ---------- */
   const COND = { dry: 'Trocken', fog: 'Nebel', rain: 'Regen', sleet: 'Schneeregen', snow: 'Schnee', hail: 'Hagel', thunderstorm: 'Gewitter' };
@@ -1890,7 +1825,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   });
 
   /* ---------- Verbindung zum Server ---------- */
-  function renderAll() { applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderScans(); renderNotes(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); }
+  function renderAll() { applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderNotes(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); }
   function connect() {
     const es = new EventSource('/api/stream');
     es.onopen = () => { connected = true; };
@@ -1916,7 +1851,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   tickClock(); renderMonth(); renderAll(); tickStand(); drawRadar();
   connect(); loadWeather(); loadRadar();
   setInterval(() => { tickClock(); tickStand(); }, 1000);
-  setInterval(() => { renderTasks(); renderCalendar(); renderScans(); renderIncident(); renderMonth(); checkReminders(); checkSleep(); }, 15000);
+  setInterval(() => { renderTasks(); renderCalendar(); renderIncident(); renderMonth(); checkReminders(); checkSleep(); }, 15000);
   setInterval(loadWeather, 5 * 60000);
   setInterval(loadRadar, 5 * 60000);
   // Sicherheitsnetz für den Dauerbetrieb: jede Nacht um 3 Uhr neu laden

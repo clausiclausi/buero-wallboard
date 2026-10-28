@@ -1,20 +1,18 @@
 {
-  "version": "1.15.0",
-  "notes": "Scan-Eingang: Papierkorb bei übernommenen Einträgen. Einmal antippen zeigt „Endgültig löschen?“, nochmal antippen löscht den Eintrag samt Foto. Handy, Inventarliste: Knopf „Alle übernommenen löschen“.",
+  "version": "1.16.0",
+  "notes": "Scan-Funktion entfernt: keine Scan-Kachel mehr am Board, keine Scan-Seite und keine Inventarliste am Handy, kein Mailversand (Gmail) mehr.",
   "changes": [
-    "Scan-Eingang: Papierkorb bei übernommenen Einträgen. Einmal antippen zeigt „Endgültig löschen?“, nochmal antippen löscht den Eintrag samt Foto.",
-    "Handy, Inventarliste: Knopf „Alle übernommenen löschen“."
+    "Scan-Funktion entfernt: keine Scan-Kachel mehr am Board, keine Scan-Seite und keine Inventarliste am Handy, kein Mailversand (Gmail) mehr.",
+    "Neue Grundanordnung: Kalender, Notizen und Wetter oben, Leihgeräte, Monat und Störungen unten. Eigene Anordnungen mit der alten Scan-Kachel werden auf diese Grundanordnung gesetzt."
   ],
   "files": {
-    "changelog.json": "5bba512b6cf8cb9bbc54a13dee1691675cfa5b8c2207e7f9d326951df316577e",
+    "changelog.json": "8ead70c3197cf0b3a5bcd6007e48edff1eba2b83a279fbe40709f16f09ac7cd6",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
-    "mail.js": "29f1923f00a57552c5d04234ae9505a7c2ba313ae7b534ddfd9683dd18bc9025",
-    "public/board.html": "28466e31c2ccfb525f979c81aa036c998d3925425c96b14957ec62054e4f4b9d",
-    "public/m.html": "07155c97817395b0c20ee71a96f2f8bea23429f18031c4c9cdba77b3b1e66619",
+    "public/board.html": "da5958a501e32136e3b206b04f9e4e58cdf5345d1ff85c29321097e5c756e83e",
+    "public/m.html": "51f4c46130b9710c6f2995f6a028d81ec9139521416ab7042636a67b49fd3c78",
     "public/mascot.js": "0fddce41a0154a94e7d4cd67ae077905c0cec81994cdb98d626ff0fca0f9e89a",
-    "public/zxing.js": "f82cb14d1d3541b71ab7312abe7bd87a31aa620f2580544abe36e107c20225a0",
-    "server.js": "2abd7ea1a2dceced1ee141e4b6d539ad1760d3fed5c24102a194bce3810d956f",
+    "server.js": "2ca2a271d370b5f77903786ff76aeb08eb33693c8a6eed070d68a5badf04771d",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "47f0d2bee62e2c3aa7d7122db4485b0858b168c00848c091bd6721ccbc0ce87c"
+    "version.json": "a12d6631629a3cfb72ab8a397f5097868b997a6ad1b3449454ebfee875629eae"
   }
 }
