@@ -170,6 +170,13 @@ function sanitizeSettings(b) {
       alerts: m.alerts !== false, walk: isTime(m.walk) ? m.walk : '',
     };
   }
+  if ('layout' in b) {
+    // Kachel-Anordnung im 12x6-Raster: [Spalte, Zeile, Breite, Höhe], nur vollständig und ohne Überlappung
+    const keys = ['cal', 'scan', 'wx', 'loan', 'month', 'incident'], L = b.layout || {};
+    const ok = a => Array.isArray(a) && a.length === 4 && a.every(Number.isInteger) && a[0] >= 1 && a[1] >= 1 && a[2] >= 2 && a[3] >= 2 && a[0] + a[2] <= 13 && a[1] + a[3] <= 7;
+    const hit = (a, c) => a[0] < c[0] + c[2] && c[0] < a[0] + a[2] && a[1] < c[1] + c[3] && c[1] < a[1] + a[3];
+    s.layout = keys.every(k => ok(L[k])) && keys.every((k, i) => keys.slice(i + 1).every(j => !hit(L[k], L[j]))) ? Object.fromEntries(keys.map(k => [k, L[k]])) : null;
+  }
   if ('autoUpdate' in b) s.autoUpdate = oneOf(b.autoUpdate, ['sofort', 'nachts', 'aus'], 'sofort');
   return s;
 }

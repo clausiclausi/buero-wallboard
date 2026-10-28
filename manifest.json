@@ -1,21 +1,20 @@
 {
-  "version": "1.11.0",
-  "notes": "Frech schiebt jetzt auch eine Kachel ein Stück zur Seite, und getretene Kacheln hängen ein paar Sekunden schief, bevor sie zurückrutschen.",
+  "version": "1.12.0",
+  "notes": "Kacheln selbst anordnen (Einstellungen → Kacheln → „Kacheln anordnen“): Kachel ziehen verschiebt sie, auf eine andere Kachel ziehen tauscht die Plätze, die Ecke unten rechts ändert die Größe. Nachbarn machen dabei Platz.",
   "changes": [
-    "Frech schiebt jetzt auch eine Kachel ein Stück zur Seite, und getretene Kacheln hängen ein paar Sekunden schief, bevor sie zurückrutschen.",
-    "Zum Bürobeginn gähnt und streckt sich das Männchen und sagt „Guten Morgen!“. Montag bis Freitag fragt es kurz vor 10 Uhr „Wir gehen gleich spazieren?“ (Uhrzeit einstellbar, leer = aus).",
-    "10 und 5 Minuten vor Terminen und Erinnerungen klopft das Männchen an den Bildschirm und zeigt die Uhrzeit in einer Sprechblase (abschaltbar: „An Termine erinnern“). Kurz vor einem Termin läuft es nicht über die Kalender-Kachel.",
-    "Neue Test-Knöpfe: Schieben, Strecken, Spazieren, Klopfen."
+    "Kacheln selbst anordnen (Einstellungen → Kacheln → „Kacheln anordnen“): Kachel ziehen verschiebt sie, auf eine andere Kachel ziehen tauscht die Plätze, die Ecke unten rechts ändert die Größe. Nachbarn machen dabei Platz.",
+    "Schrift und Inhalt passen sich der Kachelgröße an, in kleinen Kacheln werden Nebensachen ausgeblendet.",
+    "Wetter Büro ist jetzt halb so hoch, Störungen dafür breiter. „Standard“ stellt diese Anordnung jederzeit wieder her."
   ],
   "files": {
-    "changelog.json": "f1878fb5c82664695468f335824d19fb088ce388a6493283959a8a39c3633f88",
+    "changelog.json": "29bb9493e2277704ade80f64b6836ea6be25a06e6ca1f77f5437c46c129f3391",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
     "mail.js": "29f1923f00a57552c5d04234ae9505a7c2ba313ae7b534ddfd9683dd18bc9025",
-    "public/board.html": "488c596a43fed5f5ce5da6be9d213a0b3d830864954c96b7562b45d20951425b",
+    "public/board.html": "231eca3e929024ce8e440c749d883a365a18f818953544567f245a7cec6a681c",
     "public/m.html": "e9d5c145986447fdda6d3938a971cb87cb2a6b2d010a537e435400b2a7e6dc66",
     "public/mascot.js": "b2a5324afaea6b70a75e43a6b9638811ece44ea1d0a055baf9e4803f1a957522",
-    "server.js": "55dc50b0890f0212850be73a8e907304cde7930048d1607a086029dfd3d5ad96",
+    "server.js": "c289f61a1b4bd785bcafc47fa8e09dd973a1ed946875ff5dbaac0217f8b64c1e",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "c738b62b81550aedb350cf0aebe2fc7c8e0c457a43bc1de0cb57a650cb82db0d"
+    "version.json": "bfe70763c09116e1402dd9dfaf4d898c5b790e3c28ada7d9bbd583a977875429"
   }
 }

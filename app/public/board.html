@@ -107,24 +107,46 @@ header .hl { grid-column: 1; } header .update-pill { grid-column: 2; } header .h
 
 /* Hauptraster */
 main {
-  display: grid; min-height: 0;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  display: grid; min-height: 0; position: relative;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: repeat(6, 1fr);
   gap: 18px;
 }
 .card {
-  background: var(--surface); border-radius: 24px; padding: 20px 24px;
-  display: flex; flex-direction: column; gap: 14px; min-height: 0; min-width: 0; overflow: hidden;
-  border: 1px solid var(--line);
+  background: var(--surface); border-radius: 24px; padding: calc(20px * var(--z, 1)) calc(24px * var(--z, 1));
+  display: flex; flex-direction: column; gap: calc(14px * var(--z, 1)); min-height: 0; min-width: 0; overflow: hidden;
+  border: 1px solid var(--line); container-type: size;
 }
+/* Inhalt wächst und schrumpft mit der Kachelgröße (--z setzt applyLayout) */
+.card > * { zoom: var(--z, 1); }
 .card h3 { margin: 0; font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); display: flex; align-items: center; gap: 12px; }
 .card h3 .badge { margin-left: auto; text-transform: none; letter-spacing: 0; font-size: 20px; padding: 4px 14px; border-radius: 999px; background: var(--surface-2); color: var(--text); }
-.cal { grid-column: 1; grid-row: 1; }
-.scan { grid-column: 2 / span 2; grid-row: 1; }
-.wx { grid-column: 4; grid-row: 1 / span 2; }
-.loan { grid-column: 1; grid-row: 2; }
-.month { grid-column: 2; grid-row: 2; gap: 10px; }
-.incident { grid-column: 3; grid-row: 2; }
+/* Standard-Anordnung im 12x6-Raster, eigene Anordnung überschreibt per style */
+.cal { grid-area: 1 / 1 / span 3 / span 3; }
+.scan { grid-area: 1 / 4 / span 3 / span 6; }
+.wx { grid-area: 1 / 10 / span 3 / span 3; }
+.loan { grid-area: 4 / 1 / span 3 / span 3; }
+.month { grid-area: 4 / 4 / span 3 / span 3; gap: calc(10px * var(--z, 1)); }
+.incident { grid-area: 4 / 7 / span 3 / span 6; }
+
+/* Kacheln anordnen */
+#stage.arranging .mascot { opacity: 0; }
+#stage.arranging main > .card { transition: none; }
+.arr { position: absolute; inset: 0; z-index: 7; touch-action: none; user-select: none; }
+.arr-cell { position: absolute; border: 2px dashed color-mix(in srgb, var(--text) 14%, transparent); border-radius: 14px; }
+.arr-box { position: absolute; border-radius: 24px; border: 3px solid var(--highlight); background: color-mix(in srgb, var(--highlight) 14%, transparent);
+  display: grid; place-items: center; cursor: grab; box-shadow: 0 10px 40px rgba(0,0,0,.35); }
+.arr-box.drag { cursor: grabbing; z-index: 2; background: color-mix(in srgb, var(--highlight) 26%, transparent); }
+.arr-box.bad { border-color: var(--crit); background: color-mix(in srgb, var(--crit) 22%, transparent); }
+.arr-box.swap { border-style: dashed; background: color-mix(in srgb, var(--highlight) 30%, transparent); }
+.arr-box b { font-size: 28px; font-weight: 700; padding: 10px 22px; border-radius: 14px; background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 12px; pointer-events: none; }
+.arr-box b small { font-size: 18px; color: var(--muted); font-weight: 600; font-family: var(--font-mono); }
+.arr-grip { position: absolute; right: -3px; bottom: -3px; width: 64px; height: 64px; border-radius: 24px 0 24px 0; background: var(--highlight); cursor: nwse-resize; display: grid; place-items: center; }
+.arr-grip::before { content: ""; width: 24px; height: 24px; border-right: 5px solid var(--bg); border-bottom: 5px solid var(--bg); border-radius: 0 0 6px 0; }
+.arr-bar { position: absolute; left: 50%; top: 22px; transform: translateX(-50%); z-index: 9; display: flex; align-items: center; gap: 14px; padding: 14px 16px 14px 26px;
+  border-radius: 20px; background: var(--surface); border: 2px solid var(--highlight); box-shadow: 0 16px 50px rgba(0,0,0,.45); font-size: 21px; white-space: nowrap; }
+.arr-bar span { color: var(--muted); margin-right: 8px; }
+.arr-bar span b { color: var(--text); }
 
 /* Kalender */
 .cal-day { font-size: 18px; font-weight: 700; color: var(--muted); margin-top: 2px; }
@@ -388,6 +410,12 @@ footer .sp { margin-left: auto; }
 .updating small { display: block; font-size: 22px; font-weight: 500; opacity: .8; margin-top: 10px; }
 .mobile-url { font-family: var(--font-mono); font-size: 22px; padding: 10px 14px; border-radius: 12px; background: var(--bg); }
 /* ===== Designs (Skins): Standard bleibt wie oben. Alle Farben kommen weiter aus dem Farb-Setup. ===== */
+/* Kleine Kacheln: Nebensachen ausblenden */
+@container (max-height: 600px) { .card.wx .hours, .card.wx .rain-times { display: none; } }
+@container (max-height: 420px) { .card.wx .storm:not(.warn) { display: none; } }
+@container (max-width: 760px) { .card .scan-row { grid-template-columns: 52px 1fr 1fr auto; } .card .scan-row .scan-when, .card .scan-foot { display: none; } }
+@container (max-width: 560px) { .card .scan-row { grid-template-columns: 52px 1fr auto; row-gap: 2px; } .card .scan-row .scan-ico { grid-row: 1 / span 2; } .card .scan-row .scan-note { grid-column: 2; grid-row: 2; } .card .scan-row .scan-btn { grid-column: 3; grid-row: 1 / span 2; } }
+
 html:not([data-skin="standard"]) {
   --ease: cubic-bezier(.16, 1, .3, 1);
   --spring: cubic-bezier(.34, 1.45, .64, 1);
@@ -606,18 +634,18 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   <section class="tasks" id="tasks" aria-label="Wichtige Aufgaben heute"></section>
 
   <main>
-    <section class="card cal">
+    <section class="card cal" data-k="cal" data-name="Kalender">
       <h3>Kalender <button class="mini-btn" id="addEv"><svg class="icon"><use href="#i-plus"/></svg>Termin</button></h3>
       <div class="cal-list" id="calendar"></div>
     </section>
 
-    <section class="card scan">
+    <section class="card scan" data-k="scan" data-name="Scan-Eingang">
       <h3><svg class="icon"><use href="#i-scan"/></svg>Scan-Eingang <span class="badge" id="scanBadge"></span></h3>
       <div class="scan-list" id="scans"></div>
       <div class="scan-foot"><svg class="icon"><use href="#i-shield"/></svg>Nur Gerätetyp, Inventarnummer und Ablageort. Seriennummer, Zustand und Foto sieht nur das Team auf dem Handy.</div>
     </section>
 
-    <section class="card wx">
+    <section class="card wx" data-k="wx" data-name="Wetter Büro">
       <h3>Wetter Büro</h3>
       <div class="wx-now">
         <div class="wx-temp" id="wxTemp">--°</div>
@@ -635,19 +663,19 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       <div class="storm" id="storm"><span class="shape ok"></span><span id="stormText">Unwetterwarnungen werden geladen</span></div>
     </section>
 
-    <section class="card loan">
+    <section class="card loan" data-k="loan" data-name="Leihgeräte">
       <h3>Leihgeräte <span class="badge" id="loanBadge"></span></h3>
       <div class="loan-list" id="loans"></div>
     </section>
 
-    <section class="card month" aria-label="Monatskalender">
+    <section class="card month" aria-label="Monatskalender" data-k="month" data-name="Monat">
       <h3><svg class="icon"><use href="#i-calendar"/></svg><span id="monthTitle"></span><span class="mnav"><button id="mPrev" title="Vorheriger Monat">‹</button><button id="mNext" title="Nächster Monat">›</button></span><span class="badge" id="monthKw"></span></h3>
       <div class="mgrid" id="mgrid"></div>
       <div class="vac-list" id="vacList"></div>
       <div class="month-foot" id="monthFoot"></div>
     </section>
 
-    <section class="card incident" id="incCard">
+    <section class="card incident" id="incCard" data-k="incident" data-name="Störungen">
       <h3>Störungen</h3>
       <div id="incBody" style="display:flex;flex-direction:column;gap:12px;flex:1"></div>
     </section>
@@ -749,6 +777,130 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     st.setProperty('--crit', light ? '#C8372B' : '#FF6F61');
     st.setProperty('--rain', light ? '#2F7FD1' : '#6FB7FF');
     mascot?.apply(settings().mascot, light);
+    applyLayout();
+  }
+
+
+  /* ---------- Kacheln anordnen: 12x6-Raster, Lage und Größe je Kachel [Spalte, Zeile, Breite, Höhe] ---------- */
+  const COLS = 12, ROWS = 6, MIN = 2;
+  const DEF_LAYOUT = { cal: [1, 1, 3, 3], scan: [4, 1, 6, 3], wx: [10, 1, 3, 3], loan: [1, 4, 3, 3], month: [4, 4, 3, 3], incident: [7, 4, 6, 3] };
+  // Größe, für die der Inhalt gestaltet ist; größere Kacheln zeigen größere Schrift, kleinere kleinere
+  const BASE = { cal: [3, 3], scan: [6, 3], wx: [3, 4], loan: [3, 3], month: [3, 3], incident: [3, 3] };
+  const tiles = () => [...stage.querySelectorAll('main > .card[data-k]')];
+  const fits = a => Array.isArray(a) && a.length === 4 && a.every(Number.isInteger) && a[0] >= 1 && a[1] >= 1 && a[2] >= MIN && a[3] >= MIN && a[0] + a[2] - 1 <= COLS && a[1] + a[3] - 1 <= ROWS;
+  const overlap = (a, b) => a[0] < b[0] + b[2] && b[0] < a[0] + a[2] && a[1] < b[1] + b[3] && b[1] < a[1] + a[3];
+  function validLayout(L) {
+    const ks = Object.keys(DEF_LAYOUT);
+    if (!L || !ks.every(k => fits(L[k]))) return false;
+    return ks.every((k, i) => ks.slice(i + 1).every(j => !overlap(L[k], L[j])));
+  }
+  const layout = () => { const L = settings().layout; return validLayout(L) ? L : DEF_LAYOUT; };
+  function placeTile(el, a) {
+    el.style.gridArea = `${a[1]} / ${a[0]} / span ${a[3]} / span ${a[2]}`;
+    const b = BASE[el.dataset.k] || [3, 3];
+    const z = Math.max(.7, Math.min(1.35, Math.min(a[2] / b[0], a[3] / b[1]) ** .5));
+    el.style.setProperty('--z', z.toFixed(3));
+  }
+  function applyLayout(L = layout()) { tiles().forEach(el => placeTile(el, L[el.dataset.k])); }
+
+  function arrange() {
+    if (stage.querySelector('.arr')) return;
+    const main = stage.querySelector('main');
+    const start = JSON.parse(JSON.stringify(layout()));
+    let L = JSON.parse(JSON.stringify(start));
+    const gap = 18, mw = main.clientWidth, mh = main.clientHeight;
+    const cw = (mw - gap * (COLS - 1)) / COLS, ch = (mh - gap * (ROWS - 1)) / ROWS;
+    const px = a => ({ left: (a[0] - 1) * (cw + gap), top: (a[1] - 1) * (ch + gap), width: a[2] * cw + (a[2] - 1) * gap, height: a[3] * ch + (a[3] - 1) * gap });
+    const put = (el, a) => Object.assign(el.style, Object.fromEntries(Object.entries(px(a)).map(([k, v]) => [k, v + 'px'])));
+    const scale = () => stage.getBoundingClientRect().width / 1920;
+    const cellAt = (x, y) => [Math.max(1, Math.min(COLS, Math.floor(x / (cw + gap)) + 1)), Math.max(1, Math.min(ROWS, Math.floor(y / (ch + gap)) + 1))];
+
+    const ov = h('<div class="arr"></div>');
+    for (let r = 1; r <= ROWS; r++) for (let c = 1; c <= COLS; c++) { const d = h('<div class="arr-cell"></div>'); put(d, [c, r, 1, 1]); ov.append(d); }
+    const boxes = {};
+    for (const el of tiles()) {
+      const k = el.dataset.k;
+      const b = h(`<div class="arr-box" data-k="${k}"><b>${esc(el.dataset.name || k)}<small></small></b><div class="arr-grip" title="Größe ändern"></div></div>`);
+      boxes[k] = b; ov.append(b);
+    }
+    const draw = () => { for (const [k, b] of Object.entries(boxes)) { put(b, L[k]); b.querySelector('small').textContent = `${L[k][2]}×${L[k][3]}`; } applyLayout(L); };
+    main.append(ov); draw();
+    stage.classList.add('arranging');
+
+    const bar = h(`<div class="arr-bar"><span><b>Ziehen</b> verschiebt, auf eine andere Kachel ziehen <b>tauscht</b>, die Ecke ändert die <b>Größe</b>.</span>
+      <button class="btn" id="arrDef">Standard</button><button class="btn" id="arrNo">Abbrechen</button><button class="btn primary" id="arrOk">Fertig</button></div>`);
+    stage.append(bar);
+    const end = (save) => {
+      ov.remove(); bar.remove(); stage.classList.remove('arranging');
+      if (save) setSettings({ layout: L }); else applyLayout();
+    };
+    bar.querySelector('#arrOk').onclick = () => end(true);
+    bar.querySelector('#arrNo').onclick = () => end(false);
+    bar.querySelector('#arrDef').onclick = () => { L = JSON.parse(JSON.stringify(DEF_LAYOUT)); draw(); };
+
+    let drag = null;
+    ov.addEventListener('pointerdown', (e) => {
+      const box = e.target.closest('.arr-box'); if (!box) return;
+      e.preventDefault();
+      const k = box.dataset.k, mr = main.getBoundingClientRect(), sc = scale();
+      drag = { k, box, resize: !!e.target.closest('.arr-grip'), orig: L[k].slice(), base: JSON.parse(JSON.stringify(L)), x0: e.clientX, y0: e.clientY, mr, sc, cand: null, swap: null };
+      box.classList.add('drag'); ov.setPointerCapture(e.pointerId);
+    });
+    ov.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const { k, box, orig, sc, mr } = drag;
+      const dx = (e.clientX - drag.x0) / sc, dy = (e.clientY - drag.y0) / sc;
+      const others = Object.keys(L).filter(j => j !== k);
+      Object.values(boxes).forEach(b => b.classList.remove('swap'));
+      let cand, bad = false, swap = null;
+      if (drag.resize) {
+        const w = Math.max(MIN, Math.min(COLS - orig[0] + 1, orig[2] + Math.round(dx / (cw + gap))));
+        const hh = Math.max(MIN, Math.min(ROWS - orig[1] + 1, orig[3] + Math.round(dy / (ch + gap))));
+        cand = [orig[0], orig[1], w, hh];
+        // Nachbarn rechts und unten machen Platz, solange sie mindestens 2x2 bleiben (immer vom Stand bei Ziehbeginn aus)
+        const base = drag.base, next = { ...base, [k]: cand };
+        for (const j of others) {
+          const o = base[j].slice();
+          if (!overlap(cand, o)) continue;
+          if (o[0] >= orig[0] + orig[2]) { const cut = cand[0] + cand[2] - o[0]; o[0] += cut; o[2] -= cut; }
+          else if (o[1] >= orig[1] + orig[3]) { const cut = cand[1] + cand[3] - o[1]; o[1] += cut; o[3] -= cut; }
+          if (o[2] < MIN || o[3] < MIN || overlap(cand, o)) { bad = true; break; }
+          next[j] = o;
+        }
+        if (!bad && !validLayout(next)) bad = true;
+        if (!bad) L = next;
+      } else {
+        // Zeiger über einer anderen Kachel: Plätze tauschen
+        const [pc, pr] = cellAt(e.clientX / sc - mr.left / sc, e.clientY / sc - mr.top / sc);
+        swap = others.find(j => overlap([pc, pr, 1, 1], L[j]));
+        const nc = Math.max(1, Math.min(COLS - orig[2] + 1, orig[0] + Math.round(dx / (cw + gap))));
+        const nr = Math.max(1, Math.min(ROWS - orig[3] + 1, orig[1] + Math.round(dy / (ch + gap))));
+        cand = [nc, nr, orig[2], orig[3]];
+        if (swap) boxes[swap].classList.add('swap');
+        else bad = others.some(j => overlap(cand, L[j]));
+      }
+      drag.cand = bad ? null : cand; drag.swap = swap;
+      box.classList.toggle('bad', bad && !swap);
+      if (drag.resize) draw();
+      else {
+        // Kasten folgt dem Finger, die Kachel springt nur auf freie Plätze
+        put(box, orig); box.style.transform = `translate(${dx}px, ${dy}px)`;
+      }
+    });
+    const drop = () => {
+      if (!drag) return;
+      const { k, box, orig, swap, cand, resize } = drag;
+      box.classList.remove('drag', 'bad'); box.style.transform = '';
+      Object.values(boxes).forEach(b => b.classList.remove('swap'));
+      if (!resize) {
+        if (swap) { const t = L[swap]; L = { ...L, [swap]: orig, [k]: t }; }
+        else if (cand) L = { ...L, [k]: cand };
+        if (!validLayout(L)) L[k] = orig;
+      }
+      drag = null; draw();
+    };
+    ov.addEventListener('pointerup', drop);
+    ov.addEventListener('pointercancel', drop);
   }
 
   /* ---------- Designs (Skins) und Bewegung ---------- */
@@ -1384,6 +1536,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       <h2>Einstellungen <button class="tool" id="sClose" title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
       <div><h4>Handy-Zugang</h4><div class="mobile-url">${esc(S.mobileUrl)}</div><p class="hint" style="margin-top:8px">Im Büro-WLAN am Handy öffnen. Die PIN steht in der Datei PIN.txt im Ordner C:\\Wallboard.</p></div>
       <div><h4>Design</h4><div class="skins" id="sSkins"></div></div>
+      <div><h4>Kacheln</h4><p class="hint" style="margin-bottom:10px">Kacheln verschieben, tauschen und größer oder kleiner ziehen. Die Schrift passt sich an.</p>
+        <div class="row"><button class="btn" id="sArrange">Kacheln anordnen</button></div></div>
       <div id="sMascot"><h4>AOK-Männchen</h4></div>
       <div><h4>Farb-Setup</h4><div class="presets" id="sPresets"></div></div>
       <div><h4>Farben einzeln anpassen</h4><div class="colors" id="sColors"></div></div>
@@ -1495,6 +1649,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     const close = () => scrim.remove();
     scrim.onclick = (e) => { if (e.target === scrim) close(); };
     scrim.querySelector('#sClose').onclick = close;
+    scrim.querySelector('#sArrange').onclick = () => { close(); arrange(); };
     const sw = scrim.querySelector('#sSound');
     sw.onclick = () => { setSettings({ muted: !settings().muted }); sw.setAttribute('aria-checked', !settings().muted); };
     const vs = scrim.querySelector('#sVisitor');
