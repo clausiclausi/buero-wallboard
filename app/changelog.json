@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.25.0",
+    "date": "2026-10-29",
+    "changes": [
+      "Regenradar: Nahansicht mit schärferer Straßenkarte, jetzt bis 16-fach hineinzoomen. Fehlende Radarbilder beim DWD werden automatisch neu geholt.",
+      "Regenradar: ein Knopf oben rechts, „❚❚ Pause“ hält an, „▶ Abspielen“ läuft weiter. Mit ‹ › blättert ihr Bild für Bild.",
+      "Schließen: Das Board bleibt nur bis zum nächsten Neustart des Notebooks zu. Startet es jemand vorher von Hand, bleibt es offen.",
+      "Designs: Beim Neon-Design läuft kein Strich mehr durchs Bild. Neu sind Aurora, Ozean, Sonnenaufgang, Papier und Pop, jeweils mit passenden Farben und eigenen Animationen."
+    ]
+  },
+  {
     "version": "1.24.0",
     "date": "2026-10-29",
     "changes": [

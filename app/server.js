@@ -169,7 +169,7 @@ function sanitizeSettings(b) {
   if (Array.isArray(b.rainHours)) s.rainHours = [...new Set(b.rainHours.map(Number).filter(h => h >= 0 && h <= 23.5 && Number.isInteger(h * 2)))].slice(0, 12); // auch halbe Stunden, z. B. 16.5
   if (isTime(b.officeStart)) s.officeStart = b.officeStart;
   if (isTime(b.officeEnd)) s.officeEnd = b.officeEnd;
-  if ('skin' in b) s.skin = oneOf(b.skin, ['standard', 'glas', 'neon', 'klar', 'fluid'], 'standard');
+  if ('skin' in b) s.skin = oneOf(b.skin, ['standard', 'glas', 'neon', 'klar', 'fluid', 'aurora', 'ozean', 'sonne', 'papier', 'pop'], 'standard');
   if (b.mascot && typeof b.mascot === 'object') {
     const m = b.mascot, hex = v => /^#[0-9a-fA-F]{6}$/.test(v || '') ? v : '';
     s.mascot = {
@@ -195,7 +195,7 @@ function sanitizeSettings(b) {
   }
   // Richtung der Abfahrten: Steig (z. B. SB1) oder einzelnes Fahrtziel, null = alle
   if ('transitDir' in b) s.transitDir = typeof b.transitDir === 'string' && b.transitDir.trim() ? clean(b.transitDir, 60) : null;
-  if (b.radar && typeof b.radar === 'object') s.radar = { zoom: oneOf(+b.radar.zoom, [1, 1.5, 2, 3, 4, 6, 8], 1), play: b.radar.play !== false };
+  if (b.radar && typeof b.radar === 'object') s.radar = { zoom: oneOf(+b.radar.zoom, [1, 1.5, 2, 3, 4, 6, 8, 12, 16], 1), play: b.radar.play !== false };
   if ('route' in b) {
     const r = b.route;
     // Ziele können Straßen sein, deren Kennung Leerzeichen und Klammern enthält

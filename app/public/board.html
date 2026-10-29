@@ -252,7 +252,8 @@ main > .card.off { display: none; }
 .card.wx .hours { height: 56px; }
 .radar-mode { position: absolute; right: 8px; top: 8px; display: flex; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
 .radar-mode button { font: 700 15px/1 system-ui, sans-serif; padding: 0 12px; height: 40px; border: 0; background: rgba(255,255,255,.9); color: #24302b; cursor: pointer; white-space: nowrap; }
-.radar-mode button[aria-pressed="true"] { background: #2f6fd6; color: #fff; }
+.radar-mode button { min-width: 128px; }
+.radar-mode button.paused { background: #2f6fd6; color: #fff; }
 .radar-zl { position: absolute; left: 8px; top: 54px; font: 700 13px/1 var(--font-mono); color: #24302b; background: rgba(255,255,255,.85); padding: 4px 6px; border-radius: 6px; }
 .radar-wrap { position: relative; border-radius: 16px; overflow: hidden; flex: 1; min-height: 0; background: #e8eaea; }
 .radar-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -561,10 +562,6 @@ html[data-skin="neon"] #stage {
   background-image: linear-gradient(color-mix(in srgb, var(--highlight) 5%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--highlight) 5%, transparent) 1px, transparent 1px);
   background-size: 48px 48px;
 }
-html[data-skin="neon"] #stage::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 140px; z-index: 4; pointer-events: none;
-  background: linear-gradient(transparent, color-mix(in srgb, var(--highlight) 6%, transparent) 60%, color-mix(in srgb, var(--highlight) 14%, transparent) 62%, transparent 64%);
-  animation: neon-scan 10s linear infinite; }
-@keyframes neon-scan { from { transform: translateY(-160px); } to { transform: translateY(1100px); } }
 html[data-skin="neon"] .card {
   border-radius: 4px; border: 1px solid var(--edge);
   background:
@@ -629,6 +626,116 @@ html[data-skin="klar"] #stage.intro :is(header, .task, .add-task, .tasks-label) 
 html[data-skin="klar"] .clock { overflow: hidden; }
 html[data-skin="klar"] .clock.tick { animation: klar-roll .6s var(--ease); }
 @keyframes klar-roll { from { transform: translateY(45%); opacity: 0; } }
+
+/* --- Aurora: Polarlicht. Langsam wandernde Farbschleier hinter mattem Glas --- */
+html[data-skin="aurora"] { --font-body: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; }
+html[data-skin="aurora"] #stage { background: var(--bg); }
+html[data-skin="aurora"] #stage::before { content: ""; position: absolute; inset: -20% -10%; z-index: -1; pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 18%, color-mix(in srgb, #2EE6A6 34%, transparent) 32%, transparent 46%),
+    linear-gradient(100deg, transparent 38%, color-mix(in srgb, #7B61FF 36%, transparent) 52%, transparent 66%),
+    linear-gradient(125deg, transparent 58%, color-mix(in srgb, #22C3E6 28%, transparent) 70%, transparent 82%);
+  filter: blur(70px); opacity: .75; animation: aurora-flow 26s ease-in-out infinite alternate; }
+@keyframes aurora-flow { 0% { transform: translateX(-6%) skewY(-4deg); } 50% { transform: translateX(4%) skewY(3deg) scaleY(1.1); } 100% { transform: translateX(8%) skewY(-2deg); } }
+html[data-skin="aurora"] :is(.card, .task:not(.empty), .overall, .tool, .update-pill) {
+  background: color-mix(in srgb, var(--surface) 62%, transparent);
+  -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
+  border: 1px solid color-mix(in srgb, var(--highlight) 22%, transparent); }
+html[data-skin="aurora"] .card { border-radius: 26px; }
+html[data-skin="aurora"] .task { border-radius: 22px; }
+html[data-skin="aurora"] .card h3 { color: color-mix(in srgb, var(--highlight) 70%, var(--text)); }
+html[data-skin="aurora"] .clock { font-weight: 300; font-size: 88px; letter-spacing: -2px;
+  background: linear-gradient(90deg, #8FF5D2, #B4A6FF, #8FE3F5); -webkit-background-clip: text; background-clip: text; color: transparent; }
+html[data-skin="aurora"] .mgrid .d.today { border-radius: 12px; background: linear-gradient(135deg, #2EE6A6, #7B61FF); color: #fff; }
+html[data-skin="aurora"] :is(.btn, .inc-btn, .mini-btn, .seg button, .choice > button) { border-radius: 14px; }
+html[data-skin="aurora"] :is(button, .task):hover { transform: translateY(-2px); }
+html[data-skin="aurora"] .is-pressed { transform: scale(.95); }
+html[data-skin="aurora"] #stage.intro :is(header, .task, .add-task, .tasks-label, .card) { animation: aurora-in 1.1s var(--ease) both; animation-delay: calc(var(--i, 0) * 70ms); }
+@keyframes aurora-in { from { opacity: 0; transform: translateY(20px); filter: hue-rotate(60deg) blur(8px); } }
+html[data-skin="aurora"] .clock.tick { animation: aurora-tick 1s var(--ease); }
+@keyframes aurora-tick { from { filter: hue-rotate(90deg); opacity: .4; } }
+
+/* --- Papier: hell und ruhig wie eine Zeitung. Serifenschrift, feine Linien, Stempel-Schatten --- */
+html[data-skin="papier"] { --font-body: "Georgia", "Cambria", "Times New Roman", serif; }
+html[data-skin="papier"] #stage { background-color: var(--bg);
+  background-image: radial-gradient(color-mix(in srgb, var(--text) 5%, transparent) 1px, transparent 1px); background-size: 22px 22px; }
+html[data-skin="papier"] .card { border-radius: 4px; border: 1.5px solid var(--text); box-shadow: 6px 6px 0 color-mix(in srgb, var(--text) 14%, transparent); }
+html[data-skin="papier"] .task:not(.empty) { border-radius: 4px; border: 1.5px solid var(--text); }
+html[data-skin="papier"] .card h3 { font-family: var(--font-body); font-style: italic; text-transform: none; letter-spacing: 0; font-size: 26px; color: var(--text); border-bottom: 1px solid var(--text); padding-bottom: 6px; }
+html[data-skin="papier"] .clock { font-family: var(--font-body); font-weight: 700; letter-spacing: -1px; }
+html[data-skin="papier"] :is(.btn, .inc-btn, .mini-btn, .tool, .seg button, .choice > button, .overall, .update-pill) { border-radius: 4px; border: 1.5px solid var(--text); }
+html[data-skin="papier"] .mgrid .d.today { border-radius: 50%; background: var(--highlight); color: var(--surface); }
+html[data-skin="papier"] :is(button, .task):hover { transform: translate(-2px, -2px); }
+html[data-skin="papier"] .is-pressed { transform: translate(2px, 2px); }
+html[data-skin="papier"] #stage.intro :is(header, .task, .add-task, .tasks-label, .card) { animation: papier-in .8s var(--ease) both; animation-delay: calc(var(--i, 0) * 60ms); }
+@keyframes papier-in { from { opacity: 0; transform: rotate(-1.5deg) translateY(14px); } }
+html[data-skin="papier"] .clock.tick { animation: papier-tick .5s steps(3, end); }
+@keyframes papier-tick { from { opacity: .3; } }
+
+/* --- Ozean: tiefes Blau, runde Formen, ruhige Wellen am unteren Rand --- */
+html[data-skin="ozean"] { --font-body: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; }
+html[data-skin="ozean"] #stage { background: linear-gradient(180deg, var(--bg), color-mix(in srgb, var(--bg) 70%, #0A6FA8 30%)); }
+html[data-skin="ozean"] #stage::before { content: ""; position: absolute; left: -50%; right: -50%; bottom: -10px; height: 170px; z-index: -1; pointer-events: none; opacity: .35;
+  background: radial-gradient(60px 26px at 60px 0, transparent 98%, color-mix(in srgb, #3FB6E8 60%, transparent) 100%) 0 30px / 120px 60px repeat-x,
+              linear-gradient(transparent 56px, color-mix(in srgb, #3FB6E8 45%, transparent) 56px);
+  animation: ozean-wave 14s linear infinite; }
+html[data-skin="ozean"] #stage::after { content: ""; position: absolute; left: -50%; right: -50%; bottom: -30px; height: 150px; z-index: -1; pointer-events: none; opacity: .25;
+  background: radial-gradient(80px 30px at 80px 0, transparent 98%, color-mix(in srgb, #7FD8F7 60%, transparent) 100%) 0 30px / 160px 60px repeat-x,
+              linear-gradient(transparent 56px, color-mix(in srgb, #7FD8F7 40%, transparent) 56px);
+  animation: ozean-wave 22s linear infinite reverse; }
+@keyframes ozean-wave { from { transform: translateX(0); } to { transform: translateX(480px); } }
+html[data-skin="ozean"] :is(.card, .task:not(.empty), .overall, .tool, .update-pill) { background: color-mix(in srgb, var(--surface) 78%, transparent); border: 1px solid color-mix(in srgb, #7FD8F7 18%, transparent); }
+html[data-skin="ozean"] .card { border-radius: 34px; }
+html[data-skin="ozean"] .task, html[data-skin="ozean"] .add-task { border-radius: 28px; }
+html[data-skin="ozean"] .tool { border-radius: 50%; }
+html[data-skin="ozean"] .card h3 { color: #8FDDF8; }
+html[data-skin="ozean"] .mgrid .d.today { border-radius: 999px; background: #3FB6E8; color: #04263A; }
+html[data-skin="ozean"] :is(.btn, .inc-btn, .mini-btn, .seg button, .choice > button) { border-radius: 999px; }
+html[data-skin="ozean"] :is(button, .task):hover { transform: translateY(-3px); }
+html[data-skin="ozean"] .is-pressed { transform: scale(.94); }
+html[data-skin="ozean"] #stage.intro :is(header, .task, .add-task, .tasks-label, .card) { animation: ozean-in 1.2s var(--spring) both; animation-delay: calc(var(--i, 0) * 70ms); }
+@keyframes ozean-in { from { opacity: 0; transform: translateY(60px); } }
+html[data-skin="ozean"] .clock.tick { animation: ozean-tick .9s var(--spring); }
+@keyframes ozean-tick { from { transform: translateY(12px); opacity: .4; } }
+
+/* --- Pop: kräftige Farben, dicke Ränder, versetzte Schatten, alles hüpft ein wenig --- */
+html[data-skin="pop"] { --font-body: "Segoe UI Black", "Arial Black", "Segoe UI", system-ui, sans-serif; }
+html[data-skin="pop"] #stage { background-color: var(--bg);
+  background-image: radial-gradient(color-mix(in srgb, var(--text) 10%, transparent) 2px, transparent 2px); background-size: 34px 34px; }
+html[data-skin="pop"] .card { border-radius: 18px; border: 3px solid var(--text); box-shadow: 8px 8px 0 var(--text); }
+html[data-skin="pop"] .card:nth-of-type(4n+1) { background: #FFE98A; } html[data-skin="pop"] .card:nth-of-type(4n+2) { background: #A8E6FF; }
+html[data-skin="pop"] .card:nth-of-type(4n+3) { background: #FFC2D6; } html[data-skin="pop"] .card:nth-of-type(4n+4) { background: #B9F5C8; }
+html[data-skin="pop"] :is(.task:not(.empty), .overall, .tool, .update-pill, .btn, .inc-btn, .mini-btn, .seg button, .choice > button) { border: 3px solid var(--text); border-radius: 14px; box-shadow: 4px 4px 0 var(--text); }
+html[data-skin="pop"] .card h3 { color: var(--text); font-weight: 900; letter-spacing: 1px; }
+html[data-skin="pop"] .clock { font-weight: 900; letter-spacing: -2px; text-shadow: 4px 4px 0 #FF5FA2; }
+html[data-skin="pop"] .mgrid .d.today { border-radius: 10px; background: #FF5FA2; color: #fff; border: 2px solid var(--text); }
+html[data-skin="pop"] :is(button, .task):hover { transform: translate(-2px, -2px) rotate(-1deg); }
+html[data-skin="pop"] .is-pressed { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--text) !important; }
+html[data-skin="pop"] #stage.intro :is(header, .task, .add-task, .tasks-label, .card) { animation: pop-in .7s var(--spring) both; animation-delay: calc(var(--i, 0) * 60ms); }
+@keyframes pop-in { from { opacity: 0; transform: scale(.6) rotate(-4deg); } }
+html[data-skin="pop"] .clock.tick { animation: pop-tick .45s var(--spring); }
+@keyframes pop-tick { 50% { transform: scale(1.08) rotate(-2deg); } }
+
+/* --- Sonnenaufgang: warme Verläufe von Pfirsich bis Rosé, die Sonne „atmet“ langsam --- */
+html[data-skin="sonne"] { --font-body: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; }
+html[data-skin="sonne"] #stage { background: linear-gradient(160deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 70%, #FFB38A 30%) 60%, color-mix(in srgb, var(--bg) 65%, #F48FB1 35%) 100%); }
+html[data-skin="sonne"] #stage::before { content: ""; position: absolute; width: 900px; height: 900px; right: -260px; top: -420px; z-index: -1; pointer-events: none; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, #FFD27A 70%, transparent), color-mix(in srgb, #FF9E7A 30%, transparent) 45%, transparent 70%);
+  animation: sonne-breathe 12s ease-in-out infinite alternate; }
+@keyframes sonne-breathe { from { transform: scale(.92); opacity: .7; } to { transform: scale(1.06); opacity: 1; } }
+html[data-skin="sonne"] :is(.card, .task:not(.empty), .overall, .tool, .update-pill) { background: color-mix(in srgb, var(--surface) 76%, transparent); border: 1px solid color-mix(in srgb, #E8875F 22%, transparent); box-shadow: 0 10px 30px color-mix(in srgb, #C8643C 14%, transparent); }
+html[data-skin="sonne"] .card { border-radius: 28px; }
+html[data-skin="sonne"] .task { border-radius: 22px; }
+html[data-skin="sonne"] .card h3 { color: #C05A35; }
+html[data-skin="sonne"] .clock { font-weight: 600; color: #3A2219; }
+html[data-skin="sonne"] .mgrid .d.today { border-radius: 999px; background: linear-gradient(135deg, #FF9E7A, #F06292); color: #fff; }
+html[data-skin="sonne"] :is(.btn, .inc-btn, .mini-btn, .seg button, .choice > button) { border-radius: 999px; }
+html[data-skin="sonne"] :is(button, .task):hover { transform: translateY(-2px); }
+html[data-skin="sonne"] .is-pressed { transform: scale(.95); }
+html[data-skin="sonne"] #stage.intro :is(header, .task, .add-task, .tasks-label, .card) { animation: sonne-in 1.1s var(--ease) both; animation-delay: calc(var(--i, 0) * 70ms); }
+@keyframes sonne-in { from { opacity: 0; transform: translateY(-16px); filter: saturate(0) blur(6px); } }
+html[data-skin="sonne"] .clock.tick { animation: sonne-tick .9s var(--ease); }
+@keyframes sonne-tick { from { color: #FF9E7A; } }
 
 /* --- Fluid: weiche, langsam fließende Farbflächen, runde Formen, Tasten mit Gummi-Effekt --- */
 html[data-skin="fluid"] #stage::before { content: ""; position: absolute; inset: -18%; z-index: -1; pointer-events: none;
@@ -725,10 +832,11 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       <h3>Wetter Büro<span class="wx-now"><span class="wx-desc" id="wxDesc">Wetter wird geladen</span><span class="wx-temp" id="wxTemp">--°</span></span></h3>
       <div class="radar-wrap" id="radarWrap">
         <div class="radar-zoom" id="radarZoom"><img id="radarMap" alt="" hidden></div>
+        <div class="radar-zoom" id="radarZoomNah" hidden><img id="radarMapNah" alt=""></div>
         <svg class="radar-pin" viewBox="0 0 22 30" aria-hidden="true"><path d="M11 29C11 29 2 17.5 2 11a9 9 0 0 1 18 0c0 6.5-9 18-9 18z" fill="#e2453c" stroke="#fff" stroke-width="2"/><circle cx="11" cy="11" r="3.5" fill="#fff"/></svg>
         <div class="radar-btns"><button type="button" class="radar-btn" id="radarIn" title="Hineinzoomen">+</button><button type="button" class="radar-btn" id="radarOut" title="Herauszoomen">−</button></div>
         <span class="radar-zl" id="radarZl">1×</span>
-        <div class="radar-mode" role="group" aria-label="Radar abspielen"><button type="button" data-m="auto" id="radarAuto">▶ Abspielen</button><button type="button" data-m="hand" id="radarHand">Selbst tippen</button></div>
+        <div class="radar-mode"><button type="button" id="radarPlay" title="Abspielen oder anhalten">❚❚ Pause</button></div>
         <div class="radar-bar"><button type="button" class="radar-btn" id="radarPrev" title="Früher">‹</button><span class="radar-tag" id="radarTime">--:--</span><div class="radar-track" id="radarTrack"><span class="knob" id="radarKnob"></span></div><button type="button" class="radar-btn" id="radarNext" title="Später">›</button></div>
         <span class="radar-src">Radar © DWD · Karte © BKG</span>
         <div class="radar-msg" id="radarMsg" hidden></div>
@@ -858,7 +966,12 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     graphit: { name: 'Graphit',     bg: '#141617', surface: '#1D2022', 'surface-2': '#272B2E', text: '#F4F4F2', muted: '#A3A8A6', highlight: '#FFFFFF' },
     salbei:  { name: 'Salbei hell', bg: '#E4ECE6', surface: '#F6F9F7', 'surface-2': '#D5E2D9', text: '#10261C', muted: '#4F6A5C', highlight: '#10261C' },
     weiss:   { name: 'Weiß',        bg: '#ECECF1', surface: '#FFFFFF', 'surface-2': '#E2E2E8', text: '#1D1D1F', muted: '#6E6E73', highlight: '#0071E3' },
-    schwarz: { name: 'Schwarz Cyan', bg: '#05070A', surface: '#0C1117', 'surface-2': '#14202B', text: '#E8F4FF', muted: '#7D93A8', highlight: '#3CD7FF' }
+    schwarz: { name: 'Schwarz Cyan', bg: '#05070A', surface: '#0C1117', 'surface-2': '#14202B', text: '#E8F4FF', muted: '#7D93A8', highlight: '#3CD7FF' },
+    polar:   { name: 'Polarnacht',  bg: '#070B1A', surface: '#101733', 'surface-2': '#18214A', text: '#EEF2FF', muted: '#9AA6C8', highlight: '#8FF5D2' },
+    ozean:   { name: 'Tiefsee',     bg: '#04263A', surface: '#0A3550', 'surface-2': '#0F4465', text: '#EAF8FF', muted: '#93BCD2', highlight: '#7FD8F7' },
+    sonne:   { name: 'Pfirsich',    bg: '#FFF1E6', surface: '#FFF9F4', 'surface-2': '#FFE3D3', text: '#3A2219', muted: '#7E5546', highlight: '#D9663C' },
+    papier:  { name: 'Papier',      bg: '#F3EEE3', surface: '#FBF8F1', 'surface-2': '#E8E0CF', text: '#1F1B16', muted: '#5F574B', highlight: '#B23A2B' },
+    pop:     { name: 'Bonbon',      bg: '#FFF6E0', surface: '#FFFFFF', 'surface-2': '#FFEFC2', text: '#1A1A1A', muted: '#444444', highlight: '#E0457F' }
   };
   const themeColors = () => { const t = settings().theme || {}; return Object.assign({}, PRESETS.wald, PRESETS[t.preset] || {}, t.colors || {}); };
   function luminance(hex) { const n = parseInt(hex.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; }
@@ -1056,9 +1169,14 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   const SKINS = {
     standard: { name: 'Standard', desc: 'Das bisherige Board, ruhig und ohne Effekte.' },
     glas:     { name: 'Glas', desc: 'Im Stil von Apple: Milchglas, weiche Tiefe, federnde Tasten.', colors: 'weiss' },
-    neon:     { name: 'Neon', desc: 'Futuristisch: Leuchtlinien, Raster, Scanner und Lichtimpuls beim Antippen.', colors: 'schwarz' },
+    neon:     { name: 'Neon', desc: 'Futuristisch: Leuchtlinien, Raster und Lichtimpuls beim Antippen.', colors: 'schwarz' },
     klar:     { name: 'Klar', desc: 'Modern und ruhig: Linien statt Kacheln, große Schrift, präzise Bewegungen.', colors: 'graphit' },
-    fluid:    { name: 'Fluid', desc: 'Weiche, langsam fließende Farbflächen, runde Formen, Gummi-Effekt.', colors: 'nacht' }
+    fluid:    { name: 'Fluid', desc: 'Weiche, langsam fließende Farbflächen, runde Formen, Gummi-Effekt.', colors: 'nacht' },
+    aurora:   { name: 'Aurora', desc: 'Polarlicht: grüne und violette Schleier ziehen langsam hinter mattem Glas vorbei.', colors: 'polar' },
+    ozean:    { name: 'Ozean', desc: 'Tiefes Blau, runde Formen und ruhige Wellen am unteren Rand.', colors: 'ozean' },
+    sonne:    { name: 'Sonnenaufgang', desc: 'Hell und warm: Pfirsich bis Rosé, oben rechts atmet eine Sonne.', colors: 'sonne' },
+    papier:   { name: 'Papier', desc: 'Wie eine Zeitung: Serifenschrift, feine Linien, Stempel-Schatten.', colors: 'papier' },
+    pop:      { name: 'Pop', desc: 'Kräftige Farben, dicke Ränder, versetzte Schatten. Alles hüpft ein bisschen.', colors: 'pop' }
   };
   const skin = () => SKINS[settings().skin] ? settings().skin : 'standard';
   const moving = () => skin() !== 'standard' && !matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1515,17 +1633,24 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 
   /* Regenradar wie in der WetterOnline-App: hellgraue Karte, echtes DWD-Radar, Zeitleiste.
      Die Bilder kommen vom Notebook selbst, das Board spricht mit keinem fremden Dienst. */
-  let frameIdx = 0, frameEls = [];
+  let frameIdx = 0, frameEls = [], nahEls = [];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   function buildRadar() {
     const wrap = $('#radarZoom'), map = $('#radarMap'), v = R.updated || 0;
-    frameEls.forEach(el => el.remove()); frameEls = [];
+    frameEls.forEach(el => el.remove()); frameEls = []; nahEls.forEach(el => el.remove()); nahEls = [];
     if (R.map) { if (!map.src.includes('karte.png')) map.src = '/api/radar/karte.png'; map.hidden = false; }
+    if (R.near && !$('#radarMapNah').src.includes('karte.png')) $('#radarMapNah').src = '/api/radar/nah/karte.png';
     (R.frames || []).forEach((f, i) => {
       const img = document.createElement('img');
       img.className = 'rf'; img.alt = ''; img.src = `/api/radar/bild/${i}.png?v=${v}`;
       wrap.append(img); frameEls.push(img);
+      if (R.near) {
+        const n = document.createElement('img');
+        n.className = 'rf'; n.alt = ''; n.src = `/api/radar/nah/bild/${i}.png?v=${v}`;
+        $('#radarZoomNah').append(n); nahEls.push(n);
+      }
     });
+    applyRadarCfg();
     const track = $('#radarTrack'), fr = R.frames || [];
     track.querySelector('.now')?.remove();
     const nowIdx = fr.filter(f => f.kind === 'past').length - 1;
@@ -1540,26 +1665,31 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     }
     msg.hidden = true;
     frameEls.forEach((el, i) => el.classList.toggle('on', i === frameIdx));
+    nahEls.forEach((el, i) => el.classList.toggle('on', i === frameIdx));
     const f = fr[frameIdx], d = new Date(f.t), diff = Math.round((d - Date.now()) / 60000);
     $('#radarTime').textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}${f.kind === 'fc' && diff > 0 ? ` · in ${diff} min` : ''}`;
     $('#radarKnob').style.left = `${fr.length > 1 ? frameIdx / (fr.length - 1) * 100 : 100}%`;
   }
   // Zoom und Abspielen, gemerkt in den Einstellungen
-  const ZOOMS = [1, 1.5, 2, 3, 4, 6, 8];
+  const ZOOMS = [1, 1.5, 2, 3, 4, 6, 8, 12, 16];
   const radarCfg = () => Object.assign({ zoom: 1, play: true }, settings().radar || {});
   function applyRadarCfg() {
     const c = radarCfg(), i = ZOOMS.indexOf(c.zoom);
-    $('#radarZoom').style.transform = `scale(${c.zoom})`;
+    // Ab vierfach die schärfere Nahansicht (ein Viertel des Ausschnitts), sonst die weite Karte
+    const nah = c.zoom >= 4 && R.ok && R.near;
+    $('#radarZoom').hidden = nah; $('#radarZoomNah').hidden = !nah;
+    $('#radarZoom').style.transform = `scale(${nah ? 1 : c.zoom})`;
+    $('#radarZoomNah').style.transform = `scale(${c.zoom / 4})`;
     $('#radarIn').disabled = i >= ZOOMS.length - 1; $('#radarOut').disabled = i <= 0;
     const auto = c.play && !reduced;
-    $('#radarAuto').setAttribute('aria-pressed', auto); $('#radarHand').setAttribute('aria-pressed', !auto);
+    // Läuft es, zeigt der Knopf „Pause“; steht es, „Abspielen“ (dann mit ‹ › selbst blättern)
+    $('#radarPlay').textContent = auto ? '❚❚ Pause' : '▶ Abspielen'; $('#radarPlay').classList.toggle('paused', !auto);
     $('#radarZl').textContent = `${String(c.zoom).replace('.', ',')}×`;
   }
   const setRadar = (patch) => { setSettings({ radar: Object.assign(radarCfg(), patch) }); applyRadarCfg(); };
   $('#radarIn').onclick = () => { const i = ZOOMS.indexOf(radarCfg().zoom); setRadar({ zoom: ZOOMS[Math.min(ZOOMS.length - 1, i + 1)] }); };
   $('#radarOut').onclick = () => { const i = ZOOMS.indexOf(radarCfg().zoom); setRadar({ zoom: ZOOMS[Math.max(0, i - 1)] }); };
-  $('#radarAuto').onclick = () => setRadar({ play: true });
-  $('#radarHand').onclick = () => setRadar({ play: false });
+  $('#radarPlay').onclick = () => setRadar({ play: !radarCfg().play });
   // Bild für Bild weiter: schaltet auf „Selbst tippen“
   const step = d => { const n = R.frames?.length || 0; if (n < 2) return; frameIdx = (frameIdx + d + n) % n; if (radarCfg().play) setRadar({ play: false }); drawRadar(); };
   $('#radarPrev').onclick = () => step(-1);
@@ -2225,7 +2355,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <div class="times" id="xTimes" hidden>
           <button data-min="15">15 Min.</button><button data-min="30">30 Min.</button><button data-min="60">1 Std.</button><button data-min="120">2 Std.</button><button data-min="morning">bis ${esc(st.officeStart)}</button>
         </div>
-        <button data-mode="off"><svg class="icon"><use href="#i-power"/></svg><span>Dauerhaft schließen<small>Bleibt zu, bis jemand „Wallboard anzeigen“ auf dem Desktop oder die Handy-Seite nutzt.</small></span></button>
+        <button data-mode="off"><svg class="icon"><use href="#i-power"/></svg><span>Schließen<small>Bleibt zu bis zum nächsten Neustart des Notebooks. Früher wieder öffnen: „Wallboard anzeigen“ auf dem Desktop oder die Handy-Seite.</small></span></button>
       </div>
       <p class="hint" id="xErr" style="color:var(--crit)"></p>
     </div></div>`);

@@ -6,6 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
+const os = require('os');
 
 // Hinweis: hier kein Dollar-geschweifte-Klammer und keine Backticks verwenden (JS-Template)
 const WATCHDOG = String.raw`# Büro-Wallboard: Wächter für die Vollbild-Anzeige (wird vom Wallboard-Server erzeugt, nicht von Hand ändern)
@@ -45,8 +46,12 @@ while ($true) {
   try { $s = Get-Content (Join-Path $data 'anzeige.json') -Raw | ConvertFrom-Json; $want = [string]$s.mode; $id = [string]$s.id } catch {}
   if (Test-Path (Join-Path $data 'pause-anzeige')) { $want = 'off'; $id = 'datei' }
   $running = @(Get-BoardProcs).Count -gt 0
-  if ($want -eq 'pause' -or $want -eq 'off') {
+  if ($want -eq 'pause') {
     if ($running) { Stop-Board }
+  } elseif ($want -eq 'off') {
+    # Dauerhaft schließen: einmal beenden. Startet es danach jemand von Hand, bleibt es offen.
+    if ($running -and $done -ne $id) { Stop-Board }
+    $done = $id
   } elseif ($want -eq 'minimize') {
     if ($running -and $done -ne $id) {
       foreach ($w in Get-BoardWindows) { [WbWin]::ShowWindow($w, 6) | Out-Null }
@@ -74,6 +79,9 @@ module.exports = function createDisplay({ ROOT, DATA, config, log, broadcast, of
   let state = { mode: 'show', until: 0, id: '0' };
   try { state = Object.assign(state, JSON.parse(fs.readFileSync(FILE, 'utf8'))); } catch {}
   if (!MODES.includes(state.mode)) state.mode = 'show';
+  // „Dauerhaft schließen“ gilt nur bis zum nächsten Neustart des Notebooks
+  const BOOT = Math.round(Date.now() / 1000 - os.uptime()); // Startzeit des Notebooks in Sekunden
+  if (state.mode === 'off' && !(Math.abs((+state.boot || 0) - BOOT) < 300)) { state = { mode: 'show', until: 0, id: String(Date.now()) }; write(); }
 
   // Nächster Bürobeginn (Mo–Fr) als Zeitpunkt
   function nextMorning() {
@@ -104,7 +112,7 @@ module.exports = function createDisplay({ ROOT, DATA, config, log, broadcast, of
       until = minutes === 'morning' ? nextMorning() : Date.now() + (min >= 5 && min <= 720 ? min : 60) * 60000;
     }
     if (mode === 'minimize') until = nextMorning();
-    state = { mode, until, id: String(Date.now()) };
+    state = { mode, until, id: String(Date.now()), boot: BOOT };
     write(); broadcast();
     log('Anzeige:', mode, until ? new Date(until).toLocaleString('de-DE') : '');
     return state;

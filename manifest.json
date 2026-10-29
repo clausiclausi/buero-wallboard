@@ -1,22 +1,23 @@
 {
-  "version": "1.24.0",
-  "notes": "BSI-Warnungen stehen jetzt klein oben unter dem Datum (bei mehreren im Wechsel). Antippen zeigt den QR-Code. Die Sicherheits-Kachel ist ausgeblendet und lässt sich unter Einstellungen → Kacheln wieder einblenden.",
+  "version": "1.25.0",
+  "notes": "Regenradar: Nahansicht mit schärferer Straßenkarte, jetzt bis 16-fach hineinzoomen. Fehlende Radarbilder beim DWD werden automatisch neu geholt. Regenradar: ein Knopf oben rechts, „❚❚ Pause“ hält an, „▶ Abspielen“ läuft weiter. Mit ‹ › blättert ihr Bild für Bild.",
   "changes": [
-    "BSI-Warnungen stehen jetzt klein oben unter dem Datum (bei mehreren im Wechsel). Antippen zeigt den QR-Code. Die Sicherheits-Kachel ist ausgeblendet und lässt sich unter Einstellungen → Kacheln wieder einblenden.",
-    "Wetter-Kachel neu geordnet: Temperatur klein oben rechts, das Regenradar ist deutlich höher. Wo die Sicherheits-Kachel direkt darunter lag, bekommt das Wetter ihren Platz.",
-    "Regenradar: bis achtfach hineinzoomen (schärfere Bilder), oben rechts gut sichtbar „Abspielen“ oder „Selbst tippen“, dazu Pfeile ‹ › für Bild für Bild."
+    "Regenradar: Nahansicht mit schärferer Straßenkarte, jetzt bis 16-fach hineinzoomen. Fehlende Radarbilder beim DWD werden automatisch neu geholt.",
+    "Regenradar: ein Knopf oben rechts, „❚❚ Pause“ hält an, „▶ Abspielen“ läuft weiter. Mit ‹ › blättert ihr Bild für Bild.",
+    "Schließen: Das Board bleibt nur bis zum nächsten Neustart des Notebooks zu. Startet es jemand vorher von Hand, bleibt es offen.",
+    "Designs: Beim Neon-Design läuft kein Strich mehr durchs Bild. Neu sind Aurora, Ozean, Sonnenaufgang, Papier und Pop, jeweils mit passenden Farben und eigenen Animationen."
   ],
   "files": {
-    "changelog.json": "a114710c7a330b006bbfa39bc30daa1b9431114778e2db94efe31170dde86079",
-    "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
+    "changelog.json": "d90cb2ac36f03b63ba7a819c0f1e22d9578bf1f72dc1c656b269fd074f0cf114",
+    "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
     "extras.js": "8d57000ec43f01b1d62a20003934ebf8009e9c09730e0a84daa379e6684c82ad",
-    "public/board.html": "e5cc7b2c2f18404d51d8354c6e73f5dd5da2f76d45059dc776aa3f9e275f2788",
+    "public/board.html": "d613806943583c60116c853ea3e3dc661565edb77cf6a3586d5d5bfe6a67c358",
     "public/m.html": "51f4c46130b9710c6f2995f6a028d81ec9139521416ab7042636a67b49fd3c78",
     "public/mascot.js": "880c1e69a1d7f16509da00ec9c0fe70aae4bd28c1dc90d7a919a69ab1c2df196",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
-    "radar.js": "8b1c845b4d636dedb6d978a602779bb4e1e7dfd2f5e9b03f408a9f34662b185e",
-    "server.js": "d949fe20888e7106c18415f0646639a0fc0f559370c4439f580ebc10cb62d682",
+    "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
+    "server.js": "ec9d78a4d7c94497b378c35546af0b835109a22658a5b87c99c217b31c7c9e23",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "baa151415bbc3ce1b8f0ee6e1a34d17a6e8850c62d4234da37fa6af49478333c"
+    "version.json": "8b3181b0df9441411924b1fbc902a2274f710838a35bffe288519ce1044d1b71"
   }
 }
