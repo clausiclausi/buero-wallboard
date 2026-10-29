@@ -1,23 +1,20 @@
 {
-  "version": "1.29.0",
-  "notes": "Jahreskalender: Die neue Kalender-Taste oben öffnet das ganze Jahr als Vollbild. Darin sind Feiertage, Schulferien, Brückentage und der Urlaub jeder Person in ihrer Farbe eingetragen.",
+  "version": "1.30.0",
+  "notes": "",
   "changes": [
-    "Jahreskalender: Die neue Kalender-Taste oben öffnet das ganze Jahr als Vollbild. Darin sind Feiertage, Schulferien, Brückentage und der Urlaub jeder Person in ihrer Farbe eingetragen.",
-    "Direkt eintragen: Ersten und letzten Tag antippen, Kürzel und Urlaub oder Abwesend wählen, fertig. Wer einen Tag antippt, kann bestehende Einträge dort auch löschen.",
-    "Urlaubs-Tipps: Das Board zeigt, wo wenige Urlaubstage rund um Feiertage die meisten freien Tage bringen. Ein Tipp lässt sich antippen und gleich eintragen.",
-    "„Dauerhaft zeigen“: Das Board bleibt im Kalendermodus. Schließen blendet den Kalender für 2 Minuten aus."
+    "Nachrichten-Kachel: Die Meldungen wechseln jetzt seitenweise statt durchzulaufen. Standard sind 3 Meldungen, alle 30 Sekunden kommen die nächsten. Unter „Auswahl“ lassen sich 2 bis 6 Meldungen pro Seite und ein Wechsel alle 10 Sekunden bis 2 Minuten einstellen, auf Wunsch auch wieder der Durchlauf. Ein Tipp auf die Punkte blättert sofort weiter."
   ],
   "files": {
-    "changelog.json": "546181eb805098ec5a1663ba27223e56c374eb1ca6daa73f876c1de4e69c7b01",
+    "changelog.json": "2578d81dc0e965fea636c01143299cefc1d8ef6cff750b71d9437bb8ddbf6834",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
     "extras.js": "beea3b28a7ff70bb90353ca9a5b2d438b28380d29cef59d6690bb5a08998683b",
-    "public/board.html": "3f458cf8f9629f8203078573deca9b6041e9307019e47c51b19a94b7cfc72b89",
+    "public/board.html": "e86a5afc2940c77284f8b8efea595aa37ce9468615a5861881ddf42f3260342d",
     "public/m.html": "7bfa16962f6c6a27ec9b975253cec85182d63a56c14eb9be1d63217aacfecf81",
     "public/mascot.js": "880c1e69a1d7f16509da00ec9c0fe70aae4bd28c1dc90d7a919a69ab1c2df196",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
-    "server.js": "7a80fff4462b21fdec27aec0e115fbcf96fd4eb4a9fb89a265c7b69693cfe2cc",
+    "server.js": "aee9ac612492d0ddd06fbb6009736c58d20b293799a192cb3f3a7e1f28f47f8c",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "3824becd57f3e09bd9b2a3c3524f659d52701135d707bcc1676411f39657ae08"
+    "version.json": "1b771d57931c1c0b0ce52dd5d055a806d8d61b598bc8ab7d8dfce71f98cd0660"
   }
 }

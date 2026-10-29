@@ -406,6 +406,18 @@ footer .sp { margin-left: auto; }
 .news-item small { font-size: 15px; color: var(--muted); }
 .news-item small b { color: var(--text); font-weight: 700; }
 .news-item span { font-size: 20px; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.news-track.fade { animation: newsfade .6s var(--ease, ease) both; }
+@keyframes newsfade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.news-track.compact .news-item { flex-direction: row; align-items: baseline; gap: 8px; padding: 6px 10px; margin-bottom: 6px; }
+.news-track.compact .news-item small { flex: none; }
+.news-track.compact .news-item span { font-size: 18px; -webkit-line-clamp: 1; line-clamp: 1; }
+.news-track.tight .news-item small { display: none; }
+.news-track.tight .news-item { padding: 4px 10px; margin-bottom: 4px; }
+.news-track.tight .news-item span { font-size: 16px; }
+.news-track.tight .news-dots { padding: 0; }
+.news-dots { display: flex; justify-content: center; gap: 6px; padding: 2px 0 4px; cursor: pointer; }
+.news-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.news-dots i.on { background: var(--text); }
 .news-empty { font-size: 19px; color: var(--muted); padding: 3px 4px; }
 .card.news h3 { cursor: pointer; }
 .news-pick h4 { margin: 4px 0 10px; }
@@ -1848,6 +1860,12 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       <div><h4>Anbieter</h4><div class="chips" id="npSrc">${Object.entries(NEWS_NAMES).map(([k, n]) => chip(k, n, newsSources().includes(k))).join('')}</div></div>
       <div><h4>Themen</h4><div class="chips" id="npTop">${Object.entries(NEWS_TOPICS).map(([k, n]) => chip(k, n, !newsHide().includes(k))).join('')}</div>
         <p class="hint" style="margin-top:8px">Antippen schaltet an und aus, durchgestrichen wird nicht gezeigt. Das Thema erkennt das Board an der Rubrik des Anbieters, das klappt fast immer. Allgemeine Meldungen ohne Rubrik bleiben sichtbar.</p></div>
+      <div><h4>Anzeige in der Kachel</h4>
+        <div class="seg" id="npMode"><button type="button" data-v="page" aria-pressed="${newsView().mode === 'page'}">Seitenweise wechseln</button><button type="button" data-v="roll" aria-pressed="${newsView().mode === 'roll'}">Langsam durchlaufen</button></div>
+        <div id="npPage" style="margin-top:10px;display:flex;flex-direction:column;gap:10px" ${newsView().mode === 'page' ? '' : 'hidden'}>
+          <div class="field">Meldungen pro Seite <div class="seg" id="npPer">${[2, 3, 4, 5, 6].map(v => `<button type="button" data-v="${v}" aria-pressed="${newsView().per === v}">${v}</button>`).join('')}</div></div>
+          <div class="field">Wechsel alle <div class="seg" id="npEvery">${[10, 15, 20, 30, 45, 60, 120].map(v => `<button type="button" data-v="${v}" aria-pressed="${newsView().every === v}">${v < 60 ? v + ' s' : v / 60 + ' min'}</button>`).join('')}</div></div>
+        </div></div>
       <div class="field">Laufband unten am Rand <button type="button" class="switch" id="npTick" role="switch" aria-checked="${settings().newsTicker !== false}"></button></div>
       <p class="hint" style="margin:0" id="npCount"></p>
     </div></div>`);
@@ -1859,6 +1877,12 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       setSettings(b.closest('#npSrc') ? { newsSources: picked('#npSrc', true) } : { newsHide: picked('#npTop', false) });
       renderNews(); count();
     });
+    const segPick = (id, key, conv) => scrim.querySelectorAll(`#${id} button`).forEach(b => b.onclick = () => {
+      scrim.querySelectorAll(`#${id} button`).forEach(x => x.setAttribute('aria-pressed', x === b));
+      setSettings({ [key]: conv(b.dataset.v) }); newsPage = 0;
+      q('#npPage').hidden = newsView().mode !== 'page'; renderNews();
+    });
+    segPick('npMode', 'newsMode', v => v); segPick('npPer', 'newsPer', Number); segPick('npEvery', 'newsEvery', Number);
     q('#npTick').onclick = () => { const v = q('#npTick').getAttribute('aria-checked') !== 'true'; q('#npTick').setAttribute('aria-checked', v); setSettings({ newsTicker: v }); renderNews(); };
     count();
     showDialog(scrim, 120);
@@ -1866,19 +1890,45 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   $('#newsHead').addEventListener('click', openNewsPick);
   const openNews = n => openLink(n, 'Nachricht', `der Artikel bei ${NEWS_NAMES[n.src] || 'der Quelle'}`);
   const newsTime = d => { const t = new Date(d); return t.toDateString() === new Date().toDateString() ? t.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : t.toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' }); };
-  let newsSig = '';
-  // Läuft endlos: Inhalt doppelt, die Animation schiebt genau eine Hälfte weiter. Nur neu bauen, wenn sich etwas ändert.
+  let newsSig = '', newsTimer = 0, newsPage = 0;
+  // Anzeige der Kachel: seitenweise (Standard, 3 Meldungen, alle 30 s) oder durchlaufend
+  const newsView = () => ({ mode: settings().newsMode === 'roll' ? 'roll' : 'page', per: settings().newsPer || 3, every: settings().newsEvery || 30 });
+  // Durchlauf: Inhalt doppelt, die Animation schiebt genau eine Hälfte weiter. Nur neu bauen, wenn sich etwas ändert.
   function renderNews() {
     const items = (S.extras?.news || []).filter(n => newsSources().includes(n.src) && !newsHide().includes(n.topic));
     const tile = !layout().hidden?.includes('news'), tick = settings().newsTicker !== false && items.length > 0;
-    const sig = JSON.stringify([items.map(n => n.title + n.date), tile, tick]);
+    const view = newsView();
+    const sig = JSON.stringify([items.map(n => n.title + n.date), tile, tick, view]);
     if (sig === newsSig) return;
     newsSig = sig;
     const one = n => `<small><b>${esc(NEWS_NAMES[n.src] || '')}</b> · ${newsTime(n.date)}</small><span>${esc(n.title)}</span>`;
-    const track = $('#newsTrack'), list = items.slice(0, 15);
-    track.classList.remove('run');
-    track.innerHTML = list.length ? list.map((n, i) => `<button type="button" class="news-item" data-i="${i}">${one(n)}</button>`).join('')
-      : `<div class="news-empty">${newsSources().length ? 'Nachrichten werden geladen …' : 'Keine Anbieter gewählt. Oben auf „Auswahl“ tippen.'}</div>`;
+    const track = $('#newsTrack'), list = items.slice(0, view.mode === 'page' ? 30 : 15);
+    track.classList.remove('run', 'compact', 'tight');
+    clearInterval(newsTimer);
+    const empty = `<div class="news-empty">${newsSources().length ? 'Nachrichten werden geladen …' : 'Keine Anbieter gewählt. Oben auf „Auswahl“ tippen.'}</div>`;
+    if (view.mode === 'page') {
+      // Seitenweise: je view.per Meldungen, nach view.every Sekunden die nächsten
+      const pages = Math.max(1, Math.ceil(list.length / view.per));
+      const show = () => {
+        newsPage %= pages;
+        const part = list.slice(newsPage * view.per, newsPage * view.per + view.per);
+        track.innerHTML = part.length ? part.map(n => `<button type="button" class="news-item" data-i="${list.indexOf(n)}">${one(n)}</button>`).join('')
+          + (pages > 1 ? `<div class="news-dots">${Array.from({ length: pages }, (_, i) => `<i class="${i === newsPage ? 'on' : ''}"></i>`).join('')}</div>` : '') : empty;
+        // Passt die Seite nicht in die Kachel, zuerst einzeilig, dann ohne Quelle/Uhrzeit
+        track.classList.remove('compact', 'tight');
+        const box = $('#newsList');
+        if (track.scrollHeight > box.clientHeight + 2) track.classList.add('compact');
+        if (track.scrollHeight > box.clientHeight + 2) track.classList.add('tight');
+        track.classList.remove('fade'); void track.offsetWidth; track.classList.add('fade');
+        track.querySelectorAll('.news-item').forEach(b => b.onclick = () => openNews(list[+b.dataset.i]));
+      };
+      show();
+      if (pages > 1) newsTimer = setInterval(() => { newsPage++; show(); }, view.every * 1000);
+      // Antippen der Punkte blättert sofort weiter
+      $('#newsList').onclick = e => { if (e.target.closest('.news-dots')) { newsPage++; show(); clearInterval(newsTimer); newsTimer = setInterval(() => { newsPage++; show(); }, view.every * 1000); } };
+    } else {
+    $('#newsList').onclick = null;
+    track.innerHTML = list.length ? list.map((n, i) => `<button type="button" class="news-item" data-i="${i}">${one(n)}</button>`).join('') : empty;
     requestAnimationFrame(() => {
       if (list.length && track.scrollHeight > $('#newsList').clientHeight + 10) {
         track.innerHTML += track.innerHTML;
@@ -1887,6 +1937,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       }
       track.querySelectorAll('.news-item').forEach(b => b.onclick = () => openNews(list[+b.dataset.i]));
     });
+    }
     $('#ticker').hidden = !tick;
     const tt = $('#tickerTrack'), tl = items.slice(0, 20);
     tt.classList.remove('run');

@@ -1,5 +1,12 @@
 [
  {
+  "version": "1.30.0",
+  "date": "2026-10-29",
+  "changes": [
+   "Nachrichten-Kachel: Die Meldungen wechseln jetzt seitenweise statt durchzulaufen. Standard sind 3 Meldungen, alle 30 Sekunden kommen die nächsten. Unter „Auswahl“ lassen sich 2 bis 6 Meldungen pro Seite und ein Wechsel alle 10 Sekunden bis 2 Minuten einstellen, auf Wunsch auch wieder der Durchlauf. Ein Tipp auf die Punkte blättert sofort weiter."
+  ]
+ },
+ {
   "version": "1.29.0",
   "date": "2026-10-29",
   "changes": [
