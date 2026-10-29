@@ -1,29 +1,29 @@
 const UA = { 'User-Agent': 'Buero-Wallboard/1.0' };
-async function show(label, url, opt = {}, n = 1500, filt) {
-  try {
-    const r = await fetch(url, { headers: UA, redirect: 'follow', signal: AbortSignal.timeout(25000), ...opt });
-    let t = await r.text();
-    console.log(`\n=== ${label} ${r.status} ${r.headers.get('content-type')} len=${t.length} final=${r.url}`);
-    if (filt) t = filt(t);
-    console.log(t.slice(0, n));
-    return t;
-  } catch (e) { console.log(`\n=== ${label} FEHLER ${e.message} ${e.cause?.code || ''}`); }
+const txt = t => t.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<style[\s\S]*?<\/style>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+async function go(label, url, opt = {}) {
+  try { const r = await fetch(url, { headers: UA, signal: AbortSignal.timeout(25000), ...opt }); const t = await r.text(); console.log(`\n=== ${label} ${r.status} ${r.headers.get('content-type')} len=${t.length}`); return t; }
+  catch (e) { console.log(`\n=== ${label} FEHLER ${e.message}`); return ''; }
 }
 (async () => {
-  // aha Abfuhrkalender
-  const page = await show('aha seite', 'https://www.aha-region.de/abholtermine/abfuhrkalender', {}, 6000, t => (t.match(/<form[\s\S]*?<\/form>/gi) || []).join('\n----\n'));
-  await show('aha suche strasse', 'https://www.aha-region.de/abholtermine/abfuhrkalender?gemeinde=Hannover&von=H&bis=%5B', {}, 3000, t => (t.match(/<option[^>]*>[^<]*B[öo]ckler[^<]*/gi) || []).join('\n') + '\n' + (t.match(/<select[\s\S]{0,400}/gi) || []).slice(0, 4).join('\n---\n'));
-  // UBA Luft
-  await show('uba stations', 'https://www.umweltbundesamt.de/api/air_data/v3/stations/json?use=airquality&lang=de', {}, 3000, t => { try { const j = JSON.parse(t); return JSON.stringify(Object.entries(j.data).filter(([k, v]) => /Hannover/i.test(JSON.stringify(v))).map(([k, v]) => [k, v.slice(0, 4)]), null, 0) + '\nindices: ' + JSON.stringify(j.indices).slice(0, 400); } catch (e) { return t.slice(0, 500); } });
-  const d = new Date().toISOString().slice(0, 10);
-  await show('uba aq', `https://www.umweltbundesamt.de/api/air_data/v3/airquality/json?date_from=${d}&time_from=1&date_to=${d}&time_to=24&lang=de`, {}, 2000, t => { try { const j = JSON.parse(t); return JSON.stringify(j.indices || j.request).slice(0, 600) + '\n' + JSON.stringify(Object.entries(j.data).slice(0, 2)).slice(0, 1200); } catch { return t.slice(0, 500); } });
-  // Bright Sky alerts Hannover (Hitze enthalten?)
-  await show('brightsky alerts', 'https://api.brightsky.dev/alerts?lat=52.37&lon=9.75', {}, 800);
-  // EFA Infos bei Abfahrten
-  await show('efa dm infos', 'https://www.efa.de/efa/XML_DM_REQUEST?outputFormat=rapidJSON&type_dm=any&name_dm=de:03241:2841&mode=direct&useRealtime=1&limit=10&includeCompleteStopSeq=0', {}, 4000, t => { try { const j = JSON.parse(t); return 'top infos: ' + JSON.stringify(j.infos || null).slice(0, 1500) + '\nevent infos: ' + JSON.stringify((j.stopEvents || []).map(e => e.infos || e.hints).filter(Boolean)).slice(0, 2000); } catch { return t.slice(0, 400); } });
-  await show('efa addinfo', 'https://www.efa.de/efa/XML_ADDINFO_REQUEST?outputFormat=rapidJSON&filterPublicationStatus=current&filterProviderCode=uestra', {}, 3000);
-  await show('efa addinfo2', 'https://www.efa.de/efa/XML_ADDINFO_REQUEST?outputFormat=rapidJSON&filterDateValid=' + d.replace(/-/g, '') + '&itdLPxx_selStop=de:03241:2841', {}, 3000);
-  await show('uestra meldungen', 'https://www.uestra.de/fahrplan/verkehrsmeldungen/', {}, 3000, t => t.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<style[\s\S]*?<\/style>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').slice(0, 3000));
-  await show('gvh stoerungen', 'https://www.gvh.de/fahrplan/verkehrsmeldungen', {}, 2000, t => t.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').slice(0, 2000));
-  await show('uestra rss', 'https://www.uestra.de/rss/verkehrsmeldungen.xml', {}, 1500);
+  const body = new URLSearchParams({ gemeinde: 'Hannover', jsaus: '', strasse: '01172@Hans-Böckler-Allee / Bult@Bult', hausnr: '', hausnraddon: '', anzeigen: 'Suchen' });
+  let t = await go('aha post', 'https://www.aha-region.de/abholtermine/abfuhrkalender', { method: 'POST', body, headers: { ...UA, 'Content-Type': 'application/x-www-form-urlencoded' } });
+  const i = t.indexOf('kalendertarget');
+  console.log((t.match(/<form[^>]*abfuhrkalender[\s\S]*?<\/form>/i) || [''])[0].replace(/<option[\s\S]*?<\/option>/g, '').replace(/\s+/g, ' ').slice(0, 2500));
+  console.log('ICS/links:', [...new Set((t.match(/href="[^"]*(ics|ical|kalender|export|pdf)[^"]*"/gi) || []))].slice(0, 20).join('\n'));
+  const k = t.search(/Restabfall|Papier|Wertstoff|Bioabfall/);
+  console.log('TEXT:', txt(t.slice(Math.max(0, k - 3000), k + 4000)).slice(0, 3500));
+  // EFA Infos: Übersicht
+  t = await go('efa addinfo', 'https://www.efa.de/efa/XML_ADDINFO_REQUEST?outputFormat=rapidJSON&filterPublicationStatus=current&filterProviderCode=uestra');
+  try { const j = JSON.parse(t); const c = j.infos?.current || []; console.log('anzahl', c.length, 'keys', Object.keys(j.infos || {}));
+    for (const x of c) console.log(x.type, x.priority, x.properties?.type, '| lines:', (x.affected?.lines || []).map(l => l.disassembledName || l.number || l.name).join(','), '| stops:', (x.affected?.stops || []).length, '|', x.infoLinks?.[0]?.title?.slice(0, 140));
+  } catch (e) { console.log(e.message, t.slice(0, 300)); }
+  t = await go('efa addinfo alle hannover', 'https://www.efa.de/efa/XML_ADDINFO_REQUEST?outputFormat=rapidJSON&filterPublicationStatus=current&filterOMC=3241');
+  try { const j = JSON.parse(t); const c = j.infos?.current || []; console.log('anzahl', c.length);
+    for (const x of c.slice(0, 40)) console.log(x.type, x.properties?.providerCode, x.properties?.type, '| lines:', (x.affected?.lines || []).map(l => l.disassembledName || l.number || l.name).join(','), '|', x.infoLinks?.[0]?.title?.slice(0, 120));
+    const l = c.find(x => (x.affected?.lines || []).length); if (l) console.log('BEISPIEL LINE', JSON.stringify(l.affected.lines[0]).slice(0, 600));
+  } catch (e) { console.log(e.message, t.slice(0, 300)); }
+  t = await go('uba 938', `https://luftdaten.umweltbundesamt.de/api/air-data/v3/airquality/json?date_from=${new Date().toISOString().slice(0, 10)}&time_from=1&date_to=${new Date().toISOString().slice(0, 10)}&time_to=24&station=938&lang=de`);
+  console.log(t.slice(0, 800));
+  t = await go('uba components', 'https://luftdaten.umweltbundesamt.de/api/air-data/v3/components/json?lang=de&index=id');
+  console.log(t.slice(0, 900));
 })();
