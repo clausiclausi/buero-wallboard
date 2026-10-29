@@ -412,6 +412,23 @@ footer .sp { margin-left: auto; }
 .news-pick .chips button { font-family: inherit; font-size: 20px; padding: 10px 16px; border-radius: 12px; }
 .news-pick .chips button[aria-pressed="false"] { text-decoration: line-through; opacity: .6; }
 /* Termine oben bei den Aufgaben und im Monatskalender */
+.task .t-by { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--text); }
+.task .t-by i { width: 12px; height: 12px; border-radius: 4px; }
+.done-pick { display: flex; flex-wrap: wrap; gap: 12px; }
+.done-pick button { display: flex; align-items: center; gap: 10px; font: inherit; font-size: 26px; font-weight: 700; padding: 14px 22px; border-radius: 16px; border: 2px solid var(--line); background: var(--bg); color: var(--text); cursor: pointer; }
+.done-pick button i { width: 18px; height: 18px; border-radius: 6px; }
+.done-pick button.none { font-size: 20px; font-weight: 600; color: var(--muted); }
+.stats-dlg { width: 980px; }
+.stats-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.stats-kpis div { padding: 14px 16px; border-radius: 16px; background: var(--bg); }
+.stats-kpis b { display: block; font-size: 38px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.stats-kpis span { font-size: 16px; color: var(--muted); }
+.stats-bars { display: flex; align-items: flex-end; gap: 6px; height: 120px; padding-top: 8px; }
+.stats-bars div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%; font-size: 14px; color: var(--muted); }
+.stats-bars i { display: block; width: 100%; border-radius: 6px 6px 2px 2px; background: var(--rain); min-height: 2px; }
+.stats-bars i.open { background: var(--warn); }
+.stats-bars small { font-variant-numeric: tabular-nums; color: var(--text); font-weight: 600; }
+.stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 .task.appt { border-style: dashed; border-color: var(--muted); }
 .task.appt .t-top .icon { font-size: 20px; }
 .task.appt.tomorrow { background: transparent; }
@@ -826,6 +843,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
   <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></symbol>
   <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 17l.7 1.8 1.8.7-1.8.7L19 22l-.7-1.8-1.8-.7 1.8-.7z"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-4M13 17V8M18 17v-7"/></symbol>
   <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
   <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></symbol>
 </svg>
@@ -844,6 +862,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     <div class="tools">
       <button class="tool" id="btnMute" aria-pressed="false" title="Erinnerungston stumm schalten"><svg class="icon"><use href="#i-bell"/></svg></button>
       <button class="tool" id="btnVisitor" aria-pressed="false" title="Besuchermodus: Freitexte verbergen"><svg class="icon"><use href="#i-eye-off"/></svg></button>
+      <button class="tool" id="btnStats" title="Auswertung der Aufgaben (nur Team-Zahlen)"><svg class="icon"><use href="#i-chart"/></svg></button>
       <button class="tool" id="btnSettings" title="Einstellungen"><svg class="icon"><use href="#i-gear"/></svg></button>
       <button class="tool" id="btnFull" title="Vollbild"><svg class="icon"><use href="#i-expand"/></svg></button>
       <button class="tool" id="btnClose" title="Board schließen oder minimieren"><svg class="icon"><use href="#i-x"/></svg></button>
@@ -1318,7 +1337,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       }
       const diff = toMin(t.time) - now;
       let rel = diff < 0 ? 'fällig' : diff < 60 ? `in ${Math.ceil(diff)} min` : `in ${Math.floor(diff / 60)} h ${pad(Math.round(diff % 60))}`;
-      if (t.done) rel = 'erledigt';
+      if (t.done) rel = person(t.by) ? `<span class="t-by"><i style="background:${person(t.by).color}"></i>✓ ${esc(person(t.by).short)}</span>` : 'erledigt';
       const cls = ['task', t.done ? 'done' : '', t.id === nextId ? 'next' : '', !t.done && diff >= 0 && diff <= settings().lead ? 'soon' : ''].join(' ');
       const node = h(`<div class="${cls}">
         <div class="t-top"><span class="t-time">${esc(t.time)}</span><span>${rel}</span>${t.remind ? '<svg class="icon t-bell"><use href="#i-bell"/></svg>' : ''}</div>
@@ -1327,7 +1346,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
           <button data-act="done" title="${t.done ? 'Wieder öffnen' : 'Erledigt'}"><svg class="icon"><use href="#i-check"/></svg></button>
           <button data-act="del" title="Löschen"><svg class="icon"><use href="#i-trash"/></svg></button>
         </div></div>`);
-      node.querySelector('[data-act=done]').onclick = () => api('PATCH', `/api/tasks/${t.id}`, { done: !t.done });
+      node.querySelector('[data-act=done]').onclick = () => t.done ? api('PATCH', `/api/tasks/${t.id}`, { done: false }) : openDonePick(t);
       node.querySelector('[data-act=del]').onclick = () => api('DELETE', `/api/tasks/${t.id}`);
       el.append(node);
     }
@@ -1335,6 +1354,58 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     add.onclick = openTaskDialog;
     el.append(add);
   }
+  // Abhaken: wer hat's erledigt? Das Kürzel steht nur bis Tagesende an der Aufgabe und fließt in keine Auswertung ein.
+  function openDonePick(t) {
+    const people = S.people || [];
+    if (!people.length) return api('PATCH', `/api/tasks/${t.id}`, { done: true });
+    const scrim = h(`<div class="scrim center"><div class="panel dialog" role="dialog" aria-label="Erledigt von">
+      <h2>Erledigt – von wem? <button class="tool" data-close title="Abbrechen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
+      <p class="hint" style="margin:0">${esc(t.time)} · <span class="private">${esc(t.title)}</span></p>
+      <div class="done-pick">${people.map(p => `<button type="button" data-p="${p.id}"><i style="background:${p.color}"></i>${esc(p.short)}</button>`).join('')}<button type="button" class="none" data-p="">ohne Kürzel</button></div>
+      <p class="hint" style="margin:0">Das Kürzel steht bis zum Ende des Tages an der Aufgabe, damit alle sehen, wer sich gekümmert hat. Es gibt keine Auswertung pro Person.</p>
+    </div></div>`);
+    const close = showDialog(scrim, 45);
+    scrim.querySelectorAll('.done-pick button').forEach(b => b.onclick = () => { api('PATCH', `/api/tasks/${t.id}`, { done: true, by: b.dataset.p }); close(); });
+  }
+
+  // Auswertung: nur Team-Zahlen, am Board mit Passwort
+  function fmtDur(m) { if (m == null) return '–'; if (m < 60) return `${m} min`; if (m < 1440) return `${Math.floor(m / 60)} h ${pad(m % 60)}`; return `${Math.round(m / 144) / 10} Tage`.replace('.', ','); }
+  function openStats() {
+    if (stage.querySelector('.arr')) return;
+    let days = 30;
+    const scrim = h(`<div class="scrim center"><div class="panel dialog stats-dlg" role="dialog" aria-label="Auswertung" style="width:980px">
+      <h2>Auswertung Aufgaben <button class="tool" data-close title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
+      <div class="seg" id="stDays"><button type="button" data-d="7" aria-pressed="false">7 Tage</button><button type="button" data-d="30" aria-pressed="true">30 Tage</button><button type="button" data-d="90" aria-pressed="false">90 Tage</button></div>
+      <div id="stBody"><p class="hint">Wird geladen …</p></div>
+      <p class="hint" style="margin:0">Nur Zahlen fürs ganze Team, keine Auswertung nach Personen (eure Board-Regel). Gespeichert werden nur Zeitpunkte, ohne Titel und ohne Kürzel, und nach 90 Tagen gelöscht.</p>
+    </div></div>`);
+    const body = scrim.querySelector('#stBody');
+    const bars = (vals, labels, cls = '') => { const mx = Math.max(1, ...vals); return `<div class="stats-bars">${vals.map((v, i) => `<div><small>${v || ''}</small><i class="${cls}" style="height:${Math.round(v / mx * 85)}%"></i>${labels[i]}</div>`).join('')}</div>`; };
+    function load() {
+      pwApi('GET', `/api/stats/tasks?tage=${days}`).then(r => {
+        const pct = r.done ? Math.round(r.onTime / r.done * 100) : null;
+        const hrs = r.hours.slice(6, 21);
+        body.innerHTML = r.total ? `
+          <div class="stats-kpis">
+            <div><b>${r.done}</b><span>erledigt${r.total ? ` von ${r.total}` : ''}</span></div>
+            <div><b>${pct == null ? '–' : pct + ' %'}</b><span>bis zur geplanten Uhrzeit erledigt</span></div>
+            <div><b>${fmtDur(r.medianMin)}</b><span>typische Dauer vom Einstellen bis erledigt (Ø ${fmtDur(r.avgMin)})</span></div>
+            <div><b>${r.open}</b><span>liegen geblieben (am Tagesende offen)</span></div>
+          </div>
+          <div class="stats-row" style="margin-top:16px">
+            <div><h4>Erledigt nach Wochentag</h4>${bars(r.weekday.slice(0, 5), ['Mo', 'Di', 'Mi', 'Do', 'Fr'])}</div>
+            <div><h4>Erledigt nach Uhrzeit</h4>${bars(hrs, hrs.map((_, i) => i + 6))}</div>
+          </div>
+          <div style="margin-top:16px"><h4>Wochen im Vergleich (erledigt · liegen geblieben)</h4><div class="stats-row">${bars(r.weeks.map(w => w.done), r.weeks.map(w => fmtD(dkey(new Date(w.from + 864e5)))))}${bars(r.weeks.map(w => w.open), r.weeks.map(w => fmtD(dkey(new Date(w.from + 864e5)))), 'open')}</div></div>`
+          : `<p class="hint" style="font-size:20px">Noch keine Daten für diesen Zeitraum. Gezählt wird ab Version 1.28.0, jede abgehakte Aufgabe fließt ab jetzt ein.</p>`;
+      }, e => { body.innerHTML = `<p class="hint">Hat nicht geklappt: ${esc(e.message)}</p>`; });
+    }
+    scrim.querySelectorAll('#stDays button').forEach(b => b.onclick = () => { days = +b.dataset.d; scrim.querySelectorAll('#stDays button').forEach(x => x.setAttribute('aria-pressed', x === b)); load(); });
+    showDialog(scrim, 180);
+    load();
+  }
+  $('#btnStats').onclick = () => withPw(() => openStats());
+
   function openTaskDialog() {
     const scrim = h(`<div class="scrim center"><form class="panel dialog" autocomplete="off">
       <h2>Neue Aufgabe</h2>

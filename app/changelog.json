@@ -1,5 +1,13 @@
 [
  {
+  "version": "1.28.0",
+  "date": "2026-10-29",
+  "changes": [
+   "Aufgabe abhaken: Man tippt sein Kürzel an. Es steht bis zum Ende des Tages an der Aufgabe, damit alle sehen, wer sich gekümmert hat.",
+   "Neue Taste oben (Balken-Symbol): Auswertung der Aufgaben fürs ganze Team über 7, 30 oder 90 Tage. Sie zeigt erledigt, pünktlich, typische Dauer vom Einstellen bis erledigt, liegen gebliebene Aufgaben und die Verteilung nach Wochentag und Uhrzeit. Am Board ist dafür das Passwort nötig. Gespeichert werden nur Zeitpunkte, ohne Personen."
+  ]
+ },
+ {
   "version": "1.27.0",
   "date": "2026-10-29",
   "changes": [

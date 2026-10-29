@@ -46,7 +46,7 @@ const DEFAULT_LOANS = [
   { id: 'l3', type: 'Smartphones', icon: 'phone', avail: 0, total: 0 },
   { id: 'l4', type: 'Headsets', icon: 'box', avail: 0, total: 0 },
 ];
-let db = Object.assign({ tasks: [], events: [], scans: [], loans: DEFAULT_LOANS, incident: null, settings: {}, people: [], absences: [], notes: [] }, readJson(DB_FILE, {}));
+let db = Object.assign({ tasks: [], events: [], scans: [], loans: DEFAULT_LOANS, incident: null, settings: {}, people: [], absences: [], notes: [], taskLog: [] }, readJson(DB_FILE, {}));
 db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings);
 // Ab 1.21.0 kommen Haltestellen aus der offenen EFA-Auskunft (andere Kennungen): alte Auswahl einmalig zurücksetzen
 if ((db.transitDefault || 0) < 2) { db.settings.transit = null; db.settings.route = null; db.transitDefault = 2; }
@@ -108,12 +108,44 @@ function localDate(offsetDays) {
 function cleanup() {
   const today = localDate(0);
   const before = db.tasks.length + db.events.length;
+  // Liegen gebliebene Aufgaben für die Team-Auswertung merken (ohne Titel, ohne Person)
+  for (const t of db.tasks) if (t.date < today && !t.done) logTask(t);
   db.tasks = db.tasks.filter(t => t.date >= today);
+  const keepLog = Date.now() - 90 * 864e5, nLog = db.taskLog.length;
+  db.taskLog = db.taskLog.filter(e => e.due >= keepLog);
   db.events = db.events.filter(e => e.date >= today);
   // Abwesenheiten nur so lange aufheben, wie sie im Monatskalender noch zu sehen sind
   const keep = localDate(-62), nAbs = db.absences.length;
   db.absences = db.absences.filter(a => a.to >= keep);
-  if (db.tasks.length + db.events.length !== before || db.absences.length !== nAbs) save();
+  if (db.tasks.length + db.events.length !== before || db.absences.length !== nAbs || db.taskLog.length !== nLog) save();
+}
+
+/* ---------- Team-Auswertung der Aufgaben ----------
+   Bewusst nur Zeitpunkte, kein Titel und keine Person: keine Leistungskontrolle Einzelner (Board-Regel). */
+const dueOf = t => new Date(`${t.date}T${t.time}:00`).getTime();
+function logTask(t) {
+  db.taskLog = db.taskLog.filter(e => e.id !== t.id);
+  db.taskLog.push({ id: t.id, created: t.created || dueOf(t), due: dueOf(t), doneAt: t.done ? (t.doneAt || Date.now()) : null });
+}
+function taskStats(days) {
+  const from = Date.now() - days * 864e5, now = Date.now();
+  // heutige offene Aufgaben zählen erst, wenn der Tag vorbei ist
+  const list = db.taskLog.filter(e => e.due >= from && e.due <= now + 864e5);
+  const done = list.filter(e => e.doneAt), mins = done.map(e => Math.max(0, (e.doneAt - e.created) / 60000)).sort((a, b) => a - b);
+  const wd = [0, 0, 0, 0, 0, 0, 0], hours = Array(24).fill(0);
+  for (const e of done) { const d = new Date(e.doneAt); wd[(d.getDay() + 6) % 7]++; hours[d.getHours()]++; }
+  const weeks = [];
+  for (let i = Math.min(12, Math.ceil(days / 7)) - 1; i >= 0; i--) {
+    const a = now - (i + 1) * 7 * 864e5, b = now - i * 7 * 864e5;
+    weeks.push({ from: a, done: done.filter(e => e.doneAt >= a && e.doneAt < b).length, open: list.filter(e => !e.doneAt && e.due >= a && e.due < b).length });
+  }
+  return {
+    days, total: list.length, done: done.length, open: list.length - done.length,
+    onTime: done.filter(e => e.doneAt <= e.due).length,
+    avgMin: mins.length ? Math.round(mins.reduce((a, b) => a + b, 0) / mins.length) : null,
+    medianMin: mins.length ? Math.round(mins[Math.floor(mins.length / 2)]) : null,
+    weekday: wd, hours, weeks, since: db.taskLog.length ? Math.min(...db.taskLog.map(e => e.due)) : null,
+  };
 }
 
 /* ---------- Eingaben prüfen (Allowlist) ---------- */
@@ -130,7 +162,8 @@ const ICONS = ['laptop', 'monitor', 'phone', 'box', 'printer'];
 const schemas = {
   tasks: b => {
     if (!clean(b.title, 60) || !isTime(b.time)) return null;
-    return { title: clean(b.title, 60), time: b.time, date: isDate(b.date) ? b.date : localDate(0), remind: b.remind !== false, done: !!b.done };
+    // by: Kürzel (Person) nur bei erledigten Aufgaben, verschwindet mit der Aufgabe am Tagesende
+    return { title: clean(b.title, 60), time: b.time, date: isDate(b.date) ? b.date : localDate(0), remind: b.remind !== false, done: !!b.done, by: b.done && db.people.some(p => p.id === b.by) ? b.by : '' };
   },
   events: b => {
     if (!clean(b.title, 40) || !isTime(b.time)) return null;
@@ -160,7 +193,7 @@ const schemas = {
 };
 // Felder, die beim Ändern erlaubt sind
 const patchable = {
-  tasks: ['title', 'time', 'remind', 'done'], events: ['title', 'meta', 'time', 'date', 'top'],
+  tasks: ['title', 'time', 'remind', 'done', 'by'], events: ['title', 'meta', 'time', 'date', 'top'],
   loans: ['type', 'icon', 'avail', 'total'],
   people: ['short', 'color'], absences: ['person', 'from', 'to', 'kind'], notes: ['text'],
 };
@@ -538,6 +571,14 @@ const server = http.createServer(async (req, res) => {
         save(); return send(res, 200, db.incident);
       }
     }
+    if (p === '/api/stats/tasks' && req.method === 'GET') {
+      // Am Board nur mit Passwort, am Handy reicht die PIN
+      if (isLocal(req)) {
+        let pw = ''; try { pw = decodeURIComponent(req.headers['x-wallboard-passwort'] || ''); } catch {}
+        if (!checkPw(pw)) return send(res, 403, { error: 'Passwort nötig' });
+      }
+      return send(res, 200, taskStats(oneOf(+url.searchParams.get('tage'), [7, 30, 90], 30)));
+    }
     if ((m = p.match(/^\/api\/(tasks|events|loans|people|absences|notes)(?:\/([a-z0-9]{1,16}))?$/))) {
       const [, coll, id] = m;
       // Urlaube am Board nur mit Passwort ändern; am Handy reicht die PIN
@@ -560,6 +601,10 @@ const server = http.createServer(async (req, res) => {
         const b = await readBody(req, 5000);
         const merged = schemas[coll]({ ...item, ...Object.fromEntries(Object.entries(b).filter(([k]) => patchable[coll].includes(k))) });
         if (!merged) return send(res, 400, { error: 'Angaben unvollständig' });
+        if (coll === 'tasks' && merged.done !== item.done) {
+          item.doneAt = merged.done ? Date.now() : null;
+          if (merged.done) logTask({ ...item, ...merged }); else db.taskLog = db.taskLog.filter(e => e.id !== item.id);
+        }
         Object.assign(item, merged); save();
         return send(res, 200, item);
       }
