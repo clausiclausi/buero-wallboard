@@ -109,6 +109,7 @@ header .hl { grid-column: 1; } header .update-pill { grid-column: 2; } header .h
   font-size: 22px; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
 }
 .add-task .icon { font-size: 34px; }
+.add-task small { font-size: 15px; font-weight: 500; color: var(--muted); }
 .add-task:hover { color: var(--text); border-color: var(--muted); }
 
 /* Hauptraster */
@@ -387,6 +388,33 @@ main > .card.off { display: none; }
 footer { display: flex; align-items: center; gap: 18px; font-size: 18px; color: var(--muted); }
 footer .stale { color: var(--warn); }
 footer .sp { margin-left: auto; }
+/* Nachrichten: Laufband unten und Kachel */
+/* Spur absolut positioniert: die lange Zeile darf die Seitenbreite nicht aufblähen */
+.ticker { flex: 1; min-width: 0; position: relative; height: 1.6em; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent); mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent); }
+.ticker-track { position: absolute; left: 0; top: 0; height: 100%; align-items: center; display: inline-flex; white-space: nowrap; will-change: transform; }
+.ticker-track.run { animation: ticker var(--dur, 120s) linear infinite; }
+.ticker button { font: inherit; font-size: 19px; color: var(--text); background: none; border: 0; padding: 0 34px 0 0; cursor: pointer; }
+.ticker button b { color: var(--muted); font-weight: 700; margin-right: 8px; }
+@keyframes ticker { to { transform: translateX(-50%); } }
+.news-list { flex: 1; min-height: 0; overflow: hidden; -webkit-mask-image: linear-gradient(transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(transparent, #000 6%, #000 94%, transparent); }
+.news-track { display: flex; flex-direction: column; }
+.news-track.run { animation: newsroll var(--dur, 60s) linear infinite; }
+@keyframes newsroll { to { transform: translateY(-50%); } }
+/* Beim Antippen oder Draufzeigen anhalten, damit man die Meldung erwischt */
+.news-list:hover .news-track, .ticker:hover .ticker-track { animation-play-state: paused; }
+.news-item { display: flex; flex-direction: column; gap: 3px; margin-bottom: 10px; padding: 9px 12px; border-radius: 12px; background: var(--bg); cursor: pointer; text-align: left; font: inherit; color: var(--text); border: 0; width: 100%; }
+.news-item small { font-size: 15px; color: var(--muted); }
+.news-item small b { color: var(--text); font-weight: 700; }
+.news-item span { font-size: 20px; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.news-empty { font-size: 19px; color: var(--muted); padding: 3px 4px; }
+/* Termine oben bei den Aufgaben und im Monatskalender */
+.task.appt { border-style: dashed; border-color: var(--muted); }
+.task.appt .t-top .icon { font-size: 20px; }
+.task.appt.tomorrow { background: transparent; }
+.mgrid .d.evd::before { content: ""; position: absolute; top: 4px; left: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--rain); }
+.cal-more { font-size: 17px; color: var(--muted); padding: 4px 12px 0; }
+.seg { flex-wrap: wrap; }
+.seg input[type="date"] { font: inherit; font-size: 20px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
 
 /* Besuchermodus: Freitexte werden unkenntlich */
 .visitor .private { filter: blur(9px); user-select: none; cursor: pointer; }
@@ -879,6 +907,11 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       <div class="tip" id="tip"></div>
     </section>
 
+    <section class="card news" data-k="news" data-name="Nachrichten">
+      <h3>Nachrichten <span class="badge" id="newsSrc" style="max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span></h3>
+      <div class="news-list" id="newsList"><div class="news-track" id="newsTrack"></div></div>
+    </section>
+
     <section class="card notes" data-k="notes" data-name="Notizen">
       <h3>Notizen <button class="mini-btn" id="addNote"><svg class="icon"><use href="#i-plus"/></svg>Notiz</button></h3>
       <div class="note-list" id="notes"></div>
@@ -888,7 +921,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   <footer>
     <span id="stand">Stand --:--:--</span>
     <span id="audioHint"></span>
-    <span class="sp">Wetter: Deutscher Wetterdienst · keine personenbezogenen Daten · <span id="ver"></span></span>
+    <div class="ticker" id="ticker" hidden><div class="ticker-track" id="tickerTrack"></div></div>
+    <span class="sp">Wetter: DWD · keine personenbezogenen Daten · <span id="ver"></span></span>
   <div id="sleepHost"></div>
   </footer>
 
@@ -993,9 +1027,9 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 
   /* ---------- Kacheln anordnen: 12x6-Raster, Lage und Größe je Kachel [Spalte, Zeile, Breite, Höhe] ---------- */
   const COLS = 12, ROWS = 6, MIN = 2;
-  const DEF_LAYOUT = { cal: [1, 1, 3, 3], transit: [4, 1, 3, 3], notes: [7, 1, 3, 3], wx: [10, 1, 3, 6], loan: [1, 4, 3, 3], month: [4, 4, 3, 3], incident: [7, 4, 3, 3], sec: [10, 4, 3, 3], hidden: ['sec'] };
+  const DEF_LAYOUT = { cal: [1, 1, 3, 3], transit: [4, 1, 3, 3], notes: [7, 1, 3, 3], wx: [10, 1, 3, 4], loan: [1, 4, 3, 3], month: [4, 4, 3, 3], incident: [7, 4, 3, 3], sec: [10, 4, 3, 3], news: [10, 5, 3, 2], hidden: ['sec'] };
   // Größe, für die der Inhalt gestaltet ist; größere Kacheln zeigen größere Schrift, kleinere kleinere
-  const BASE = { cal: [3, 3], transit: [3, 3], sec: [3, 3], wx: [3, 4], loan: [3, 3], month: [3, 3], incident: [3, 3], notes: [3, 3] };
+  const BASE = { cal: [3, 3], transit: [3, 3], sec: [3, 3], wx: [3, 4], loan: [3, 3], month: [3, 3], incident: [3, 3], notes: [3, 3], news: [3, 2] };
   const TILE_KEYS = Object.keys(BASE);
   const tiles = () => [...stage.querySelectorAll('main > .card[data-k]')];
   const fits = a => Array.isArray(a) && a.length === 4 && a.every(Number.isInteger) && a[0] >= 1 && a[1] >= 1 && a[2] >= MIN && a[3] >= MIN && a[0] + a[2] - 1 <= COLS && a[1] + a[3] - 1 <= ROWS;
@@ -1243,16 +1277,41 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   const toMin = (t) => { const [a, b] = t.split(':').map(Number); return a * 60 + b; };
   const fmtMin = (m) => `${pad(Math.floor(m / 60) % 24)}:${pad(Math.floor(m % 60))}`;
 
+  // Tag wählen: Heute, Morgen oder ein beliebiges Datum
+  const daySeg = id => `<div class="field">Tag <div class="seg" id="${id}"><button type="button" aria-pressed="true" data-off="0">Heute</button><button type="button" aria-pressed="false" data-off="1">Morgen</button><button type="button" aria-pressed="false" data-off="d">Datum …</button><input type="date" min="${dayKey(0)}" hidden></div></div>`;
+  function dayPick(root) {
+    let off = 0;
+    const inp = root.querySelector('input'), btns = root.querySelectorAll('button');
+    btns.forEach(b => b.onclick = () => {
+      btns.forEach(x => x.setAttribute('aria-pressed', x === b));
+      off = b.dataset.off === 'd' ? 'd' : +b.dataset.off;
+      inp.hidden = off !== 'd';
+      if (off === 'd') { if (!inp.value) inp.value = dayKey(2); try { inp.showPicker(); } catch {} }
+    });
+    return () => off === 'd' ? (inp.value >= dayKey(0) ? inp.value : dayKey(0)) : dayKey(off);
+  }
+
   /* ---------- Aufgaben ---------- */
   function renderTasks() {
     const el = $('#tasks'); el.innerHTML = '';
+    const later = S.tasks.filter(t => t.date > dayKey(0)).length;
     el.append(h(`<div class="tasks-label"><h2>Heute wichtig</h2><span>Erinnerung ${settings().lead} min vorher</span></div>`));
     const now = minsNow();
     const list = S.tasks.filter(t => t.date === dayKey(0)).sort((a, b) => (a.done - b.done) || (toMin(a.time) - toMin(b.time)));
     const nextId = list.find(t => !t.done && toMin(t.time) >= now)?.id;
+    // Termine mit „oben zeigen“: am Tag selbst und am Tag davor, vor den Aufgaben
+    const appts = (S.events || []).filter(e => e.top && (e.date === dayKey(0) || e.date === dayKey(1))).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+    const slots = [...appts.slice(0, 2).map(e => ({ appt: e })), ...list];
     for (let i = 0; i < 4; i++) {
-      const t = list[i];
+      const t = slots[i];
       if (!t) { el.append(h(`<div class="task empty">${i === 0 ? 'Noch keine Aufgaben für heute' : 'Frei'}</div>`)); continue; }
+      if (t.appt) {
+        const e = t.appt, today = e.date === dayKey(0), past = today && toMin(e.time) + 60 <= now;
+        el.append(h(`<div class="task appt ${today ? '' : 'tomorrow'} ${past ? 'done' : ''}">
+          <div class="t-top"><svg class="icon"><use href="#i-calendar"/></svg><span class="t-time">${esc(e.time)}</span><span>${today ? 'Termin heute' : 'Termin morgen'}</span></div>
+          <div class="t-title private">${esc(e.title)}${e.meta ? ` <span style="font-weight:500;color:var(--muted);font-size:20px">${esc(e.meta)}</span>` : ''}</div></div>`));
+        continue;
+      }
       const diff = toMin(t.time) - now;
       let rel = diff < 0 ? 'fällig' : diff < 60 ? `in ${Math.ceil(diff)} min` : `in ${Math.floor(diff / 60)} h ${pad(Math.round(diff % 60))}`;
       if (t.done) rel = 'erledigt';
@@ -1268,7 +1327,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       node.querySelector('[data-act=del]').onclick = () => api('DELETE', `/api/tasks/${t.id}`);
       el.append(node);
     }
-    const add = h(`<button class="add-task"><svg class="icon"><use href="#i-plus"/></svg>Aufgabe</button>`);
+    const add = h(`<button class="add-task"><svg class="icon"><use href="#i-plus"/></svg>Aufgabe${later ? `<small>${later} später geplant</small>` : ''}</button>`);
     add.onclick = openTaskDialog;
     el.append(add);
   }
@@ -1276,17 +1335,18 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     const scrim = h(`<div class="scrim center"><form class="panel dialog" autocomplete="off">
       <h2>Neue Aufgabe</h2>
       <label class="field">Was <input type="text" id="tTitle" required maxlength="60" placeholder="z. B. Rollout Etage 2 prüfen"></label>
+      ${daySeg('tDay')}
       <label class="field">Uhrzeit <input type="time" id="tTime" value="${fmtMin(Math.ceil(minsNow() / 15) * 15 + 30)}" required></label>
       <div class="field">Erinnerungston ${settings().lead} min vorher <button type="button" class="switch" id="tRemind" role="switch" aria-checked="true"></button></div>
       <p class="hint">Das Board ist für Besucher sichtbar. Bitte keine Namen, Kundendaten oder Systemdetails eintragen.</p>
       <div class="row"><button class="btn primary" type="submit">Hinzufügen</button><button class="btn" type="button" id="tCancel">Abbrechen</button></div>
     </form></div>`);
-    const sw = scrim.querySelector('#tRemind');
+    const sw = scrim.querySelector('#tRemind'), tDay = dayPick(scrim.querySelector('#tDay'));
     sw.onclick = () => sw.setAttribute('aria-checked', sw.getAttribute('aria-checked') !== 'true');
     scrim.querySelector('#tCancel').onclick = () => scrim.remove();
     scrim.querySelector('form').onsubmit = (e) => {
       e.preventDefault();
-      api('POST', '/api/tasks', { title: scrim.querySelector('#tTitle').value, time: scrim.querySelector('#tTime').value, date: dayKey(0), remind: sw.getAttribute('aria-checked') === 'true' });
+      api('POST', '/api/tasks', { title: scrim.querySelector('#tTitle').value, time: scrim.querySelector('#tTime').value, date: tDay(), remind: sw.getAttribute('aria-checked') === 'true' });
       scrim.remove(); unlockAudio();
     };
     $('#overlayHost').append(scrim);
@@ -1356,23 +1416,26 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       });
     };
     block('Heute', dayKey(0)); block('Morgen', dayKey(1), true);
+    const later = (S.events || []).filter(e => e.date > dayKey(1)).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+    if (later.length) el.append(h(`<div class="cal-more">Danach: ${fmtD(later[0].date)} ${esc(later[0].time)}${later.length > 1 ? ` und ${later.length - 1} weitere` : ''} · im Monatskalender</div>`));
   }
   function openEventDialog() {
     const scrim = h(`<div class="scrim center"><form class="panel dialog" autocomplete="off">
       <h2>Neuer Termin</h2>
       <label class="field">Was <input type="text" id="eTitle" required maxlength="40" placeholder="z. B. Rollout Etage 2"></label>
       <label class="field">Wo / Hinweis <input type="text" id="eMeta" maxlength="24" placeholder="optional, z. B. Raum 1.08"></label>
-      <div class="field">Tag <div class="seg" id="eDay"><button type="button" aria-pressed="true" data-off="0">Heute</button><button type="button" aria-pressed="false" data-off="1">Morgen</button></div></div>
+      ${daySeg('eDay')}
       <label class="field">Uhrzeit <input type="time" id="eTime" value="${fmtMin(Math.ceil(minsNow() / 30) * 30 + 30)}" required></label>
-      <p class="hint">Das Board ist für Besucher sichtbar. Bitte keine Namen von Kunden oder Kollegen eintragen. Termine für spätere Tage tragt ihr am Handy ein.</p>
+      <div class="field">Auch oben bei den Aufgaben zeigen <button type="button" class="switch" id="eTop" role="switch" aria-checked="false"></button></div>
+      <p class="hint">Oben erscheint der Termin am Tag selbst und am Tag davor. Das Board ist für Besucher sichtbar: bitte keine Namen von Kunden oder Kollegen eintragen.</p>
       <div class="row"><button class="btn primary" type="submit">Speichern</button><button class="btn" type="button" id="eCancel">Abbrechen</button></div>
     </form></div>`);
-    let off = 0;
-    scrim.querySelectorAll('#eDay button').forEach(b => b.onclick = () => { off = +b.dataset.off; scrim.querySelectorAll('#eDay button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+    const eDay = dayPick(scrim.querySelector('#eDay')), top = scrim.querySelector('#eTop');
+    top.onclick = () => top.setAttribute('aria-checked', top.getAttribute('aria-checked') !== 'true');
     scrim.querySelector('#eCancel').onclick = () => scrim.remove();
     scrim.querySelector('form').onsubmit = (e) => {
       e.preventDefault();
-      api('POST', '/api/events', { date: dayKey(off), time: scrim.querySelector('#eTime').value, title: scrim.querySelector('#eTitle').value, meta: scrim.querySelector('#eMeta').value });
+      api('POST', '/api/events', { date: eDay(), time: scrim.querySelector('#eTime').value, title: scrim.querySelector('#eTitle').value, meta: scrim.querySelector('#eMeta').value, top: top.getAttribute('aria-checked') === 'true' });
       scrim.remove();
     };
     $('#overlayHost').append(scrim); scrim.querySelector('#eTitle').focus();
@@ -1498,14 +1561,14 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     try { const q = qrcode(0, 'M'); q.addData(text, 'Byte'); q.make(); return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); }
     catch { return ''; }
   }
-  function openLink(i) {
+  function openLink(i, head = 'BSI-Warnung', what = 'die Warnung beim BSI') {
     if (!i || stage.querySelector('.arr')) return;
     const scrim = h(`<div class="scrim center"><div class="panel dialog" role="dialog" aria-label="Link öffnen" style="width:820px">
-      <h2>BSI-Warnung <button class="tool" data-close title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
+      <h2>${esc(head)} <button class="tool" data-close title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
       <div class="qr-box">${i.link ? `<div class="qr">${qrSvg(i.link)}</div>` : ''}<div>
         <p><b>${esc(i.title)}</b></p>
-        ${i.link ? `<p>Mit der Handy-Kamera scannen, dann öffnet sich die Warnung beim BSI auf dem Handy.</p>
-        <div class="dom">${esc(i.link.replace(/^https:\/\//, ''))}</div>` : '<p>Zu dieser Warnung gibt es keinen Link.</p>'}
+        ${i.link ? `<p>Mit der Handy-Kamera scannen, dann öffnet sich ${esc(what)} auf dem Handy.</p>
+        <div class="dom">${esc(i.link.replace(/^https:\/\//, ''))}</div>` : '<p>Dazu gibt es keinen Link.</p>'}
       </div></div>
       <p class="hint">Schließt sich nach einer Minute von selbst.</p>
     </div></div>`);
@@ -1525,6 +1588,45 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     fitRows($('#secList'));
     const d = new Date(), day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 864e5);
     $('#tip').innerHTML = `<b>Tipp des Tages</b>${TIPS[day % TIPS.length][0]}`;
+  }
+
+  /* ---------- Nachrichten ---------- */
+  const NEWS_NAMES = { tagesschau: 'tagesschau', dlf: 'Deutschlandfunk', ntv: 'n-tv', zdf: 'ZDFheute', welt: 'WELT' };
+  const NEWS_DEF = ['tagesschau', 'dlf', 'ntv'];
+  const newsSources = () => Array.isArray(settings().newsSources) ? settings().newsSources : NEWS_DEF;
+  const openNews = n => openLink(n, 'Nachricht', `der Artikel bei ${NEWS_NAMES[n.src] || 'der Quelle'}`);
+  const newsTime = d => { const t = new Date(d); return t.toDateString() === new Date().toDateString() ? t.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : t.toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' }); };
+  let newsSig = '';
+  // Läuft endlos: Inhalt doppelt, die Animation schiebt genau eine Hälfte weiter. Nur neu bauen, wenn sich etwas ändert.
+  function renderNews() {
+    const items = (S.extras?.news || []).filter(n => newsSources().includes(n.src));
+    const tile = !layout().hidden?.includes('news'), tick = settings().newsTicker !== false && items.length > 0;
+    const sig = JSON.stringify([items.map(n => n.title + n.date), tile, tick, newsSources()]);
+    if (sig === newsSig) return;
+    newsSig = sig;
+    $('#newsSrc').textContent = newsSources().map(k => NEWS_NAMES[k]).join(' · ');
+    const one = n => `<small><b>${esc(NEWS_NAMES[n.src] || '')}</b> · ${newsTime(n.date)}</small><span>${esc(n.title)}</span>`;
+    const track = $('#newsTrack'), list = items.slice(0, 15);
+    track.classList.remove('run');
+    track.innerHTML = list.length ? list.map((n, i) => `<button type="button" class="news-item" data-i="${i}">${one(n)}</button>`).join('')
+      : `<div class="news-empty">${newsSources().length ? 'Nachrichten werden geladen …' : 'Keine Quelle gewählt (Einstellungen → Nachrichten).'}</div>`;
+    requestAnimationFrame(() => {
+      if (list.length && track.scrollHeight > $('#newsList').clientHeight + 10) {
+        track.innerHTML += track.innerHTML;
+        track.style.setProperty('--dur', `${Math.round(list.length * 6)}s`);
+        track.classList.add('run');
+      }
+      track.querySelectorAll('.news-item').forEach(b => b.onclick = () => openNews(list[+b.dataset.i]));
+    });
+    $('#ticker').hidden = !tick;
+    const tt = $('#tickerTrack'), tl = items.slice(0, 20);
+    tt.classList.remove('run');
+    tt.innerHTML = tick ? [0, 1].map(() => tl.map((n, i) => `<button type="button" data-i="${i}"><b>${esc(NEWS_NAMES[n.src] || '')}</b>${esc(n.title)}</button>`).join('')).join('') : '';
+    if (tick) requestAnimationFrame(() => {
+      tt.style.setProperty('--dur', `${Math.max(30, Math.round(tt.scrollWidth / 2 / 70))}s`);
+      tt.classList.add('run');
+      tt.querySelectorAll('button').forEach(b => b.onclick = () => openNews(tl[+b.dataset.i]));
+    });
   }
 
   /* ---------- Notizen ---------- */
@@ -1804,7 +1906,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         const abs = absentOn(dkey(d)).slice(0, 4);
         const dk = dkey(d), sf = schoolOn(dk), bt = bridgeDay(d);
         if (bt && !out) inMonth.push(`${d.getDate()}. Brückentag`);
-        const cls = ['d', i >= 5 ? 'we' : '', out ? 'out' : '', h2 ? 'hol' : '', sf ? 'sf' : '', bt ? 'bt' : '', cw ? 'curw' : '', d.toDateString() === key ? 'today' : ''].join(' ');
+        const cls = ['d', (S.events || []).some(e => e.date === dk) ? 'evd' : '', i >= 5 ? 'we' : '', out ? 'out' : '', h2 ? 'hol' : '', sf ? 'sf' : '', bt ? 'bt' : '', cw ? 'curw' : '', d.toDateString() === key ? 'today' : ''].join(' ');
         const bars = abs.length ? `<span class="bars">${abs.map(a => `<i style="background:${person(a.person).color}"></i>`).join('')}</span>` : '';
         html += `<div class="${cls}"${h2 || sf ? ` title="${esc(h2 || sf.name)}"` : ''}>${d.getDate()}${bars}</div>`;
         d.setDate(d.getDate() + 1);
@@ -1854,7 +1956,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   });
   function openVacation() {
     const scrim = h(`<div class="scrim center"><div class="panel dialog vac-dlg" role="dialog" aria-label="Urlaub und Abwesenheit">
-      <h2>Urlaub &amp; Abwesenheit <button class="tool" id="vClose" title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
+      <h2>Urlaub, Abwesenheit &amp; Termine <button class="tool" id="vClose" title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
       <div><h4>Wer hat welche Farbe</h4><table id="vPeople"></table>
         <div class="formrow" style="margin-top:12px"><input id="vShort" maxlength="4" placeholder="Kürzel, z. B. TB" style="width:190px;text-transform:uppercase"><div class="pal" id="vPal"></div><button class="btn" id="vAddP">Person hinzufügen</button></div>
         <p class="hint" style="margin-top:8px">Nur Kürzel, keine vollen Namen: das Board sehen auch Besucher.</p></div>
@@ -1862,7 +1964,12 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <div class="formrow"><select id="vPerson"></select><select id="vKind"><option value="urlaub">Urlaub</option><option value="abwesend">Abwesend (Schulung, Reise)</option></select>
         <label>von <input type="date" id="vFrom"></label><label>bis <input type="date" id="vTo"></label><button class="btn primary" id="vAdd">Eintragen</button></div>
         <p class="hint" style="margin-top:8px">Bitte keine Krankheitstage eintragen: Gesundheitsdaten gehören nicht auf eine Anzeige.</p></div>
+      <div><h4>Termin eintragen</h4>
+        <div class="formrow"><input id="vEvT" maxlength="40" placeholder="Was, z. B. Teammeeting" style="flex:1;min-width:240px"><input type="date" id="vEvD"><input type="time" id="vEvH" value="09:00"><button class="btn primary" id="vEvAdd">Termin eintragen</button></div>
+        <p class="hint" style="margin-top:8px">Erscheint am Tag selbst und am Tag davor oben bei den Aufgaben und im Kalender. Bitte keine Namen von Kunden eintragen.</p>
+      </div>
       <div><h4>Eingetragen</h4><table id="vList"></table></div>
+      <div><h4>Termine</h4><table id="vEvList"></table></div>
       <p class="hint" id="vErr" style="color:var(--crit)"></p>
     </div></div>`);
     const q = (sel) => scrim.querySelector(sel);
@@ -1878,10 +1985,20 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       scrim.querySelectorAll('#vPal button').forEach(b => b.onclick = () => { color = b.dataset.c; draw(); });
       scrim.querySelectorAll('[data-del-p]').forEach(b => b.onclick = () => { if (confirm('Person und alle ihre Einträge entfernen?')) pwApi('DELETE', '/api/people/' + b.dataset.delP).then(refresh, fail); });
       scrim.querySelectorAll('[data-del-a]').forEach(b => b.onclick = () => pwApi('DELETE', '/api/absences/' + b.dataset.delA).then(refresh, fail));
+      const evs = (S.events || []).slice().sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+      q('#vEvList').innerHTML = evs.length ? evs.map(e => `<tr><td>${fmtD(e.date)}</td><td>${esc(e.time)}</td><td class="private">${esc(e.title)}</td><td>${e.top ? 'oben' : ''}</td><td><button class="x" data-del-e="${e.id}" title="Termin löschen">✕</button></td></tr>`).join('') : '<tr><td class="hint">Noch keine Termine.</td></tr>';
+      scrim.querySelectorAll('[data-del-e]').forEach(b => b.onclick = () => api('DELETE', '/api/events/' + b.dataset.delE).then(refresh, fail));
     }
     // Neuer Stand kommt per Live-Verbindung, kurz warten und neu zeichnen
     const refresh = () => { q('#vErr').textContent = ''; setTimeout(draw, 300); };
-    q('#vFrom').value = q('#vTo').value = dkey(new Date());
+    q('#vFrom').value = q('#vTo').value = q('#vEvD').value = dkey(new Date());
+    q('#vEvD').min = dkey(new Date());
+    q('#vEvAdd').onclick = () => {
+      const title = q('#vEvT').value.trim();
+      if (!title) return fail(new Error('Bitte eintragen, was für ein Termin'));
+      if (!q('#vEvD').value || !q('#vEvH').value) return fail(new Error('Bitte Tag und Uhrzeit wählen'));
+      api('POST', '/api/events', { title, date: q('#vEvD').value, time: q('#vEvH').value, top: true }).then(() => { q('#vEvT').value = ''; refresh(); }, fail);
+    };
     q('#vFrom').onchange = () => { if (q('#vTo').value < q('#vFrom').value) q('#vTo').value = q('#vFrom').value; };
     q('#vAddP').onclick = () => {
       const short = q('#vShort').value.trim();
@@ -2078,6 +2195,12 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <div class="row"><input type="text" id="sRouteQ" placeholder="Ziel suchen, z. B. Hemmingen Birkenkamp" style="flex:1;font:inherit;font-size:20px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px"><button class="btn" id="sRouteGo">Suchen</button></div>
         <div class="chips" id="sRoutes" style="margin-top:10px"></div>
       </div>
+      <div><h4>Nachrichten</h4>
+        <p class="hint" style="margin-bottom:10px">Quellen (öffentlich-rechtlich und große Nachrichtenhäuser, nur Schlagzeilen):</p>
+        <div class="chips" id="sNews">${Object.entries(NEWS_NAMES).map(([k, n]) => `<button type="button" data-k="${k}" aria-pressed="${newsSources().includes(k)}">${esc(n)}</button>`).join('')}</div>
+        <div class="field" style="margin-top:10px">Laufband unten am Rand <button class="switch" id="sTicker" role="switch" aria-checked="${st.newsTicker !== false}"></button></div>
+        <p class="hint">Die Kachel „Nachrichten“ lässt sich über „Kacheln anordnen“ ein- und ausblenden. Antippen einer Meldung zeigt einen QR-Code zum Artikel fürs Handy.</p>
+      </div>
       <div><h4>Bürozeiten (Mo–Fr)</h4>
         <label class="field">Beginn <input type="time" id="sStart" value="${st.officeStart}"></label>
         <label class="field">Ende <input type="time" id="sEnd" value="${st.officeEnd}"></label>
@@ -2236,6 +2359,13 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
           `<div><span>${r.ok ? '✅' : '❌'}</span><span><b>${esc(r.name)}</b><small>${esc(r.detail)} · ${r.ms} ms</small></span></div>`).join('');
       }).catch(e => { out.innerHTML = `<span class="hint">${esc(e.message)}</span>`; });
     };
+    scrim.querySelectorAll('#sNews button').forEach(b => b.onclick = () => {
+      const on = b.getAttribute('aria-pressed') !== 'true';
+      b.setAttribute('aria-pressed', on);
+      setSettings({ newsSources: [...scrim.querySelectorAll('#sNews button')].filter(x => x.getAttribute('aria-pressed') === 'true').map(x => x.dataset.k) });
+      renderNews();
+    });
+    scrim.querySelector('#sTicker').onclick = (e) => { const v = e.currentTarget.getAttribute('aria-checked') !== 'true'; e.currentTarget.setAttribute('aria-checked', v); setSettings({ newsTicker: v }); renderNews(); };
     const rOn = scrim.querySelector('#sRouteOn');
     rOn.onclick = () => { setSettings({ routeOn: settings().routeOn === false }); rOn.setAttribute('aria-checked', settings().routeOn !== false); };
     const routes = scrim.querySelector('#sRoutes');
@@ -2385,7 +2515,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   });
 
   /* ---------- Verbindung zum Server ---------- */
-  function renderAll() { applyRadarCfg(); applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderNotes(); renderTransit(); renderSec(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); }
+  function renderAll() { applyRadarCfg(); applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderNotes(); renderTransit(); renderSec(); renderNews(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); }
   function connect() {
     const es = new EventSource('/api/stream');
     es.onopen = () => { connected = true; };

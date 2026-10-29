@@ -107,6 +107,7 @@ nav button[aria-current="page"] { color: var(--text); }
         <label class="f">Tag <input id="eDate" type="date" required></label>
         <label class="f">Uhrzeit <input id="eTime" type="time" required></label>
       </div>
+      <label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="eTop" style="width:auto"> Auch oben bei den Aufgaben zeigen (am Tag und am Vortag)</label>
       <button class="btn primary" type="submit">Termin eintragen</button>
     </form>
     <h2>Kommende Termine</h2>
@@ -276,7 +277,7 @@ nav button[aria-current="page"] { color: var(--text); }
   /* ---------- Termine ---------- */
   $('#evForm').onsubmit = (e) => {
     e.preventDefault();
-    run(api('POST', '/api/events', { title: $('#eTitle').value, meta: $('#eMeta').value, date: $('#eDate').value, time: $('#eTime').value })
+    run(api('POST', '/api/events', { title: $('#eTitle').value, meta: $('#eMeta').value, date: $('#eDate').value, time: $('#eTime').value, top: $('#eTop').checked })
       .then(() => { $('#eTitle').value = ''; $('#eMeta').value = ''; }), 'Termin eingetragen');
   };
   function renderEvents() {
@@ -285,7 +286,7 @@ nav button[aria-current="page"] { color: var(--text); }
     if (!list.length) el.innerHTML = '<div class="empty">Keine Termine eingetragen.</div>';
     list.forEach(ev => {
       const n = document.createElement('div'); n.className = 'item';
-      n.innerHTML = `<span class="time">${esc(ev.time)}</span><div class="main"><b>${esc(ev.title)}</b><small>${fmtDate(ev.date)}${ev.meta ? ' · ' + esc(ev.meta) : ''}</small></div><button class="icon-btn" title="Löschen">✕</button>`;
+      n.innerHTML = `<span class="time">${esc(ev.time)}</span><div class="main"><b>${esc(ev.title)}</b><small>${fmtDate(ev.date)}${ev.meta ? ' · ' + esc(ev.meta) : ''}${ev.top ? ' · oben angezeigt' : ''}</small></div><button class="icon-btn" title="Löschen">✕</button>`;
       n.querySelector('button').onclick = () => run(api('DELETE', `/api/events/${ev.id}`), 'Gelöscht');
       el.append(n);
     });

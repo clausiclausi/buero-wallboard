@@ -60,6 +60,15 @@ if ((db.secMoved || 0) < 1) {
   }
   db.secMoved = 1;
 }
+// 1.26: Nachrichten-Kachel. Liegt das Wetter wie im Standard über die ganze Höhe, bekommt sie das untere Drittel.
+if ((db.newsAdded || 0) < 1) {
+  const L = db.settings.layout;
+  if (L && typeof L === 'object' && Array.isArray(L.wx) && !Array.isArray(L.news) && L.wx[3] === 6) {
+    L.wx = [L.wx[0], L.wx[1], L.wx[2], 4];
+    L.news = [L.wx[0], L.wx[1] + 4, L.wx[2], 2];
+  }
+  db.newsAdded = 1;
+}
 
 // Passwort zum Entsperren des Besuchermodus (nur als Hash gespeichert, Standard: 123)
 const hashPw = (pw, salt) => crypto.scryptSync(String(pw), salt, 32).toString('hex');
@@ -125,7 +134,8 @@ const schemas = {
   },
   events: b => {
     if (!clean(b.title, 40) || !isTime(b.time)) return null;
-    return { title: clean(b.title, 40), meta: clean(b.meta, 24), time: b.time, date: isDate(b.date) ? b.date : localDate(0) };
+    // top: auch oben bei den Aufgaben zeigen, am Tag selbst und am Tag davor
+    return { title: clean(b.title, 40), meta: clean(b.meta, 24), time: b.time, date: isDate(b.date) ? b.date : localDate(0), top: !!b.top };
   },
   // Personen nur als Kürzel mit Farbe, keine Klarnamen
   people: b => {
@@ -150,7 +160,7 @@ const schemas = {
 };
 // Felder, die beim Ändern erlaubt sind
 const patchable = {
-  tasks: ['title', 'time', 'remind', 'done'], events: ['title', 'meta', 'time', 'date'],
+  tasks: ['title', 'time', 'remind', 'done'], events: ['title', 'meta', 'time', 'date', 'top'],
   loans: ['type', 'icon', 'avail', 'total'],
   people: ['short', 'color'], absences: ['person', 'from', 'to', 'kind'], notes: ['text'],
 };
@@ -181,7 +191,7 @@ function sanitizeSettings(b) {
   }
   if ('layout' in b) {
     // Kachel-Anordnung im 12x6-Raster: [Spalte, Zeile, Breite, Höhe], nur vollständig und ohne Überlappung
-    const keys = ['cal', 'wx', 'loan', 'month', 'incident', 'notes', 'transit', 'sec'], L = b.layout || {};
+    const keys = ['cal', 'wx', 'loan', 'month', 'incident', 'notes', 'transit', 'sec', 'news'], L = b.layout || {};
     const hidden = Array.isArray(L.hidden) ? keys.filter(k => L.hidden.includes(k)) : [];
     const shown = keys.filter(k => !hidden.includes(k));
     const ok = a => Array.isArray(a) && a.length === 4 && a.every(Number.isInteger) && a[0] >= 1 && a[1] >= 1 && a[2] >= 2 && a[3] >= 2 && a[0] + a[2] <= 13 && a[1] + a[3] <= 7;
@@ -202,6 +212,9 @@ function sanitizeSettings(b) {
     s.route = r && typeof r === 'object' && /^[^\u0000-\u001f<>]{1,200}$/.test(String(r.id || '')) ? { id: String(r.id), name: clean(r.name, 60), label: clean(r.label || r.name, 40) } : null;
   }
   if ('routeOn' in b) s.routeOn = !!b.routeOn;
+  // Nachrichten: welche Quellen, Laufband unten an/aus
+  if (Array.isArray(b.newsSources)) s.newsSources = ['tagesschau', 'dlf', 'ntv', 'zdf', 'welt'].filter(k => b.newsSources.includes(k));
+  if ('newsTicker' in b) s.newsTicker = !!b.newsTicker;
   if ('autoUpdate' in b) s.autoUpdate = oneOf(b.autoUpdate, ['sofort', 'nachts', 'aus'], 'sofort');
   if ('updateEvery' in b) s.updateEvery = oneOf(+b.updateEvery, [30, 60, 300, 1800], 30);
   return s;
@@ -211,8 +224,9 @@ function sanitizeSettings(b) {
 function boardView() {
   const today = localDate(0), tomorrow = localDate(1);
   return {
-    tasks: db.tasks.filter(t => t.date === today),
-    events: db.events.filter(e => e.date === today || e.date === tomorrow),
+    // Auch spätere Tage: das Board zeigt sie im Monatskalender und zählt geplante Aufgaben
+    tasks: db.tasks.filter(t => t.date >= today),
+    events: db.events.filter(e => e.date >= today),
     loans: db.loans, incident: db.incident, settings: db.settings, mobileUrl: mobileUrl(),
     people: db.people, absences: db.absences, notes: db.notes, extras: extras.view(),
     version: VERSION, changelog: CHANGELOG, lastUpdate: readJson(path.join(DATA, 'last-update.json'), null), display: display.view(),
@@ -504,6 +518,7 @@ const server = http.createServer(async (req, res) => {
       const patch = sanitizeSettings(await readBody(req, 10000));
       Object.assign(db.settings, patch); save();
       if ('transit' in patch || 'route' in patch || 'routeOn' in patch) extras.refreshTransit();
+      if ('newsSources' in patch) extras.refreshNews();
       return send(res, 200, db.settings);
     }
     // Haltestelle für die Abfahrten suchen (öffentliche Fahrplanauskunft)

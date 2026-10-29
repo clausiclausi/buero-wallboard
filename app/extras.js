@@ -167,7 +167,8 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
   }
 
   /* ---------- Warnungen des BSI für Verbraucher (Bürger-CERT) ---------- */
-  const unxml = s => String(s || '').replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&#x?[0-9a-f]+;/gi, ' ');
+  const unxml = s => String(s || '').replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'")
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16))).replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n)).replace(/&[a-z]+;/gi, ' ');
   async function updateBsi() {
     try {
       const xml = await get('https://wid.cert-bund.de/content/public/buergercert/rss', 'text');
@@ -182,6 +183,37 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
     } catch (e) { log('BSI-Warnungen nicht erreichbar:', why(e)); }
   }
 
+  /* ---------- Nachrichten: Schlagzeilen aus offenen RSS-Feeds, nur Titel, Quelle, Zeit und Link ---------- */
+  const NEWS = {
+    tagesschau: { name: 'tagesschau', url: 'https://www.tagesschau.de/index~rss2.xml', host: 'tagesschau.de' },
+    dlf: { name: 'Deutschlandfunk', url: 'https://www.deutschlandfunk.de/nachrichten-100.rss', host: 'deutschlandfunk.de' },
+    ntv: { name: 'n-tv', url: 'https://www.n-tv.de/rss', host: 'n-tv.de' },
+    zdf: { name: 'ZDFheute', url: 'https://www.zdf.de/rss/zdf/nachrichten', host: 'zdfheute.de' },
+    welt: { name: 'WELT', url: 'https://www.welt.de/feeds/latest.rss', host: 'welt.de' },
+  };
+  async function updateNews() {
+    const want = (getSettings().newsSources || ['tagesschau', 'dlf', 'ntv']).filter(k => NEWS[k]);
+    const all = [], seen = new Set();
+    for (const k of want) {
+      try {
+        const xml = await get(NEWS[k].url, 'text');
+        const items = [...xml.matchAll(/<item[\s>]([\s\S]*?)<\/item>/g)].map(m => {
+          const tag = t => unxml((m[1].match(new RegExp(`<${t}[^>]*>([\\s\\S]*?)</${t}>`)) || [])[1]);
+          const link = clean(tag('link'), 300), host = (/^https:\/\/(?:[a-z0-9-]+\.)*([a-z0-9-]+\.[a-z]+)\//i.exec(link) || [])[1];
+          return { title: clean(tag('title'), 160), date: new Date(tag('pubDate')).getTime() || 0, link: host === NEWS[k].host ? link : '', src: k };
+        })
+          // nur echte Meldungen mit Link: keine Videos, Livestreams, Bezahlartikel, Hinweise des Senders oder alten Meldungen
+          .filter(i => i.title && i.link && !/\/(video|multimedia|livestream|plus)/i.test(i.link) && !/^(livestream|video|liveblog|schlagzeilen|aktuelle pressemitteilungen|entdecken sie)\b/i.test(i.title) && Date.now() - i.date < 24 * 3600000)
+          .sort((a, b) => b.date - a.date).slice(0, 12);
+        for (const i of items) { const key = i.title.toLowerCase().replace(/\W+/g, ''); if (!seen.has(key)) { seen.add(key); all.push(i); } }
+      } catch (e) { log(`Nachrichten ${NEWS[k].name} nicht erreichbar:`, why(e)); }
+    }
+    // Quellen abwechselnd, damit nicht eine Quelle mit gleicher Uhrzeit alles oben belegt
+    const by = want.map(k => all.filter(i => i.src === k)), mixed = [];
+    for (let n = 0; n < 12; n++) for (const l of by) if (l[n]) mixed.push(l[n]);
+    if (all.length || !want.length) { st.news = { items: mixed.slice(0, 36), updated: Date.now() }; persist(); broadcast(); }
+  }
+
   // Abfahrten nur zu Bürozeiten jede Minute, sonst alle 15 Minuten
   function officeNow() {
     const s = getSettings(), d = new Date(), hm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -193,6 +225,8 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
     setInterval(() => { if (Date.now() - lastTransit > (officeNow() ? 60000 : 900000)) { lastTransit = Date.now(); updateTransit(); } }, 15000);
     setInterval(updateHealth, 3 * 3600000);
     setInterval(updateBsi, 3600000);
+    setTimeout(updateNews, 8000);
+    setInterval(updateNews, 10 * 60000);
     setInterval(updateSchool, 24 * 3600000);
   }
 
@@ -232,6 +266,8 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
   return {
     start, nearby, search, diagnose,
     refreshTransit: () => { autoStop = null; autoRoute = null; lastTransit = Date.now(); return updateTransit(); },
-    view: () => ({ route: st.route, transit: st.transit, school: st.school?.list || [], health: st.health, bsi: st.bsi?.items || [] }),
+    refreshNews: () => updateNews(),
+    newsSources: () => Object.fromEntries(Object.entries(NEWS).map(([k, v]) => [k, v.name])),
+    view: () => ({ route: st.route, transit: st.transit, school: st.school?.list || [], health: st.health, bsi: st.bsi?.items || [], news: st.news?.items || [] }),
   };
 };
