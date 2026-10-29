@@ -272,6 +272,7 @@ function boardView() {
     people: db.people, absences: db.absences, notes: db.notes, extras: extras.view(),
     version: VERSION, changelog: CHANGELOG, lastUpdate: readJson(path.join(DATA, 'last-update.json'), null), display: display.view(),
     update: { available: update.available, notes: update.notes, changes: update.changes, error: update.error, checked: update.checked, busy: update.busy },
+    scanTool,
   };
 }
 function fullView() {
@@ -394,10 +395,23 @@ async function fetchRepoFile(file) {
   if (!r.ok) throw new Error(r.status === 404 ? 'Update-Quelle nicht gefunden' : `Update-Quelle antwortet mit ${r.status}`);
   return Buffer.from(await r.arrayBuffer());
 }
+// Scan-Tool (Rückscan): liegt im selben Repository unter downloads/, das Board zeigt nur den Download-Link
+let scanTool = null;
+async function checkScanTool() {
+  try {
+    const j = JSON.parse((await fetchRepoFile('downloads/rueckscan.json')).toString('utf8'));
+    if (!/^\d+\.\d+\.\d+$/.test(j.version)) throw new Error('ungültig');
+    const file = /^[\w.-]+\.zip$/.test(j.datei) ? j.datei : 'Rueckscan.zip';
+    const url = config.updateUrl ? `${config.updateUrl.replace(/\/$/, '')}/downloads/${file}`
+      : `https://github.com/${config.updateRepo}/raw/${config.updateBranch}/downloads/${file}`;
+    scanTool = { version: j.version, date: /^\d{4}-\d{2}-\d{2}$/.test(j.datum) ? j.datum : '', url };
+  } catch { /* behält die letzte bekannte Version */ }
+}
 let lastCheckSent = 0;
 async function checkUpdate(auto = true) {
   if (!config.updateRepo && !config.updateUrl) return;
-  const before = `${update.available}|${update.error}`;
+  const before = `${update.available}|${update.error}|${scanTool?.version}`;
+  await checkScanTool();
   try {
     const m = JSON.parse((await fetchRepoFile('manifest.json')).toString('utf8'));
     if (!/^\d+\.\d+\.\d+$/.test(m.version) || typeof m.files !== 'object') throw new Error('Update-Beschreibung ungültig');
@@ -410,7 +424,7 @@ async function checkUpdate(auto = true) {
   } catch (e) {
     update.error = e.message;
   }
-  const changed = before !== `${update.available}|${update.error}`;
+  const changed = before !== `${update.available}|${update.error}|${scanTool?.version}`;
   update.checked = Date.now();
   // Bei häufigem Prüfen nur melden, wenn sich etwas geändert hat
   if (changed || !auto || Date.now() - lastCheckSent > 30 * 60000) { lastCheckSent = Date.now(); broadcast(); }
