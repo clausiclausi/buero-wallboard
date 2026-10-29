@@ -5,14 +5,23 @@ async function post(body) {
   return { status: r.status, ct: r.headers.get('content-type'), t: await r.text(), cd: r.headers.get('content-disposition') };
 }
 (async () => {
-  const st = '01172@Hans-Böckler-Allee / Bult@Bult';
-  for (const hnr of ['', '1', '5']) {
-    const { status, t } = await post({ gemeinde: 'Hannover', jsaus: '', strasse: st, hausnr: hnr, hausnraddon: '', anzeigen: 'Suchen' });
-    console.log(`\n=== hausnr "${hnr}" ${status} len=${t.length}`);
-    const f = (t.match(/<form[^>]*abfuhrkalender[\s\S]*?<\/form>/i) || [''])[0].replace(/<a class="btn[^>]*>[A-Z]<\/a>/g, '').replace(/<option value="[A-Za-zäöü. ]+"[\s\S]*?<\/option>/g, '').replace(/\s+/g, ' ');
-    console.log('FORM:', f.slice(0, 3000));
-    console.log('ladeort:', (t.match(/ladeort[^>]{0,200}/gi) || []).slice(0, 5).join('\n'));
-    const k = t.indexOf('kalendertarget"'); if (k > 0) console.log('ZIEL:', txt(t.slice(k, k + 6000)).slice(0, 2500));
-    const m = t.search(/Restabfall\s*<|Abfuhrtermine|Ihre Abfuhrtermine/i); if (m > 0) console.log('TERMINE:', txt(t.slice(m - 500, m + 5000)).slice(0, 2500));
+  const base = { gemeinde: 'Hannover', jsaus: '', strasse: '01172@Hans-Böckler-Allee / Bult@Bult', hausnr: '1', hausnraddon: '', anzeigen: 'Suchen' };
+  let { t } = await post(base);
+  const s = t.indexOf('</select>', t.indexOf('name="strasse"'));
+  const e = t.indexOf('</form>', s);
+  console.log('REST FORM:', t.slice(s, e + 7).replace(/\s+/g, ' ').slice(0, 4000));
+  const k = t.indexOf('name="ladeort"');
+  const opts = [...t.slice(k, k + 3000).matchAll(/<option[^>]*value=['"]([^'"]*)['"][^>]*>([^<]*)/g)].map(m => [m[1], m[2].trim()]);
+  console.log('LADEORT OPTIONS', JSON.stringify(opts));
+  const after = t.slice(e, e + 30000);
+  console.log('NACH FORM:', txt(after).slice(0, 3000));
+  console.log('FORMS GESAMT:', (t.match(/<form[^>]*>/g) || []).join('\n'));
+  if (opts[0]) {
+    for (const extra of [{ ladeort: opts[0][0], anzeigen: 'Suchen' }, { ladeort: opts[0][0], ical: 'ICAL Jahresübersicht' }]) {
+      const r = await post({ ...base, ...extra });
+      console.log('\n=== MIT', JSON.stringify(extra), r.status, r.ct, r.cd, r.t.length);
+      if (/calendar/.test(r.ct || '')) console.log(r.t.slice(0, 1500));
+      else { const m = r.t.search(/\d{2}\.\d{2}\.\d{4}/); console.log(m > 0 ? txt(r.t.slice(m - 1500, m + 3000)).slice(0, 2500) : 'keine Daten'); }
+    }
   }
 })();
