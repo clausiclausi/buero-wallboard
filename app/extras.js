@@ -6,7 +6,7 @@ const path = require('path');
 
 module.exports = function createExtras({ DATA, config, log, getSettings, broadcast, localDate }) {
   const FILE = path.join(DATA, 'extras.json');
-  let st = { transit: null, school: null, health: null, bsi: null };
+  let st = { transit: null, school: null, health: null, bsi: null, air: null, lineInfo: null, waste: null };
   try { st = Object.assign(st, JSON.parse(fs.readFileSync(FILE, 'utf8'))); } catch {}
   const persist = () => { try { fs.writeFileSync(FILE, JSON.stringify(st)); } catch {} };
 
@@ -230,6 +230,88 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
     if (all.length || !want.length) { st.news = { items: mixed.slice(0, 60), updated: Date.now() }; persist(); broadcast(); }
   }
 
+  /* ---------- Störungen bei Bus und Bahn ----------
+     Aktuelle Meldungen der Verkehrsunternehmen aus derselben Fahrplanauskunft (efa.de), nur Hinweise zu Linien,
+     die an der eingestellten Haltestelle fahren, oder zur Haltestelle selbst. Rolltreppen und Aufzüge bleiben weg. */
+  async function updateLineInfo() {
+    try {
+      const deps = st.transit?.deps || [], stopId = st.transit?.stop?.id || '';
+      const lines = new Set(deps.map(d => d.line));
+      const r = await get(`${BASES[0]}/XML_ADDINFO_REQUEST?${new URLSearchParams({ outputFormat: 'rapidJSON', filterPublicationStatus: 'current', filterOMC: '3241' })}`);
+      const now = Date.now(), seen = new Set(), items = [];
+      for (const x of r.infos?.current || []) {
+        if (x.type === 'infrastructure') continue;
+        const valid = (x.timestamps?.validity || []).some(v => (!v.from || new Date(v.from) <= now) && (!v.to || new Date(v.to) >= now));
+        if (!valid) continue;
+        const ls = [...new Set((x.affected?.lines || []).map(l => clean(l.disassembledName || l.number || '', 10)).filter(Boolean))];
+        const hit = ls.filter(l => lines.has(l));
+        const atStop = (x.affected?.stops || []).some(p => p.id === stopId);
+        if (!hit.length && !atStop) continue;
+        const text = clean(x.infoLinks?.[0]?.title || x.infoLinks?.[0]?.subtitle || '', 180);
+        if (!text || seen.has(text)) continue;
+        seen.add(text);
+        items.push({ text, lines: hit, kind: /blocking/i.test(x.type) ? 'sperrung' : 'hinweis' });
+      }
+      st.lineInfo = { items: items.slice(0, 5), updated: now }; persist(); broadcast();
+    } catch (e) { log('Verkehrsmeldungen nicht erreichbar:', why(e)); }
+  }
+
+  /* ---------- Müllabfuhr (aha Region Hannover) ----------
+     Wie im Abfuhrkalender auf aha-region.de: Straße wählen, Hausnummer, dann den Jahreskalender als iCal laden.
+     Live getestet am 29.10.2026 mit Hans-Böckler-Allee 1. Nur Datum und Abfallart werden gespeichert. */
+  const AHA = config.ahaUrl || 'https://www.aha-region.de/abholtermine/abfuhrkalender';
+  async function aha(body) {
+    const r = await fetch(AHA, { method: 'POST', body: new URLSearchParams(body), headers: { 'User-Agent': 'Buero-Wallboard/1.0', 'Content-Type': 'application/x-www-form-urlencoded' }, signal: AbortSignal.timeout(25000) });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.text();
+  }
+  const norm = v => String(v).toLowerCase().replace(/straße\b/g, 'str.').replace(/strasse\b/g, 'str.').replace(/\s+/g, ' ').trim();
+  async function updateWaste() {
+    const set = getSettings();
+    if (set.wasteOn === false) { if (st.waste) { st.waste = null; persist(); broadcast(); } return; }
+    const w = set.waste || { street: 'Hans-Böckler-Allee', nr: '1', town: 'Hannover' }, nr = w.nr || '1';
+    try {
+      const page = await get(`${AHA}?${new URLSearchParams({ gemeinde: w.town, von: w.street.trim()[0].toUpperCase(), bis: '[' })}`, 'text');
+      const opts = [...page.matchAll(/<option value='([^']+)'\s*>\s*([^<]+)/g)].map(m => ({ v: m[1], t: m[2].trim() }));
+      const want = norm(w.street), street = opts.find(o => norm(o.t.split(' / ')[0]) === want) || opts.find(o => norm(o.t).startsWith(want));
+      if (!street) throw new Error(`Straße „${w.street}“ nicht gefunden`);
+      const base = { gemeinde: w.town, jsaus: '', strasse: street.v, hausnr: nr, hausnraddon: '', anzeigen: 'Suchen' };
+      const step = await aha(base), k = step.indexOf('name="ladeort"');
+      const places = [...step.slice(k, k + 4000).matchAll(/<option value="([^"]+)"\s*>\s*([^<]+)/g)].map(m => ({ v: m[1], t: m[2].trim() }));
+      if (k < 0 || !places.length) throw new Error('Hausnummer nicht gefunden');
+      const place = places.find(p => norm(p.t).startsWith(`${want} ${norm(nr)}`)) || places[0];
+      const ics = await aha({ ...base, ladeort: place.v, ical: 'ICAL Jahresübersicht' });
+      const today = localDate(0), list = [];
+      for (const m of ics.matchAll(/BEGIN:VEVENT[\s\S]*?DTSTART;VALUE=DATE:(\d{4})(\d{2})(\d{2})[\s\S]*?SUMMARY:([^\r\n]*)[\s\S]*?END:VEVENT/g)) {
+        const date = `${m[1]}-${m[2]}-${m[3]}`, kind = clean(m[4].replace(/\s*\*\s*$/, ''), 30);
+        if (date >= today && kind) list.push({ date, kind, moved: /\*\s*$/.test(m[4]) });
+      }
+      if (!list.length) throw new Error('keine Termine im Kalender');
+      st.waste = { place: clean(place.t.replace(/,.*$/, ''), 60), list: list.sort((a, b) => a.date < b.date ? -1 : 1).slice(0, 40), updated: Date.now(), error: '' };
+    } catch (e) {
+      log('Müllabfuhr nicht erreichbar:', why(e));
+      st.waste = { ...(st.waste || { list: [] }), error: clean(e.message, 120) };
+    }
+    persist(); broadcast();
+  }
+
+  /* ---------- Luftqualität (Umweltbundesamt, Messstation Hannover) ---------- */
+  const AIR = ['sehr gut', 'gut', 'mäßig', 'schlecht', 'sehr schlecht'];
+  const AIR_COMP = { 1: 'Feinstaub (PM10)', 3: 'Ozon', 5: 'Stickstoffdioxid', 9: 'Feinstaub (PM2,5)' };
+  async function updateAir() {
+    try {
+      const station = config.airStation || '938';
+      const d = new Date(), from = localDate(-1), to = localDate(0);
+      const r = await get(`${config.airUrl || 'https://luftdaten.umweltbundesamt.de/api/air-data/v3/airquality/json'}?${new URLSearchParams({ date_from: from, time_from: 1, date_to: to, time_to: 24, station, lang: 'de' })}`);
+      const rows = Object.entries(r.data?.[station] || {}).filter(([, v]) => Array.isArray(v) && Number.isInteger(v[1]) && v[1] >= 0).sort((a, b) => a[0] < b[0] ? -1 : 1);
+      if (!rows.length) throw new Error('keine Messwerte');
+      const [at, v] = rows[rows.length - 1];
+      const worst = v.slice(3).filter(Array.isArray).sort((a, b) => b[2] - a[2])[0];
+      st.air = { index: v[1], label: AIR[v[1]] || '', at: clean(at, 20), comp: worst && worst[2] >= 2 ? AIR_COMP[worst[0]] || '' : '', updated: d.getTime() };
+      persist(); broadcast();
+    } catch (e) { log('Luftqualität nicht erreichbar:', why(e)); }
+  }
+
   // Abfahrten nur zu Bürozeiten jede Minute, sonst alle 15 Minuten
   function officeNow() {
     const s = getSettings(), d = new Date(), hm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -244,6 +326,10 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
     setTimeout(updateNews, 8000);
     setInterval(updateNews, 10 * 60000);
     setInterval(updateSchool, 24 * 3600000);
+    setTimeout(() => { updateLineInfo(); updateAir(); updateWaste(); }, 20000);
+    setInterval(updateLineInfo, 15 * 60000);
+    setInterval(updateAir, 3600000);
+    setInterval(updateWaste, 12 * 3600000);
   }
 
   // Verbindungstest für die Einstellungen: jede Quelle einmal echt abfragen und das Ergebnis zeigen
@@ -283,7 +369,9 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
     start, nearby, search, diagnose,
     refreshTransit: () => { autoStop = null; autoRoute = null; lastTransit = Date.now(); return updateTransit(); },
     refreshNews: () => updateNews(),
+    refreshWaste: () => updateWaste(),
     newsSources: () => Object.fromEntries(Object.entries(NEWS).map(([k, v]) => [k, v.name])),
-    view: () => ({ route: st.route, transit: st.transit, school: st.school?.list || [], health: st.health, bsi: st.bsi?.items || [], news: st.news?.items || [] }),
+    view: () => ({ route: st.route, transit: st.transit, school: st.school?.list || [], health: st.health, bsi: st.bsi?.items || [], news: st.news?.items || [],
+      air: st.air, lineInfo: st.lineInfo?.items || [], waste: st.waste }),
   };
 };

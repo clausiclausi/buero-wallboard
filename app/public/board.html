@@ -195,7 +195,7 @@ main {
 .tip b { display: block; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
 .tip kbd { font-family: var(--font-mono); font-size: 17px; padding: 1px 7px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); }
 /* Pollen und UV in der Wetter-Kachel */
-.wx-health { display: flex; gap: 8px 14px; flex-wrap: wrap; font-size: 18px; color: var(--muted); }
+.wx-health { display: flex; gap: 8px 14px; flex-wrap: nowrap; overflow: hidden; font-size: 18px; color: var(--muted); }
 .wx-health span { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .wx-health i { width: 10px; height: 10px; border-radius: 50%; background: var(--ok); }
 .wx-health i.l2 { background: var(--warn); } .wx-health i.l3 { background: var(--crit); }
@@ -204,6 +204,28 @@ main {
 .mgrid .d.bt { outline: 2px dashed color-mix(in srgb, var(--warn) 70%, transparent); outline-offset: -3px; }
 .month-foot .sf-dot { background: var(--rain) !important; }
 main > .card.off { display: none; }
+.note.lob { background: color-mix(in srgb, #FF8FA3 18%, var(--bg)); border: 1px solid color-mix(in srgb, #FF8FA3 45%, transparent); }
+.note.lob .lob-h { flex: none; width: 22px; height: 22px; color: #FF8FA3; fill: #FF8FA3; margin-top: 3px; }
+.notes h3 .mini-btn + .mini-btn { margin-left: 8px; }
+.bsi-line button.hint-k-lob .icon, .bsi-line button.hint-k-count .icon { color: var(--ok); }
+.bsi-line button.hint-k-waste .icon { color: var(--rain, #8EC5FF); }
+.bsi-line button.hint-k-hot .icon { color: var(--crit); }
+.bsi-line button.hint-k-joke .icon { color: var(--ok); }
+.bsi-line button.hint-k-joke span { font-style: italic; }
+.tr-info { display: flex; align-items: center; gap: 8px; font-size: 16px; line-height: 1.25; padding: 6px 10px; border-radius: 10px; background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--text); cursor: pointer; flex: none; }
+.tr-info .icon { flex: none; color: var(--warn); }
+.tr-info span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tr-info b { flex: none; }
+#lIdeas button { font-family: inherit; }
+.chips span.chip { font-size: 18px; padding: 6px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); }
+.guide-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
+.guide-grid figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px; border-radius: 18px; background: var(--bg); text-align: center; }
+.guide-grid .qr { width: 190px; height: 190px; padding: 10px; border-radius: 12px; background: #fff; }
+.guide-grid .qr svg { width: 100%; height: 100%; display: block; }
+.guide-grid figcaption { font-size: 21px; font-weight: 700; }
+.guide-grid small { display: block; font-size: 16px; color: var(--muted); font-weight: 500; overflow-wrap: anywhere; }
+.guide-rows { display: flex; flex-direction: column; gap: 8px; }
+.guide-rows .formrow input { font: inherit; font-size: 18px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
 .note-list { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; }
 .note { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--bg); font-size: 21px; line-height: 1.3; font-weight: 500; }
 .note span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
@@ -897,6 +919,13 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
   <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></symbol>
   <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 17l.7 1.8 1.8.7-1.8.7L19 22l-.7-1.8-1.8-.7 1.8-.7z"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-9.2-8.6C1.4 8.6 3 5 6.4 5c2 0 3.2 1.1 3.9 2.2h3.4C14.4 6.1 15.6 5 17.6 5 21 5 22.6 8.6 21.2 11.4 19 15.6 12 20 12 20z"/></symbol>
+  <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M6 2h12M6 22h12M7 2c0 5 5 6 5 10s-5 5-5 10M17 2c0 5-5 6-5 10s5 5 5 10"/></symbol>
+  <symbol id="i-bin" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3zM12 10v4M12 17v.01"/></symbol>
+  <symbol id="i-door" viewBox="0 0 24 24"><path d="M5 21V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v17M3 21h18M15 12h.01"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></symbol>
   <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-4M13 17V8M18 17v-7"/></symbol>
   <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
   <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></symbol>
@@ -991,7 +1020,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     </section>
 
     <section class="card notes" data-k="notes" data-name="Notizen">
-      <h3>Notizen <button class="mini-btn" id="addNote"><svg class="icon"><use href="#i-plus"/></svg>Notiz</button></h3>
+      <h3>Notizen <button class="mini-btn" id="addLob" title="Anonymes Lob, bleibt bis heute Abend"><svg class="icon"><use href="#i-heart"/></svg>Lob</button><button class="mini-btn" id="addNote"><svg class="icon"><use href="#i-plus"/></svg>Notiz</button></h3>
       <div class="note-list" id="notes"></div>
     </section>
   </main>
@@ -1001,6 +1030,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     <span id="audioHint"></span>
     <div class="ticker" id="ticker" hidden><div class="ticker-track" id="tickerTrack"></div></div>
     <span class="sp">Wetter: DWD · keine personenbezogenen Daten · <span id="ver"></span></span>
+    <button type="button" class="mini-btn" id="btnGuides" hidden title="QR-Codes zu Anleitungen und zum Gäste-WLAN"><svg class="icon"><use href="#i-qr"/></svg>Anleitungen</button>
     <button type="button" class="mini-btn" id="btnScanTool" hidden title="Neueste Version des Scan-Tools herunterladen"><svg class="icon"><use href="#i-download"/></svg>Scan-Tool</button>
   <div id="sleepHost"></div>
   </footer>
@@ -1011,6 +1041,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 </div>
 
 <script src="/static/mascot.js"></script>
+<script src="/static/knock.js"></script>
 <script src="/static/qrcode.js"></script>
 <script>
 (() => {
@@ -1063,6 +1094,14 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     const at = (t) => t && now >= toMin(t) && now < toMin(t) + 1;
     if (at(settings().officeStart)) once(today + '-morgen', () => mascot.announce('Guten Morgen!', 'strecken'));
     if (at(m.walk)) once(today + '-walk', () => mascot.announce('Wir gehen gleich spazieren?', 'spazieren'));
+    // Freitag kurz vor Feierabend ein Tänzchen, bei Hitze ein Eis, bei Regen der Schirm (je einmal am Tag)
+    const busy = () => items.some(it => Math.abs(toMin(it.time) - now) <= 15);
+    if (wd === 5 && now >= toMin(settings().officeEnd || '18:00') - 120 && now < toMin(settings().officeEnd || '18:00') - 60 && !busy()) once(today + '-tanz', () => mascot.announce('Freitag! Schönes Wochenende!', 'tanzen'));
+    const hoursW = Object.entries(W.hours || {}), hh = new Date().getHours();
+    const maxT = Math.max(-99, ...hoursW.map(([, v]) => v?.temp ?? -99), W.now?.temp ?? -99);
+    if (W.ok && maxT >= 26 && hh >= 12 && hh < 16 && !busy()) once(today + '-eis', () => mascot.announce(`${Math.round(maxT)} Grad! Zeit für ein Eis?`, 'eis'));
+    const wet = [hh, hh + 1].map(x => W.hours?.[x]?.prob ?? 0);
+    if (W.ok && Math.max(...wet) >= 60 && now >= toMin(settings().officeStart || '07:00') + 30 && !busy()) once(today + '-schirm', () => mascot.announce('Gleich Regen: Schirm nicht vergessen!', 'schirm'));
   }
   setInterval(mascotTimers, 10000);
   function scale() {
@@ -1650,6 +1689,19 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       }
     }
   }
+  // Jemand klopft vom Handy aus an: Klopfgeräusch (wenn Ton an) und ein großer Hinweis
+  function knock(i) {
+    const snd = window.WBKnock && WBKnock.SOUNDS[i];
+    if (!snd) return;
+    $('#toastHost .knock')?.remove();
+    const n = h(`<div class="toast knock" role="alert"><svg class="icon"><use href="#i-door"/></svg>
+      <div>Klopf, klopf!<small>Jemand klopft vom Handy aus an${settings().muted ? ' (Ton ist aus)' : ''}</small></div><button>OK</button></div>`);
+    n.querySelector('button').onclick = () => n.remove();
+    $('#toastHost').append(n);
+    setTimeout(() => n.remove(), 12000);
+    if (ctx && ctx.state === 'running' && !settings().muted) WBKnock.play(ctx, i, Math.max(.35, settings().volume ?? .6));
+    if (mascot) mascot.announce('Klopf, klopf! Wer ist da?', 'klopfen');
+  }
   function showToast(t, mins) {
     const n = h(`<div class="toast" role="alert"><svg class="icon"><use href="#i-bell"/></svg>
       <div><span class="private">${esc(t.title)}</span><small>${esc(t.time)} Uhr · in ${mins} min</small></div>
@@ -1687,15 +1739,16 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       ${daySeg('eDay')}
       <label class="field">Uhrzeit <input type="time" id="eTime" value="${fmtMin(Math.ceil(minsNow() / 30) * 30 + 30)}" required></label>
       <div class="field">Auch oben bei den Aufgaben zeigen <button type="button" class="switch" id="eTop" role="switch" aria-checked="false"></button></div>
-      <p class="hint">Oben erscheint der Termin am Tag selbst und am Tag davor. Das Board ist für Besucher sichtbar: bitte keine Namen von Kunden oder Kollegen eintragen.</p>
+      <div class="field">Countdown unter dem Datum („Noch 12 Tage bis …“) <button type="button" class="switch" id="eCount" role="switch" aria-checked="false"></button></div>
+      <p class="hint">Countdown eignet sich für besondere Tage und wichtige Fristen. Oben erscheint der Termin am Tag selbst und am Tag davor. Das Board ist für Besucher sichtbar: bitte keine Namen von Kunden oder Kollegen eintragen.</p>
       <div class="row"><button class="btn primary" type="submit">Speichern</button><button class="btn" type="button" id="eCancel">Abbrechen</button></div>
     </form></div>`);
-    const eDay = dayPick(scrim.querySelector('#eDay')), top = scrim.querySelector('#eTop');
-    top.onclick = () => top.setAttribute('aria-checked', top.getAttribute('aria-checked') !== 'true');
+    const eDay = dayPick(scrim.querySelector('#eDay')), top = scrim.querySelector('#eTop'), cnt = scrim.querySelector('#eCount');
+    for (const sw of [top, cnt]) sw.onclick = () => sw.setAttribute('aria-checked', sw.getAttribute('aria-checked') !== 'true');
     scrim.querySelector('#eCancel').onclick = () => scrim.remove();
     scrim.querySelector('form').onsubmit = (e) => {
       e.preventDefault();
-      api('POST', '/api/events', { date: eDay(), time: scrim.querySelector('#eTime').value, title: scrim.querySelector('#eTitle').value, meta: scrim.querySelector('#eMeta').value, top: top.getAttribute('aria-checked') === 'true' });
+      api('POST', '/api/events', { date: eDay(), time: scrim.querySelector('#eTime').value, title: scrim.querySelector('#eTitle').value, meta: scrim.querySelector('#eMeta').value, top: top.getAttribute('aria-checked') === 'true', countdown: cnt.getAttribute('aria-checked') === 'true' });
       scrim.remove();
     };
     $('#overlayHost').append(scrim); scrim.querySelector('#eTitle').focus();
@@ -1722,12 +1775,28 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       return `<div class="dep ${d.cancelled ? 'x' : ''}"><span class="ln ${esc(d.kind)}">${esc(d.line)}</span><span class="dir">${esc(d.dir)}</span>
         <span class="min">${d.cancelled ? 'fällt aus' : min === 0 ? 'jetzt' : `${min} min`}${d.delay > 0 && !d.cancelled ? `<small>+${d.delay} Verspätung</small>` : ''}</span></div>`;
     }).join('') : '<div class="tr-msg">In der nächsten Stunde keine Abfahrten.</div>';
+    // Meldungen der Verkehrsunternehmen zu Linien an dieser Haltestelle (Üstra, regiobus)
+    const info = S.extras?.lineInfo || [];
+    if (info.length) {
+      el.insertAdjacentHTML('afterbegin', `<div class="tr-info" title="${esc(info.map(x => x.text).join(' · '))}"><svg class="icon"><use href="#i-alert"/></svg><b>${info.length === 1 ? 'Hinweis' : `${info.length} Hinweise`}</b><span>${esc(info[Math.floor(Date.now() / 15000) % info.length].text)}</span></div>`);
+      el.querySelector('.tr-info').onclick = e => { e.stopPropagation(); openLineInfo(); };
+    }
     if (T.ok === false) el.insertAdjacentHTML('afterbegin', `<div class="tr-msg">${esc(T.error || '')} · Stand ${new Date(T.updated || 0).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</div>`);
     renderRoute();
     // In kleinen Kacheln Verbindungen kürzen, damit mindestens zwei Abfahrten ganz sichtbar bleiben
     const rl = $('#routeList'), row = el.firstElementChild;
     if (row && !$('#route').hidden) while (rl.children.length > 1 && el.clientHeight < row.offsetHeight * 2 + 8) rl.lastElementChild.remove();
     fitRows(el);
+  }
+  function openLineInfo() {
+    const info = S.extras?.lineInfo || [];
+    if (!info.length || stage.querySelector('.arr')) return;
+    const scrim = h(`<div class="scrim center"><div class="panel dialog" role="dialog" aria-label="Verkehrsmeldungen" style="width:900px">
+      <h2>Meldungen zu Bus und Bahn <button class="tool" data-close title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
+      <div class="sec-list">${info.map(x => `<div class="sec-item"><svg class="icon"><use href="#i-alert"/></svg><span>${esc(x.text)}${x.lines.length ? `<small>Linie ${esc(x.lines.join(', '))}</small>` : ''}</span></div>`).join('')}</div>
+      <p class="hint">Aktuelle Meldungen von Üstra und regiobus über die Fahrplanauskunft efa.de, nur für Linien an eurer Haltestelle.</p>
+    </div></div>`);
+    showDialog(scrim, 90);
   }
   // Feste Verbindung zum Ziel, z. B. nach Hemmingen: nächste Fahrten mit Linien und Ankunft
   // Richtung = Steig (z. B. SB1); ohne Steigangabe das einzelne Fahrtziel
@@ -1835,7 +1904,64 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     showDialog(scrim, 60);
   }
   // Scan-Tool: QR-Code zur neuesten Version im Repository, das Board selbst scannt nichts
-  function renderScanTool() { $('#btnScanTool').hidden = !S.scanTool; }
+  function renderScanTool() {
+    $('#btnScanTool').hidden = !S.scanTool;
+    const g = settings();
+    $('#btnGuides').hidden = !((g.guides || []).length || g.wifi);
+    $('#btnGuides').innerHTML = `<svg class="icon"><use href="#i-qr"/></svg>${(g.guides || []).length ? 'Anleitungen' : 'Gäste-WLAN'}`;
+  }
+  // WLAN-QR-Code im üblichen Format, Sonderzeichen mit Backslash
+  const wifiEsc = v => String(v).replace(/([\;,:"])/g, '\\$1');
+  function openGuides() {
+    const g = settings(), w = g.wifi;
+    if (stage.querySelector('.arr')) return;
+    const cards = [];
+    if (w) cards.push(`<figure><div class="qr">${qrSvg(`WIFI:T:${w.sec === 'nopass' ? 'nopass' : 'WPA'};S:${wifiEsc(w.ssid)};${w.sec === 'nopass' ? '' : `P:${wifiEsc(w.pass)};`};`)}</div><figcaption>Gäste-WLAN<small>${esc(w.ssid)}${w.sec !== 'nopass' && w.pass ? ` · Passwort: ${esc(w.pass)}` : ''}</small></figcaption></figure>`);
+    for (const x of g.guides || []) cards.push(`<figure><div class="qr">${qrSvg(x.url)}</div><figcaption>${esc(x.title)}<small>${esc(x.url.replace(/^https?:\/\//, '').slice(0, 60))}</small></figcaption></figure>`);
+    const scrim = h(`<div class="scrim center"><div class="panel dialog" role="dialog" aria-label="Anleitungen" style="width:1100px">
+      <h2>Mit dem Handy scannen <button class="tool" data-close title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
+      <div class="guide-grid">${cards.join('')}</div>
+      <p class="hint">Handy-Kamera auf den Code richten. Die Liste pflegt ihr unter Einstellungen → Hinweise und Extras. Schließt sich nach zwei Minuten von selbst.</p>
+    </div></div>`);
+    showDialog(scrim, 120);
+  }
+  $('#btnGuides').onclick = openGuides;
+  function openGuidesEdit() {
+    const g = settings();
+    let rows = (g.guides || []).map(x => ({ ...x }));
+    const w = g.wifi || { ssid: '', pass: '', sec: 'WPA' };
+    const scrim = h(`<div class="scrim center"><div class="panel dialog" role="dialog" aria-label="Anleitungen bearbeiten" style="width:1000px">
+      <h2>Anleitungen und Gäste-WLAN <button class="tool" data-close title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
+      <div><h4>Gäste-WLAN</h4>
+        <div class="formrow guide-rows"><div class="formrow"><input id="gwSsid" maxlength="32" placeholder="Name des Gäste-WLANs" value="${esc(w.ssid)}" style="flex:1"><input id="gwPass" maxlength="63" placeholder="Passwort" value="${esc(w.pass)}" style="flex:1"></div></div>
+        <p class="hint">Nur ein echtes Gäste-WLAN eintragen, nie das Büro-WLAN: Passwort und QR-Code sind für alle am Board sichtbar. Leer lassen = kein WLAN-Code.</p></div>
+      <div><h4>Anleitungen (bis 8)</h4><div class="guide-rows" id="gRows"></div>
+        <div class="row" style="margin-top:8px"><button class="btn" id="gAdd">+ Anleitung</button></div>
+        <p class="hint">Titel, z. B. „Drucker einrichten“, und der Link zur Anleitung (Intranet, SharePoint, PDF). Am Board erscheint daraus ein QR-Code.</p></div>
+      <div class="row"><button class="btn primary" id="gSave">Speichern</button></div>
+    </div></div>`);
+    const box = scrim.querySelector('#gRows');
+    const draw = () => {
+      box.innerHTML = rows.map((r, i) => `<div class="formrow" data-i="${i}"><input class="gt" maxlength="30" placeholder="Titel" value="${esc(r.title)}" style="width:260px"><input class="gu" maxlength="300" placeholder="https://…" value="${esc(r.url)}" style="flex:1"><button class="tool" title="Entfernen"><svg class="icon"><use href="#i-trash"/></svg></button></div>`).join('') || '<p class="hint" style="margin:0">Noch keine Anleitungen.</p>';
+      box.querySelectorAll('[data-i]').forEach(el => {
+        const r = rows[+el.dataset.i];
+        el.querySelector('.gt').oninput = e => { r.title = e.target.value; };
+        el.querySelector('.gu').oninput = e => { r.url = e.target.value.trim(); };
+        el.querySelector('button').onclick = () => { rows.splice(+el.dataset.i, 1); draw(); };
+      });
+    };
+    draw();
+    scrim.querySelector('#gAdd').onclick = () => { if (rows.length < 8) { rows.push({ title: '', url: 'https://' }); draw(); } };
+    scrim.querySelector('#gSave').onclick = () => {
+      const bad = rows.find(r => r.title.trim() && !/^https?:\/\/\S+\.\S+/.test(r.url));
+      if (bad) return alert(`Link bei „${bad.title}“ bitte mit https:// angeben`);
+      const ssid = scrim.querySelector('#gwSsid').value.trim(), pass = scrim.querySelector('#gwPass').value;
+      setSettings({ guides: rows.filter(r => r.title.trim() && r.url).map(r => ({ title: r.title.trim(), url: r.url })), wifi: ssid ? { ssid, pass, sec: pass ? 'WPA' : 'nopass' } : null });
+      setTimeout(renderScanTool, 300);
+      scrim.querySelector('[data-close]').click();
+    };
+    showDialog(scrim, 600);
+  }
   $('#btnScanTool').onclick = () => {
     const t = S.scanTool;
     if (!t || stage.querySelector('.arr')) return;
@@ -1858,14 +1984,101 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         e => { btn.disabled = false; msg.textContent = `Hat nicht geklappt: ${e.message}`; });
     };
   };
+  /* ---------- Hinweiszeile unter dem Datum: wechselt alle 15 Sekunden ----------
+     Countdowns, Müllabfuhr, Patchday, Hitze/Luft, Rückscan-Stand, BSI-Warnungen und der Spruch des Tages */
+  const JOKES = [
+    'Es gibt 10 Arten von Menschen: die, die Binär verstehen, und die anderen.',
+    'Hast du schon versucht, es aus- und wieder einzuschalten?',
+    'Ein Backup, das nie getestet wurde, ist nur eine Hoffnung.',
+    'Das Problem sitzt meistens zwischen Stuhl und Tastatur. Heute aber nicht!',
+    'Passwort123 ist kein Passwort, sondern eine Einladung.',
+    'Ich habe keinen Bug. Das ist ein undokumentiertes Feature.',
+    'Kaffee: der wichtigste Treiber im ganzen Büro.',
+    'Strg+Z wünscht man sich manchmal auch im echten Leben.',
+    'WLAN ist wie Luft: Man merkt es erst, wenn es fehlt.',
+    'Ein Update am Freitag um 16 Uhr? Mutig!',
+    'Der Drucker spürt, wenn man es eilig hat.',
+    'Es funktioniert auf meinem Rechner!',
+    'Wer lange sucht, hat nicht in der Dokumentation nachgesehen.',
+    'Sicherheitsupdates sind wie Zähneputzen: lieber regelmäßig.',
+    'Im Zweifel: Neustart. Im Zweifel nochmal: Kaffee.',
+    'Heute schon gelobt? Die Lob-Ecke freut sich.',
+    'Phishing-Mails erkennt man am Druck: „Sofort klicken!“',
+    'Ordnung auf dem Desktop ist Ordnung im Kopf. Fast.',
+    'Die Cloud ist auch nur der Computer von jemand anderem.',
+    'Ein guter Tag beginnt mit grünen Häkchen.',
+    'Wer Bildschirm sperrt, hat mitgedacht: Windows-Taste + L.',
+    'Kabelsalat ist auch eine Art Gemüse.',
+    'Ticket gelöst, Welt gerettet. Zumindest ein bisschen.',
+    'Jedes Gerät, das zurückkommt, ist ein kleiner Erfolg.',
+    'Lieber zweimal fragen als einmal formatieren.',
+    'Der schnellste Support ist der, der nicht gebraucht wird.',
+    'Mittagspause ist auch ein Wartungsfenster.',
+    'Ein Lächeln braucht kein Update.',
+    'Gemeinsam sind wir die beste Firewall.',
+    'Freitag ist der Patchday für die Seele.',
+  ];
+  // Microsoft-Patchday: zweiter Dienstag im Monat
+  const patchday = (y, m) => { const d = new Date(y, m, 1); d.setDate(1 + (9 - d.getDay()) % 7 + 7); return d; };
+  const WASTE_NICE = { Restabfall: 'Restmüll', Bioabfall: 'Biotonne', Papier: 'Altpapier', Leichtverpackungen: 'Gelber Sack' };
+  function hintItems(bsi) {
+    const out = [], now = new Date(), today = dayKey(0), tomorrow = dayKey(1);
+    // Countdowns zu besonderen Tagen und Fristen
+    const cds = (S.events || []).filter(e => e.countdown && e.date >= today).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)).slice(0, 2);
+    for (const e of cds) {
+      const n = Math.round((parseD(e.date) - parseD(today)) / 864e5);
+      out.push({ k: 'count', icon: 'i-hourglass', b: n === 0 ? 'Heute' : n === 1 ? 'Morgen' : `Noch ${n} Tage`, t: `${n > 1 ? 'bis ' : ''}${e.title}${n === 0 && e.time ? ` · ${e.time} Uhr` : ''}` });
+    }
+    // Müllabfuhr: am Vortag ab Mittag und am Tag selbst bis 10 Uhr
+    const wl = S.extras?.waste?.list || [];
+    const wDay = now.getHours() < 10 && wl.some(w => w.date === today) ? today : now.getHours() >= 12 && wl.some(w => w.date === tomorrow) ? tomorrow : '';
+    if (wDay) out.push({ k: 'waste', icon: 'i-bin', b: wDay === today ? 'Heute Abfuhr' : 'Morgen Abfuhr', t: [...new Set(wl.filter(w => w.date === wDay).map(w => WASTE_NICE[w.kind] || w.kind))].join(', ') + ' · Tonne rausstellen?' });
+    // Patchday: am Montag davor und am Dienstag selbst
+    const pd = patchday(now.getFullYear(), now.getMonth()), pk = dkey(pd), pBefore = dkey(new Date(pd.getFullYear(), pd.getMonth(), pd.getDate() - 1));
+    if (today === pk) out.push({ k: 'patch', icon: 'i-shield', b: 'Heute Patchday', t: 'Microsoft-Updates erscheinen am Abend, Neustarts für morgen einplanen' });
+    else if (today === pBefore) out.push({ k: 'patch', icon: 'i-shield', b: 'Morgen Patchday', t: 'Microsoft veröffentlicht neue Sicherheitsupdates' });
+    // Hitzewarnung (DWD) und schlechte Luft (UBA)
+    const hot = (W.alerts || []).find(a => /hitze/i.test(a.event || ''));
+    if (hot) out.push({ k: 'hot', icon: 'i-sun', b: 'Hitzewarnung', t: `${hot.event} · viel trinken, Räume morgens lüften` });
+    const air = S.extras?.air;
+    if (air && air.index >= 3) out.push({ k: 'hot', icon: 'i-cloud', b: `Luft ${air.label}`, t: `${air.comp ? air.comp + ' erhöht · ' : ''}Messstation Hannover (UBA)` });
+    // Rückscan-Stand, nur Zahlen fürs Team
+    for (const r of S.rueckscan || []) {
+      const pct = r.total ? Math.round(r.count / r.total * 100) : 0;
+      out.push({ k: 'count', icon: 'i-scan', b: `${r.art} ${r.name}`, t: r.done ? `abgeschlossen: ${r.count} von ${r.total}` : `${r.count} von ${r.total}${r.total ? ` (${pct} %)` : ''}${r.extra ? ` · ${r.extra} nicht erwartet` : ''}` });
+    }
+    for (const [n, i] of bsi.entries()) out.push({ k: 'bsi', icon: 'i-shield', b: `BSI${bsi.length > 1 ? ` ${n + 1}/${bsi.length}` : ''} · ${new Date(i.date).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' })}`, t: i.title, bsi: i });
+    const day = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 864e5);
+    out.push({ k: 'joke', icon: 'i-sparkle', b: 'Spruch des Tages', t: JOKES[day % JOKES.length] });
+    return out;
+  }
+  function renderHints(bsi) {
+    const items = hintItems(bsi), i = items[Math.floor(Date.now() / 15000) % items.length];
+    const sig = JSON.stringify(i);
+    if ($('#bsiLine').dataset.sig === sig) return;
+    $('#bsiLine').dataset.sig = sig;
+    $('#bsiLine').innerHTML = `<button type="button" class="hint-k-${i.k}" title="${esc(i.t)}"><svg class="icon"><use href="#${i.icon}"/></svg><b>${esc(i.b)}</b><span>${esc(i.t)}</span></button>`;
+    $('#bsiLine button').onclick = () => i.bsi ? openLink(i.bsi) : openHints();
+  }
+  // Alle aktuellen Hinweise auf einen Blick
+  function openHints() {
+    if (stage.querySelector('.arr')) return;
+    const all = (S.extras?.bsi || []).filter(x => Date.now() - x.date < 4 * 864e5).slice(0, 3);
+    const items = hintItems(all), wl = (S.extras?.waste?.list || []).slice(0, 6);
+    const scrim = h(`<div class="scrim center"><div class="panel dialog" role="dialog" aria-label="Hinweise" style="width:880px">
+      <h2>Hinweise <button class="tool" data-close title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
+      <div class="sec-list">${items.map(x => `<div class="sec-item"><svg class="icon"><use href="#${x.icon}"/></svg><span><b>${esc(x.b)}</b> · ${esc(x.t)}</span></div>`).join('')}</div>
+      ${wl.length ? `<h4 style="margin:6px 0 0">Nächste Müllabfuhr${S.extras.waste.place ? ` (${esc(S.extras.waste.place)})` : ''}</h4><div class="chips">${wl.map(w => `<span class="chip">${esc(fmtD(w.date))} ${esc(WASTE_NICE[w.kind] || w.kind)}</span>`).join('')}</div>` : ''}
+      <p class="hint">Müllabfuhr: aha Region Hannover · Luft: Umweltbundesamt · Hitze: Deutscher Wetterdienst. Countdowns tragt ihr als Termin mit „Countdown“ ein.</p>
+    </div></div>`);
+    showDialog(scrim, 90);
+  }
   function renderSec() {
     const now = Date.now(), items = (S.extras?.bsi || []).filter(i => now - i.date < 4 * 864e5).slice(0, 2);
     // Kopfzeile unter dem Datum: die neuesten BSI-Warnungen, antippen zeigt den QR-Code
     // Eine Zeile, bei mehreren Warnungen wechselt sie alle 15 Sekunden
     const all = (S.extras?.bsi || []).filter(i => now - i.date < 4 * 864e5).slice(0, 3);
-    const k = all.length ? Math.floor(now / 15000) % all.length : 0, top = all.slice(k, k + 1);
-    $('#bsiLine').innerHTML = top.map((i, n) => `<button type="button" data-i="${n}" title="${esc(i.title)}"><svg class="icon"><use href="#i-shield"/></svg><b>BSI${all.length > 1 ? ` ${k + 1}/${all.length}` : ''} · ${new Date(i.date).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' })}</b><span>${esc(i.title)}</span></button>`).join('');
-    $('#bsiLine').querySelectorAll('button').forEach(b => b.onclick = () => openLink(top[+b.dataset.i]));
+    renderHints(all);
     $('#secList').innerHTML = items.length ? items.map((i, n) => `<div class="sec-item ${i.link ? 'link' : ''}" data-i="${n}"><svg class="icon"><use href="#i-shield"/></svg><span>${esc(i.title)}<small>BSI-Warnung · ${new Date(i.date).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' })}</small></span></div>`).join('')
       : '<div class="sec-item" style="color:var(--muted)">Keine neuen Warnungen des BSI für Verbraucher.</div>';
     $('#secList').querySelectorAll('.sec-item.link').forEach(el => el.onclick = () => openLink(items[+el.dataset.i]));
@@ -1983,9 +2196,12 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     const el = $('#notes'); el.innerHTML = '';
     const list = [...(S.notes || [])].sort((a, b) => b.created - a.created);
     if (!list.length) el.append(h('<div class="cal-empty" style="font-size:20px;padding:6px 4px">Noch keine Notizen. Oben auf „Notiz“ tippen oder am Handy eintragen.</div>'));
+    // Lob zuerst, es bleibt nur bis heute Abend
+    list.sort((a, b) => (b.kind === 'lob') - (a.kind === 'lob'));
     for (const n of list) {
-      const row = h(`<div class="note"><span class="private">${esc(n.text)}</span><button title="Notiz löschen"><svg class="icon"><use href="#i-x"/></svg></button></div>`);
-      row.querySelector('button').onclick = () => { if (confirm('Diese Notiz löschen?')) api('DELETE', `/api/notes/${n.id}`); };
+      const lob = n.kind === 'lob';
+      const row = h(`<div class="note ${lob ? 'lob' : ''}">${lob ? '<svg class="icon lob-h"><use href="#i-heart"/></svg>' : ''}<span class="private">${esc(n.text)}</span><button title="${lob ? 'Lob' : 'Notiz'} löschen"><svg class="icon"><use href="#i-x"/></svg></button></div>`);
+      row.querySelector('button').onclick = () => { if (confirm(lob ? 'Dieses Lob löschen?' : 'Diese Notiz löschen?')) api('DELETE', `/api/notes/${n.id}`); };
       el.append(row);
     }
   }
@@ -2001,6 +2217,23 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     $('#overlayHost').append(scrim); scrim.querySelector('#nText').focus();
   }
   $('#addNote').onclick = openNoteDialog;
+  // Lob-Ecke: kurzer Dank ohne Absender, verschwindet am Ende des Tages
+  const LOB_IDEAS = ['Danke fürs Einspringen!', 'Danke für den Kaffee!', 'Super Teamarbeit heute!', 'Danke für die schnelle Hilfe!', 'Danke fürs Aufräumen!'];
+  function openLobDialog() {
+    const scrim = h(`<div class="scrim center"><form class="panel dialog" autocomplete="off">
+      <h2><span style="display:flex;align-items:center;gap:10px"><svg class="icon" style="color:#FF8FA3;fill:#FF8FA3"><use href="#i-heart"/></svg>Lob-Ecke</span></h2>
+      <label class="field">Danke für … <input type="text" id="lText" required maxlength="140" placeholder="z. B. Danke fürs Einrichten der neuen Drucker!"></label>
+      <div class="chips" id="lIdeas">${LOB_IDEAS.map(t => `<button type="button" >${esc(t)}</button>`).join('')}</div>
+      <p class="hint">Erscheint ohne Absender und verschwindet am Ende des Tages. Das Board ist für Besucher sichtbar: bitte keine Kundendaten.</p>
+      <div class="row"><button class="btn primary" type="submit">Lob anheften</button><button class="btn" type="button" id="lCancel">Abbrechen</button></div>
+    </form></div>`);
+    const inp = scrim.querySelector('#lText');
+    scrim.querySelectorAll('#lIdeas button').forEach(b => b.onclick = () => { inp.value = b.textContent; inp.focus(); });
+    scrim.querySelector('#lCancel').onclick = () => scrim.remove();
+    scrim.querySelector('form').onsubmit = (e) => { e.preventDefault(); api('POST', '/api/notes', { text: inp.value, kind: 'lob' }).then(() => mascot && mascot.cheer(), () => {}); scrim.remove(); };
+    $('#overlayHost').append(scrim); inp.focus();
+  }
+  $('#addLob').onclick = openLobDialog;
 
   /* ---------- Wetter ---------- */
   const COND = { dry: 'Trocken', fog: 'Nebel', rain: 'Regen', sleet: 'Schneeregen', snow: 'Schnee', hail: 'Hagel', thunderstorm: 'Gewitter' };
@@ -2015,6 +2248,9 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       out.push(top.length ? top.map(p => `<span><i class="l${Math.min(3, Math.round(p.today))}"></i>${esc(p.name)} ${POLL_TXT[Math.min(3, Math.round(p.today))]}</span>`).join('') : '<span><i></i>Kaum Pollen</span>');
     }
     if (H?.uv) { const u = H.uv.today, lv = u >= 8 ? 3 : u >= 6 ? 3 : u >= 3 ? 2 : 1; out.push(`<span><i class="l${lv}"></i>UV ${u} ${u >= 6 ? 'hoch' : u >= 3 ? 'mittel' : 'niedrig'}</span>`); }
+    const air = S.extras?.air;
+    // Schlechte Luft zuerst, sonst hinten (passt sie nicht mehr in die Zeile, fällt sie weg)
+    if (air && air.label) out[air.index >= 2 ? 'unshift' : 'push'](`<span title="Luftqualität, Messstation Hannover (Umweltbundesamt)"><i class="l${air.index <= 1 ? 1 : air.index === 2 ? 2 : 3}"></i>Luft ${esc(air.label)}</span>`);
     $('#wxHealth').innerHTML = out.join(''); $('#wxHealth').hidden = !out.length;
   }
   const RAIN_MAX = 6;
@@ -2550,6 +2786,19 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <div class="row"><button class="btn" id="sNewsPick">Anbieter und Themen wählen …</button></div>
         <p class="hint" style="margin-top:8px">Geht auch direkt: oben in der Nachrichten-Kachel auf „Auswahl“ tippen. Die Kachel selbst lässt sich über „Kacheln anordnen“ ein- und ausblenden. Antippen einer Meldung zeigt einen QR-Code zum Artikel fürs Handy.</p>
       </div>
+      <div><h4>Hinweise und Extras</h4>
+        <div class="field">Müllabfuhr anzeigen (aha) <button class="switch" id="sWaste" role="switch" aria-checked="${st.wasteOn !== false}"></button></div>
+        <div class="row"><input type="text" id="sWStreet" value="${esc(st.waste?.street || 'Hans-Böckler-Allee')}" placeholder="Straße" style="flex:1;font:inherit;font-size:20px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px"><input type="text" id="sWNr" value="${esc(st.waste?.nr || '1')}" placeholder="Nr." style="width:90px;font:inherit;font-size:20px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px"><button class="btn" id="sWSave">Übernehmen</button></div>
+        <p class="hint" id="sWasteNow" style="margin-top:8px"></p>
+        <div class="row" style="margin-top:10px"><button class="btn" id="sGuides">Anleitungen und Gäste-WLAN …</button></div>
+        <p class="hint" style="margin-top:8px">Unten rechts erscheint dann die Taste „Anleitungen“ mit QR-Codes fürs Handy.</p>
+        <h4 style="margin-top:14px">Tägliche Datensicherung</h4>
+        <div class="row"><input type="text" id="sBackDir" value="${esc(st.backupDir || '')}" placeholder="${esc(S.backup?.dir && !st.backupDir ? S.backup.dir : 'Standardordner')}" style="flex:1;font:inherit;font-size:18px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px"><button class="btn" id="sBackNow">Jetzt sichern</button></div>
+        <p class="hint" id="sBackInfo" style="margin-top:8px"></p>
+        <h4 style="margin-top:14px">Rückscan-Stand</h4>
+        <div class="row"><input type="text" id="sRsKey" maxlength="64" placeholder="${st.rueckscanKeySet ? 'Schlüssel ist gesetzt (neu eingeben zum Ändern)' : 'optionaler Schlüssel'}" style="flex:1;font:inherit;font-size:18px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px"><button class="btn" id="sRsSave">Speichern</button></div>
+        <p class="hint" style="margin-top:8px">Rückscan meldet nur Zahlen (z. B. „Wagen 1: 412 von 500“) an das Board, das zeigt sie unter dem Datum. Ohne Schlüssel nimmt das Board Meldungen nur aus dem Büro-Netz an. Mit Schlüssel muss derselbe in Rückscan unter Einstellungen stehen.</p>
+      </div>
       <div><h4>Bürozeiten (Mo–Fr)</h4>
         <label class="field">Beginn <input type="time" id="sStart" value="${st.officeStart}"></label>
         <label class="field">Ende <input type="time" id="sEnd" value="${st.officeEnd}"></label>
@@ -2730,6 +2979,27 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     scrim.querySelector('#sStopQ').onkeydown = (e) => { if (e.key === 'Enter') showStops(e.target.value.trim()); };
     showStops('');
     scrim.querySelector('#sStart').onchange = (e) => setSettings({ officeStart: e.target.value });
+    // Hinweise und Extras
+    const wasteInfo = () => {
+      const w = S.extras?.waste, el = scrim.querySelector('#sWasteNow');
+      if (!el) return;
+      el.textContent = settings().wasteOn === false ? 'Aus.' : w?.error ? `Hat nicht geklappt: ${w.error}` : w?.list?.length ? `Nächste Termine: ${w.list.slice(0, 4).map(x => `${fmtD(x.date)} ${WASTE_NICE[x.kind] || x.kind}`).join(', ')} · Hinweis am Vortag ab 12 Uhr` : 'Termine werden geladen …';
+    };
+    wasteInfo();
+    const wsw = scrim.querySelector('#sWaste');
+    wsw.onclick = () => { const on = wsw.getAttribute('aria-checked') !== 'true'; wsw.setAttribute('aria-checked', on); setSettings({ wasteOn: on }); setTimeout(wasteInfo, 4000); };
+    scrim.querySelector('#sWSave').onclick = () => { setSettings({ waste: { street: scrim.querySelector('#sWStreet').value, nr: scrim.querySelector('#sWNr').value, town: 'Hannover' }, wasteOn: true }); wsw.setAttribute('aria-checked', true); scrim.querySelector('#sWasteNow').textContent = 'Wird geladen …'; setTimeout(wasteInfo, 6000); };
+    scrim.querySelector('#sGuides').onclick = () => { scrim.remove(); openGuidesEdit(); };
+    const backInfo = () => {
+      const b = S.backup, el = scrim.querySelector('#sBackInfo');
+      if (!el || !b) return;
+      el.textContent = b.ok ? `Zuletzt gesichert ${new Date(b.at).toLocaleString('de-DE', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' })} in ${b.dir}. Es bleiben die letzten 14 Tage.` : b.ok === false ? `Sicherung hat nicht geklappt: ${b.error} (${b.dir})` : '';
+      el.textContent += ' Für ein Netzlaufwerk den Pfad als \\\\server\\freigabe angeben; die Freigabe muss für diesen PC beschreibbar sein.';
+    };
+    backInfo();
+    scrim.querySelector('#sBackDir').onchange = e => { setSettings({ backupDir: e.target.value.trim() }); setTimeout(backInfo, 1500); };
+    scrim.querySelector('#sBackNow').onclick = () => api('POST', '/api/backup').then(r => { S.backup = r; backInfo(); }, e => { scrim.querySelector('#sBackInfo').textContent = `Hat nicht geklappt: ${e.message}`; });
+    scrim.querySelector('#sRsSave').onclick = () => { const v = scrim.querySelector('#sRsKey').value.trim(); setSettings({ rueckscanKey: v }); scrim.querySelector('#sRsKey').value = ''; scrim.querySelector('#sRsKey').placeholder = v ? 'Schlüssel ist gesetzt (neu eingeben zum Ändern)' : 'optionaler Schlüssel'; };
     scrim.querySelector('#sEnd').onchange = (e) => setSettings({ officeEnd: e.target.value });
     scrim.querySelector('#sTest').onclick = () => { unlockAudio(); setTimeout(() => chime(true), 80); };
     scrim.querySelector('#sCheck').onclick = async () => {
@@ -2878,6 +3148,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       doneCount = doneNow;
     };
     es.addEventListener('restart', () => showUpdating('Neue Version wird gestartet …'));
+    es.addEventListener('knock', e => { try { knock(JSON.parse(e.data).s); } catch {} });
     es.onerror = () => { connected = false; };
   }
 
