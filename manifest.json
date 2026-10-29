@@ -1,20 +1,20 @@
 {
-  "version": "1.26.1",
-  "notes": "Ausgeblendete Störungen-Kachel schien nach einer Aktualisierung wieder durch. Sie bleibt jetzt wirklich ausgeblendet. Eine gemeldete Störung steht weiterhin oben rechts im Kopf.",
+  "version": "1.27.0",
+  "notes": "Nachrichten auswählen: Oben in der Nachrichten-Kachel auf „Auswahl“ tippen. Dort wählt ihr die Anbieter und blendet Themen aus, zum Beispiel Fußball, Sport, Promis oder Ratgeber. Das Laufband lässt sich dort auch ausschalten.",
   "changes": [
-    "Ausgeblendete Störungen-Kachel schien nach einer Aktualisierung wieder durch. Sie bleibt jetzt wirklich ausgeblendet. Eine gemeldete Störung steht weiterhin oben rechts im Kopf."
+    "Nachrichten auswählen: Oben in der Nachrichten-Kachel auf „Auswahl“ tippen. Dort wählt ihr die Anbieter und blendet Themen aus, zum Beispiel Fußball, Sport, Promis oder Ratgeber. Das Laufband lässt sich dort auch ausschalten."
   ],
   "files": {
-    "changelog.json": "caa75b7d1bedf17977f0d42237938ca73a7bda1d6052d3965eec2d7854dc299d",
+    "changelog.json": "0b3586dfac62d83d1d13c0af76021dcb1222794f51ad098ef4ff5630bc000908",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
-    "extras.js": "f5e43255a9482e53ade4d28351e4be39dee48947cd35fab2acd9e7ccc541c656",
-    "public/board.html": "de27ca1ef06c8c638ed9bba7a28b5fb91356a5b62d30ad1a3e9986ce08b5219d",
+    "extras.js": "beea3b28a7ff70bb90353ca9a5b2d438b28380d29cef59d6690bb5a08998683b",
+    "public/board.html": "105e506e0b6647ae4eeb1461789e31f5da6f90641bb25dc2ceda22522d2fd787",
     "public/m.html": "7bfa16962f6c6a27ec9b975253cec85182d63a56c14eb9be1d63217aacfecf81",
     "public/mascot.js": "880c1e69a1d7f16509da00ec9c0fe70aae4bd28c1dc90d7a919a69ab1c2df196",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
-    "server.js": "21fc77958c6e278cdeed6e8e2c3241a045abbca03cffa37182634658e05c1423",
+    "server.js": "b03e9904aae3fbc2b9aa6d7a79f8a59966f03949b7ac4fa46e7edd59eec56fbe",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "be46d9bb6a2be1513730dabd4dac57bdc1984f5d457f507b05b4085478ad881e"
+    "version.json": "aabc03c735f3ef33a2078f12477653c7d731fba750b1bb560f3535da44da63ac"
   }
 }

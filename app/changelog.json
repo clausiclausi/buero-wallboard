@@ -1,5 +1,12 @@
 [
  {
+  "version": "1.27.0",
+  "date": "2026-10-29",
+  "changes": [
+   "Nachrichten auswählen: Oben in der Nachrichten-Kachel auf „Auswahl“ tippen. Dort wählt ihr die Anbieter und blendet Themen aus, zum Beispiel Fußball, Sport, Promis oder Ratgeber. Das Laufband lässt sich dort auch ausschalten."
+  ]
+ },
+ {
   "version": "1.26.1",
   "date": "2026-10-29",
   "changes": [

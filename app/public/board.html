@@ -407,6 +407,10 @@ footer .sp { margin-left: auto; }
 .news-item small b { color: var(--text); font-weight: 700; }
 .news-item span { font-size: 20px; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .news-empty { font-size: 19px; color: var(--muted); padding: 3px 4px; }
+.card.news h3 { cursor: pointer; }
+.news-pick h4 { margin: 4px 0 10px; }
+.news-pick .chips button { font-family: inherit; font-size: 20px; padding: 10px 16px; border-radius: 12px; }
+.news-pick .chips button[aria-pressed="false"] { text-decoration: line-through; opacity: .6; }
 /* Termine oben bei den Aufgaben und im Monatskalender */
 .task.appt { border-style: dashed; border-color: var(--muted); }
 .task.appt .t-top .icon { font-size: 20px; }
@@ -908,7 +912,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     </section>
 
     <section class="card news" data-k="news" data-name="Nachrichten">
-      <h3>Nachrichten <span class="badge" id="newsSrc" style="max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span></h3>
+      <h3 id="newsHead">Nachrichten <button class="mini-btn" id="newsPick" title="Anbieter und Themen wählen"><svg class="icon"><use href="#i-gear"/></svg>Auswahl</button></h3>
       <div class="news-list" id="newsList"><div class="news-track" id="newsTrack"></div></div>
     </section>
 
@@ -1594,22 +1598,48 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   const NEWS_NAMES = { tagesschau: 'tagesschau', dlf: 'Deutschlandfunk', ntv: 'n-tv', zdf: 'ZDFheute', welt: 'WELT' };
   const NEWS_DEF = ['tagesschau', 'dlf', 'ntv'];
   const newsSources = () => Array.isArray(settings().newsSources) ? settings().newsSources : NEWS_DEF;
+  const NEWS_TOPICS = { politik: 'Politik', wirtschaft: 'Wirtschaft', fussball: 'Fußball', sport: 'Sport (ohne Fußball)', panorama: 'Panorama & Promis', wissen: 'Wissen & Technik', kultur: 'Kultur, Reise & Ratgeber' };
+  const newsHide = () => Array.isArray(settings().newsHide) ? settings().newsHide : [];
+  // Auswahl: Kopf der Kachel antippen
+  function openNewsPick() {
+    if (stage.querySelector('.arr')) return;
+    const chip = (k, n, on) => `<button type="button" data-k="${k}" aria-pressed="${on}">${esc(n)}</button>`;
+    const scrim = h(`<div class="scrim center"><div class="panel dialog news-pick" role="dialog" aria-label="Nachrichten auswählen" style="width:820px">
+      <h2>Nachrichten auswählen <button class="tool" data-close title="Fertig"><svg class="icon"><use href="#i-x"/></svg></button></h2>
+      <div><h4>Anbieter</h4><div class="chips" id="npSrc">${Object.entries(NEWS_NAMES).map(([k, n]) => chip(k, n, newsSources().includes(k))).join('')}</div></div>
+      <div><h4>Themen</h4><div class="chips" id="npTop">${Object.entries(NEWS_TOPICS).map(([k, n]) => chip(k, n, !newsHide().includes(k))).join('')}</div>
+        <p class="hint" style="margin-top:8px">Antippen schaltet an und aus, durchgestrichen wird nicht gezeigt. Das Thema erkennt das Board an der Rubrik des Anbieters, das klappt fast immer. Allgemeine Meldungen ohne Rubrik bleiben sichtbar.</p></div>
+      <div class="field">Laufband unten am Rand <button type="button" class="switch" id="npTick" role="switch" aria-checked="${settings().newsTicker !== false}"></button></div>
+      <p class="hint" style="margin:0" id="npCount"></p>
+    </div></div>`);
+    const q = s => scrim.querySelector(s);
+    const count = () => { const n = (S.extras?.news || []).filter(i => newsSources().includes(i.src) && !newsHide().includes(i.topic)).length; q('#npCount').textContent = `Gerade ${n} Meldungen aus den letzten 24 Stunden in der Auswahl.`; };
+    const picked = (sel, on) => [...scrim.querySelectorAll(sel + ' button')].filter(x => (x.getAttribute('aria-pressed') === 'true') === on).map(x => x.dataset.k);
+    scrim.querySelectorAll('#npSrc button, #npTop button').forEach(b => b.onclick = () => {
+      b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true');
+      setSettings(b.closest('#npSrc') ? { newsSources: picked('#npSrc', true) } : { newsHide: picked('#npTop', false) });
+      renderNews(); count();
+    });
+    q('#npTick').onclick = () => { const v = q('#npTick').getAttribute('aria-checked') !== 'true'; q('#npTick').setAttribute('aria-checked', v); setSettings({ newsTicker: v }); renderNews(); };
+    count();
+    showDialog(scrim, 120);
+  }
+  $('#newsHead').addEventListener('click', openNewsPick);
   const openNews = n => openLink(n, 'Nachricht', `der Artikel bei ${NEWS_NAMES[n.src] || 'der Quelle'}`);
   const newsTime = d => { const t = new Date(d); return t.toDateString() === new Date().toDateString() ? t.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : t.toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' }); };
   let newsSig = '';
   // Läuft endlos: Inhalt doppelt, die Animation schiebt genau eine Hälfte weiter. Nur neu bauen, wenn sich etwas ändert.
   function renderNews() {
-    const items = (S.extras?.news || []).filter(n => newsSources().includes(n.src));
+    const items = (S.extras?.news || []).filter(n => newsSources().includes(n.src) && !newsHide().includes(n.topic));
     const tile = !layout().hidden?.includes('news'), tick = settings().newsTicker !== false && items.length > 0;
-    const sig = JSON.stringify([items.map(n => n.title + n.date), tile, tick, newsSources()]);
+    const sig = JSON.stringify([items.map(n => n.title + n.date), tile, tick]);
     if (sig === newsSig) return;
     newsSig = sig;
-    $('#newsSrc').textContent = newsSources().map(k => NEWS_NAMES[k]).join(' · ');
     const one = n => `<small><b>${esc(NEWS_NAMES[n.src] || '')}</b> · ${newsTime(n.date)}</small><span>${esc(n.title)}</span>`;
     const track = $('#newsTrack'), list = items.slice(0, 15);
     track.classList.remove('run');
     track.innerHTML = list.length ? list.map((n, i) => `<button type="button" class="news-item" data-i="${i}">${one(n)}</button>`).join('')
-      : `<div class="news-empty">${newsSources().length ? 'Nachrichten werden geladen …' : 'Keine Quelle gewählt (Einstellungen → Nachrichten).'}</div>`;
+      : `<div class="news-empty">${newsSources().length ? 'Nachrichten werden geladen …' : 'Keine Anbieter gewählt. Oben auf „Auswahl“ tippen.'}</div>`;
     requestAnimationFrame(() => {
       if (list.length && track.scrollHeight > $('#newsList').clientHeight + 10) {
         track.innerHTML += track.innerHTML;
@@ -2197,10 +2227,9 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <div class="chips" id="sRoutes" style="margin-top:10px"></div>
       </div>
       <div><h4>Nachrichten</h4>
-        <p class="hint" style="margin-bottom:10px">Quellen (öffentlich-rechtlich und große Nachrichtenhäuser, nur Schlagzeilen):</p>
-        <div class="chips" id="sNews">${Object.entries(NEWS_NAMES).map(([k, n]) => `<button type="button" data-k="${k}" aria-pressed="${newsSources().includes(k)}">${esc(n)}</button>`).join('')}</div>
-        <div class="field" style="margin-top:10px">Laufband unten am Rand <button class="switch" id="sTicker" role="switch" aria-checked="${st.newsTicker !== false}"></button></div>
-        <p class="hint">Die Kachel „Nachrichten“ lässt sich über „Kacheln anordnen“ ein- und ausblenden. Antippen einer Meldung zeigt einen QR-Code zum Artikel fürs Handy.</p>
+        <p class="hint" style="margin-bottom:10px">Anbieter: ${esc(newsSources().map(k => NEWS_NAMES[k]).join(', ') || 'keine')}${newsHide().length ? ` · ohne ${esc(newsHide().map(k => NEWS_TOPICS[k]).join(', '))}` : ''}</p>
+        <div class="row"><button class="btn" id="sNewsPick">Anbieter und Themen wählen …</button></div>
+        <p class="hint" style="margin-top:8px">Geht auch direkt: oben in der Nachrichten-Kachel auf „Auswahl“ tippen. Die Kachel selbst lässt sich über „Kacheln anordnen“ ein- und ausblenden. Antippen einer Meldung zeigt einen QR-Code zum Artikel fürs Handy.</p>
       </div>
       <div><h4>Bürozeiten (Mo–Fr)</h4>
         <label class="field">Beginn <input type="time" id="sStart" value="${st.officeStart}"></label>
@@ -2360,13 +2389,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
           `<div><span>${r.ok ? '✅' : '❌'}</span><span><b>${esc(r.name)}</b><small>${esc(r.detail)} · ${r.ms} ms</small></span></div>`).join('');
       }).catch(e => { out.innerHTML = `<span class="hint">${esc(e.message)}</span>`; });
     };
-    scrim.querySelectorAll('#sNews button').forEach(b => b.onclick = () => {
-      const on = b.getAttribute('aria-pressed') !== 'true';
-      b.setAttribute('aria-pressed', on);
-      setSettings({ newsSources: [...scrim.querySelectorAll('#sNews button')].filter(x => x.getAttribute('aria-pressed') === 'true').map(x => x.dataset.k) });
-      renderNews();
-    });
-    scrim.querySelector('#sTicker').onclick = (e) => { const v = e.currentTarget.getAttribute('aria-checked') !== 'true'; e.currentTarget.setAttribute('aria-checked', v); setSettings({ newsTicker: v }); renderNews(); };
+    scrim.querySelector('#sNewsPick').onclick = () => { scrim.remove(); openNewsPick(); };
     const rOn = scrim.querySelector('#sRouteOn');
     rOn.onclick = () => { setSettings({ routeOn: settings().routeOn === false }); rOn.setAttribute('aria-checked', settings().routeOn !== false); };
     const routes = scrim.querySelector('#sRoutes');

@@ -191,6 +191,21 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
     zdf: { name: 'ZDFheute', url: 'https://www.zdf.de/rss/zdf/nachrichten', host: 'zdfheute.de' },
     welt: { name: 'WELT', url: 'https://www.welt.de/feeds/latest.rss', host: 'welt.de' },
   };
+  // Thema einer Meldung: aus Link-Pfad, Feed-Kategorie oder Stichworten im Titel. Ohne Treffer „allgemein“ (immer sichtbar).
+  const FUSSBALL = /fu(ß|ss)ball|bundesliga|\bdfb\b|dfb-pokal|\bfifa\b|\buefa\b|champions.league|europa.league|elfmeter|ballon d.or|torjäger|hertha|schalke|hannover 96|\bhsv\b/i;
+  const SPORT = /\bsport|formel.1|tennis|handball|basketball|biathlon|olympi|\bnfl\b|\bnba\b|eishockey|skispringen|leichtathletik|radsport|boxen\b/i;
+  function topic(link, title, cat) {
+    let p = ''; try { p = new URL(link).pathname.toLowerCase(); } catch {}
+    if (/\/fussball\b/.test(p) || FUSSBALL.test(`${cat} ${title}`)) return 'fussball';
+    if (/^\/sport\b/.test(p) || SPORT.test(`${cat} ${title.split(' - ')[0]}`)) return 'sport';
+    if (/^\/(wirtschaft|finanzen|geld|boerse)\b/.test(p) || /^wirtschaft/i.test(cat) || /^(wirtschaft|konjunktur|börse|finanzen)\b/i.test(title)) return 'wirtschaft';
+    if (/^\/(inland|ausland|politik)\b/.test(p) || /^politik/i.test(cat)) return 'politik';
+    if (/^\/(panorama|vermischtes|leute|unterhaltung|promis)\b/.test(p) || /^(panorama|unterhaltung|leute)/i.test(cat)) return 'panorama';
+    if (/^\/(wissen|wissenschaft|technik|digital|gesundheit|klima)\b/.test(p) || /^(wissen|technik|digital)/i.test(cat) || /^(astronomie|forschung|wissenschaft|medizin|technik|raumfahrt|klima)\b/i.test(title)) return 'wissen';
+    if (/^\/(kultur|ratgeber|reise|auto|geschichte|debatte|lifestyle|kino|musik)\b/.test(p) || /^(kultur|ratgeber|reise|auto)/i.test(cat)) return 'kultur';
+    return 'allgemein';
+  }
+
   async function updateNews() {
     const want = (getSettings().newsSources || ['tagesschau', 'dlf', 'ntv']).filter(k => NEWS[k]);
     const all = [], seen = new Set();
@@ -200,18 +215,19 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
         const items = [...xml.matchAll(/<item[\s>]([\s\S]*?)<\/item>/g)].map(m => {
           const tag = t => unxml((m[1].match(new RegExp(`<${t}[^>]*>([\\s\\S]*?)</${t}>`)) || [])[1]);
           const link = clean(tag('link'), 300), host = (/^https:\/\/(?:[a-z0-9-]+\.)*([a-z0-9-]+\.[a-z]+)\//i.exec(link) || [])[1];
-          return { title: clean(tag('title'), 160), date: new Date(tag('pubDate')).getTime() || 0, link: host === NEWS[k].host ? link : '', src: k };
+          const title = clean(tag('title'), 160);
+          return { title, date: new Date(tag('pubDate')).getTime() || 0, link: host === NEWS[k].host ? link : '', src: k, topic: topic(link, title, clean(tag('category'), 60)) };
         })
           // nur echte Meldungen mit Link: keine Videos, Livestreams, Bezahlartikel, Hinweise des Senders oder alten Meldungen
           .filter(i => i.title && i.link && !/\/(video|multimedia|livestream|plus)/i.test(i.link) && !/^(livestream|video|liveblog|schlagzeilen|aktuelle pressemitteilungen|entdecken sie)\b/i.test(i.title) && Date.now() - i.date < 24 * 3600000)
-          .sort((a, b) => b.date - a.date).slice(0, 12);
+          .sort((a, b) => b.date - a.date).slice(0, 20);
         for (const i of items) { const key = i.title.toLowerCase().replace(/\W+/g, ''); if (!seen.has(key)) { seen.add(key); all.push(i); } }
       } catch (e) { log(`Nachrichten ${NEWS[k].name} nicht erreichbar:`, why(e)); }
     }
     // Quellen abwechselnd, damit nicht eine Quelle mit gleicher Uhrzeit alles oben belegt
     const by = want.map(k => all.filter(i => i.src === k)), mixed = [];
-    for (let n = 0; n < 12; n++) for (const l of by) if (l[n]) mixed.push(l[n]);
-    if (all.length || !want.length) { st.news = { items: mixed.slice(0, 36), updated: Date.now() }; persist(); broadcast(); }
+    for (let n = 0; n < 20; n++) for (const l of by) if (l[n]) mixed.push(l[n]);
+    if (all.length || !want.length) { st.news = { items: mixed.slice(0, 60), updated: Date.now() }; persist(); broadcast(); }
   }
 
   // Abfahrten nur zu Bürozeiten jede Minute, sonst alle 15 Minuten
