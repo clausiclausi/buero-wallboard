@@ -243,7 +243,8 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
         if (x.type === 'infrastructure') continue;
         const valid = (x.timestamps?.validity || []).some(v => (!v.from || new Date(v.from) <= now) && (!v.to || new Date(v.to) >= now));
         if (!valid) continue;
-        const ls = [...new Set((x.affected?.lines || []).map(l => clean(l.disassembledName || l.number || '', 10)).filter(Boolean))];
+        // Nur Linien im Großraum Hannover (GVH: Üstra, regiobus), sonst passen gleiche Liniennummern aus Hameln oder Hildesheim
+        const ls = [...new Set((x.affected?.lines || []).filter(l => /^gvh:/i.test(l.id || '') || /üstra|regiobus/i.test(l.operator?.name || '')).map(l => clean(l.disassembledName || l.number || '', 10)).filter(Boolean))];
         const hit = ls.filter(l => lines.has(l));
         const atStop = (x.affected?.stops || []).some(p => p.id === stopId);
         if (!hit.length && !atStop) continue;

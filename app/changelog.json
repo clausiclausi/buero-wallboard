@@ -1,5 +1,22 @@
 [
   {
+    "version": "1.33.0",
+    "date": "2026-10-29",
+    "changes": [
+      "Hinweiszeile unter dem Datum: wechselt alle 15 Sekunden zwischen Countdowns („Noch 12 Tage bis …“), Müllabfuhr am Vortag (aha), Microsoft-Patchday, Hitzewarnung und schlechter Luft, Rückscan-Stand, BSI-Warnungen und einem Spruch des Tages. Antippen zeigt alles auf einen Blick.",
+      "Countdown: Beim Termin „Countdown“ einschalten, gut für besondere Tage und Fristen.",
+      "Lob-Ecke: In der Notizen-Kachel und am Handy ein anonymes Lob anheften, es verschwindet am Ende des Tages.",
+      "Abfahrten: Meldungen von Üstra und regiobus zu Linien an eurer Haltestelle (z. B. Umleitungen) erscheinen als Hinweis in der Kachel.",
+      "Wetter-Kachel zeigt die Luftqualität der Messstation Hannover (Umweltbundesamt).",
+      "Unten rechts „Anleitungen“: QR-Codes zu euren Anleitungen und zum Gäste-WLAN, pflegbar unter Einstellungen → Hinweise und Extras.",
+      "Tägliche Datensicherung zusätzlich in einen eigenen Ordner (Standard: Öffentliche Dokumente\\Wallboard-Sicherung, auch Netzlaufwerk möglich), mit „Jetzt sichern“.",
+      "Anklopfen: Auf der Handy-Seite unter „Board“ eines von 6 dumpfen Klopfgeräuschen wählen, das Board klopft dann hörbar an.",
+      "Neue Männchen-Aktionen: Freitags-Tänzchen vor Feierabend, Eis bei Hitze, Schirm bei Regen.",
+      "Handy-Seite lässt sich als App-Symbol auf den Startbildschirm legen.",
+      "Rückscan kann seinen Stand als Teamzahl ans Board melden („Wagen 1: 412 von 500“)."
+    ]
+  },
+  {
     "version": "1.32.0",
     "date": "2026-10-29",
     "changes": [
