@@ -1,20 +1,20 @@
 {
-  "version": "1.31.0",
-  "notes": "Unten rechts gibt es die Taste „Scan-Tool“. Sie zeigt einen QR-Code und die Adresse zur jeweils neuesten Version des Rückscan-Programms zum Herunterladen, dazu drei Schritte zur Installation.",
+  "version": "1.32.0",
+  "notes": "Scan-Tool: Im Fenster gibt es jetzt die Taste „Auf diesem PC speichern“. Sie legt die neueste Rückscan-Version als ZIP-Datei auf den Desktop dieses PCs (für alle Benutzer sichtbar). Eine ältere Version dort wird dabei ersetzt.",
   "changes": [
-    "Unten rechts gibt es die Taste „Scan-Tool“. Sie zeigt einen QR-Code und die Adresse zur jeweils neuesten Version des Rückscan-Programms zum Herunterladen, dazu drei Schritte zur Installation."
+    "Scan-Tool: Im Fenster gibt es jetzt die Taste „Auf diesem PC speichern“. Sie legt die neueste Rückscan-Version als ZIP-Datei auf den Desktop dieses PCs (für alle Benutzer sichtbar). Eine ältere Version dort wird dabei ersetzt."
   ],
   "files": {
-    "changelog.json": "5377eb0ae140af38570619f56edd062adb12926ef686cd4933c7b141ad267d1f",
+    "changelog.json": "af3765632b1ebf2981f0db10e6b8d202716de48aceec0d4053f5ed1a5e0fce63",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
     "extras.js": "beea3b28a7ff70bb90353ca9a5b2d438b28380d29cef59d6690bb5a08998683b",
-    "public/board.html": "a007d2868b64204a6f09e0f14d62a26dedbda56907f4ada056a43f3646180f13",
+    "public/board.html": "cadda9c54e53b416da62e85ad2e652a6340735a115f425ff285269900cb6f9d6",
     "public/m.html": "7bfa16962f6c6a27ec9b975253cec85182d63a56c14eb9be1d63217aacfecf81",
     "public/mascot.js": "880c1e69a1d7f16509da00ec9c0fe70aae4bd28c1dc90d7a919a69ab1c2df196",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
-    "server.js": "40b420d41fb6d36db3b3eeaad872ff1e856bf549766f5e1812f84c1a41dd39d2",
+    "server.js": "c674aee0c4b984ee134e72f81666c2bc0ac7e751660eda8dc78780c64cc8aff8",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "f3cb93d01d054f0227fb7f387df4f14ce7d155a3770c0351d7019b4cafe2fa7c"
+    "version.json": "742de6ee6b4f7ad7d922d996e1b7786e89e372d82100bdbe88ae81dfdd0bef26"
   }
 }

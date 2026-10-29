@@ -404,8 +404,30 @@ async function checkScanTool() {
     const file = /^[\w.-]+\.zip$/.test(j.datei) ? j.datei : 'Rueckscan.zip';
     const url = config.updateUrl ? `${config.updateUrl.replace(/\/$/, '')}/downloads/${file}`
       : `https://github.com/${config.updateRepo}/raw/${config.updateBranch}/downloads/${file}`;
-    scanTool = { version: j.version, date: /^\d{4}-\d{2}-\d{2}$/.test(j.datum) ? j.datum : '', url };
+    scanTool = { version: j.version, date: /^\d{4}-\d{2}-\d{2}$/.test(j.datum) ? j.datum : '', url, file };
   } catch { /* behält die letzte bekannte Version */ }
+}
+// Speichert das Scan-Tool direkt auf diesem PC: Desktop für alle Benutzer, sonst öffentliche Downloads
+async function saveScanTool() {
+  if (!scanTool) throw new Error('Version noch unbekannt, bitte gleich nochmal versuchen');
+  const zip = await fetchRepoFile(`downloads/${scanTool.file}`);
+  if (zip.length > 30e6 || zip.toString('latin1', 0, 2) !== 'PK') throw new Error('Die Datei ist ungültig');
+  const pub = process.env.PUBLIC || 'C:\\Users\\Public';
+  const dirs = process.platform === 'win32'
+    ? [[path.join(pub, 'Desktop'), 'Desktop'], [path.join(pub, 'Downloads'), 'Öffentliche Downloads'], [path.join(DATA, 'downloads'), 'Wallboard-Ordner']]
+    : [[path.join(DATA, 'downloads'), 'Wallboard-Ordner']];
+  const name = `Rueckscan-${scanTool.version}.zip`;
+  for (const [dir, where] of dirs) {
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(path.join(dir, name), zip);
+      // ältere Versionen im selben Ordner entfernen, damit nur eine Datei liegt
+      for (const f of fs.readdirSync(dir)) if (/^Rueckscan-\d+\.\d+\.\d+\.zip$/.test(f) && f !== name) fs.rmSync(path.join(dir, f), { force: true });
+      log(`Scan-Tool ${scanTool.version} gespeichert: ${where}`);
+      return { name, where };
+    } catch (e) { log(`Scan-Tool speichern in ${where} fehlgeschlagen:`, e.message); }
+  }
+  throw new Error('Speichern hat nicht geklappt');
 }
 let lastCheckSent = 0;
 async function checkUpdate(auto = true) {
@@ -590,6 +612,11 @@ const server = http.createServer(async (req, res) => {
         db.incident = { area: oneOf(b.area, AREAS, 'Sonstiges'), level: oneOf(b.level, ['warn', 'crit'], 'crit'), note: clean(b.note, 40), since: db.incident?.since || Date.now() };
         save(); return send(res, 200, db.incident);
       }
+    }
+    if (p === '/api/scantool/save' && req.method === 'POST') {
+      // nur am Board selbst, vom Handy aus landet nichts auf dem PC
+      if (!isLocal(req)) return send(res, 403, { error: 'Nur am Board möglich' });
+      try { return send(res, 200, await saveScanTool()); } catch (e) { return send(res, 500, { error: e.message }); }
     }
     if (p === '/api/stats/tasks' && req.method === 'GET') {
       // Am Board nur mit Passwort, am Handy reicht die PIN

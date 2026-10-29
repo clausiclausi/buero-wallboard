@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.32.0",
+    "date": "2026-10-29",
+    "changes": [
+      "Scan-Tool: Im Fenster gibt es jetzt die Taste „Auf diesem PC speichern“. Sie legt die neueste Rückscan-Version als ZIP-Datei auf den Desktop dieses PCs (für alle Benutzer sichtbar). Eine ältere Version dort wird dabei ersetzt."
+    ]
+  },
+  {
     "version": "1.31.0",
     "date": "2026-10-29",
     "changes": [

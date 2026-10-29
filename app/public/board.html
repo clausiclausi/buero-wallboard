@@ -389,6 +389,8 @@ footer { display: flex; align-items: center; gap: 18px; font-size: 18px; color: 
 footer .stale { color: var(--warn); }
 footer .sp { margin-left: auto; }
 footer .mini-btn { margin-left: 0; font-size: 17px; }
+.scan-save { display: flex; align-items: center; gap: 16px; font-size: 19px; }
+.scan-save .btn { display: inline-flex; align-items: center; gap: 8px; flex: none; }
 .scan-steps { margin: 0; padding-left: 24px; font-size: 19px; line-height: 1.5; }
 /* Nachrichten: Laufband unten und Kachel */
 /* Spur absolut positioniert: die lange Zeile darf die Seitenbreite nicht aufblähen */
@@ -1844,10 +1846,17 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <p>QR-Code mit dem Handy scannen oder die Adresse am PC eingeben. Es ist immer die neueste Version.</p>
         <div class="dom">${esc(t.url.replace(/^https:\/\//, ''))}</div>
       </div></div>
-      <ol class="scan-steps"><li>ZIP-Datei am PC herunterladen und entpacken</li><li><b>Installieren.cmd</b> doppelklicken, Administrator-Rechte braucht es nicht</li><li>Rückscan über das Symbol auf dem Desktop starten</li></ol>
+      <div class="scan-save"><button type="button" class="btn primary" id="scanSave"><svg class="icon"><use href="#i-download"/></svg>Auf diesem PC speichern</button><span id="scanSaveMsg">Legt die ZIP-Datei auf den Desktop dieses PCs.</span></div>
+      <ol class="scan-steps"><li>ZIP-Datei herunterladen (oder oben auf diesem PC speichern) und entpacken</li><li><b>Installieren.cmd</b> doppelklicken, Administrator-Rechte braucht es nicht</li><li>Rückscan über das Symbol auf dem Desktop starten</li></ol>
       <p class="hint">Schließt sich nach zwei Minuten von selbst.</p>
     </div></div>`);
     showDialog(scrim, 120);
+    const btn = scrim.querySelector('#scanSave'), msg = scrim.querySelector('#scanSaveMsg');
+    btn.onclick = () => {
+      btn.disabled = true; msg.textContent = 'Wird gespeichert …';
+      api('POST', '/api/scantool/save').then(r => { msg.innerHTML = `Gespeichert: <b>${esc(r.name)}</b> liegt jetzt im Ordner „${esc(r.where)}“.`; },
+        e => { btn.disabled = false; msg.textContent = `Hat nicht geklappt: ${e.message}`; });
+    };
   };
   function renderSec() {
     const now = Date.now(), items = (S.extras?.bsi || []).filter(i => now - i.date < 4 * 864e5).slice(0, 2);
