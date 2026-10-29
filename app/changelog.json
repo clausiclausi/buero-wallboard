@@ -1,5 +1,14 @@
 [
   {
+    "version": "1.22.0",
+    "date": "2026-10-29",
+    "changes": [
+      "Abfahrten antippen: Richtung wählen (z. B. nur Richtung Stöcken / Garbsen) oder beide. Die Auswahl bleibt gespeichert, die Verbindung nach Hemmingen bleibt sichtbar.",
+      "Wetter antippen (Regenhinweis oder Stundenbalken): Uhrzeiten für die Regenwahrscheinlichkeit wählen, jetzt von 6 bis 22 Uhr, zum Beispiel für den Feierabend.",
+      "Sicherheit: BSI-Warnungen antippen zeigt einen QR-Code. Mit dem Handy scannen, dann öffnet sich die Warnung auf dem Handy. Das Fenster schließt sich nach einer Minute von selbst."
+    ]
+  },
+  {
     "version": "1.21.0",
     "date": "2026-10-28",
     "changes": [

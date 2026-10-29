@@ -181,7 +181,10 @@ function sanitizeSettings(b) {
   if ('transit' in b) {
     const tr = b.transit;
     s.transit = tr && typeof tr === 'object' && /^[A-Za-z0-9:_.-]{1,30}$/.test(String(tr.id || '')) ? { id: String(tr.id), name: clean(tr.name, 60) } : null;
+    if (!('transitDir' in b)) s.transitDir = null; // neue Haltestelle: erst mal beide Richtungen
   }
+  // Richtung der Abfahrten: Steig (z. B. SB1) oder einzelnes Fahrtziel, null = alle
+  if ('transitDir' in b) s.transitDir = typeof b.transitDir === 'string' && b.transitDir.trim() ? clean(b.transitDir, 60) : null;
   if (b.radar && typeof b.radar === 'object') s.radar = { zoom: oneOf(+b.radar.zoom, [1, 1.5, 2, 3, 4], 1), play: b.radar.play !== false };
   if ('route' in b) {
     const r = b.route;

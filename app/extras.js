@@ -70,7 +70,7 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
     return [DEFAULT_STOP];
   }
   async function departures(id) {
-    const r = await efa('XML_DM_REQUEST', { mode: 'direct', type_dm: 'stop', name_dm: id, useRealtime: 1, limit: 16, depType: 'stopEvents', includeCompleteStopSeq: 0, useAllStops: 1 });
+    const r = await efa('XML_DM_REQUEST', { mode: 'direct', type_dm: 'stop', name_dm: id, useRealtime: 1, limit: 30, depType: 'stopEvents', includeCompleteStopSeq: 0, useAllStops: 1 });
     if (!Array.isArray(r.stopEvents)) throw new Error('Antwort ohne Abfahrten');
     return r.stopEvents.map(e => {
       const plan = t(e.departureTimePlanned), real = t(e.departureTimeEstimated) || plan;
@@ -85,7 +85,7 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
     try {
       if (!stop || !stop.id) stop = autoStop || DEFAULT_STOP;
       const deps = (await departures(stop.id)).filter(d => new Date(d.when) > Date.now() - 60000)
-        .sort((a, b) => new Date(a.when) - new Date(b.when)).slice(0, 12);
+        .sort((a, b) => new Date(a.when) - new Date(b.when)).slice(0, 24);
       st.transit = { ok: true, stop: { id: stop.id, name: stop.name }, deps, updated: Date.now() };
     } catch (e) {
       log('Abfahrten nicht erreichbar:', why(e));
@@ -173,7 +173,10 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
       const xml = await get('https://wid.cert-bund.de/content/public/buergercert/rss', 'text');
       const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].map(m => {
         const tag = t => unxml((m[1].match(new RegExp(`<${t}[^>]*>([\\s\\S]*?)</${t}>`)) || [])[1]);
-        return { title: clean(tag('title'), 110), date: new Date(tag('pubDate')).getTime() || 0 };
+        // Link nur, wenn er wirklich zum BSI führt (für den QR-Code am Board)
+        const link = clean(tag('link'), 300);
+        return { title: clean(tag('title'), 110), date: new Date(tag('pubDate')).getTime() || 0,
+          link: /^https:\/\/([a-z0-9-]+\.)*(cert-bund\.de|bsi\.bund\.de)\/[^\s"'<>]*$/i.test(link) ? link : '' };
       }).filter(i => i.title).slice(0, 6);
       if (items.length) { st.bsi = { items, updated: Date.now() }; persist(); broadcast(); }
     } catch (e) { log('BSI-Warnungen nicht erreichbar:', why(e)); }

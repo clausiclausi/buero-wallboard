@@ -164,6 +164,26 @@ main {
 .sec-item { display: flex; gap: 10px; align-items: flex-start; font-size: 19px; line-height: 1.3; padding: 8px 12px; border-radius: 12px; background: var(--bg); }
 .sec-item .icon { font-size: 24px; color: var(--warn); margin-top: 1px; }
 .sec-item small { display: block; color: var(--muted); font-size: 15px; }
+.sec-item.link { cursor: pointer; }
+.sec-item.link small::after { content: ' · antippen für Link'; }
+.card.transit, #rainAlert, #rainTimes, #hours { cursor: pointer; }
+.tr-dir { flex: none; font-size: 15px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: -4px; }
+.dir-opts { display: flex; flex-direction: column; gap: 12px; }
+.dir-opts button { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; text-align: left; font: inherit; font-size: 22px; color: var(--text); padding: 16px 18px; border-radius: 16px; border: 2px solid var(--line); background: var(--bg); cursor: pointer; }
+.dir-opts button[aria-pressed="true"] { border-color: var(--text); }
+.dir-opts .ln { font-weight: 800; font-size: 16px; padding: 2px 8px; border-radius: 8px; color: #fff; background: #1E6FB8; }
+.dir-opts .ln.bus { background: #8A4FBF; } .dir-opts .ln.sbahn { background: #2E8B57; } .dir-opts .ln.zug { background: #C8372B; }
+.dir-opts small { width: 100%; font-size: 16px; color: var(--muted); }
+.rain-pick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.rain-pick button { font: inherit; font-family: var(--font-mono); font-size: 20px; color: var(--text); padding: 12px 6px; border-radius: 14px; border: 2px solid var(--line); background: var(--bg); cursor: pointer; }
+.rain-pick button small { display: block; font-size: 14px; color: var(--muted); }
+.rain-pick button[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+.rain-pick button[aria-pressed="true"] small { color: var(--bg); opacity: .75; }
+.qr-box { display: flex; gap: 28px; align-items: center; }
+.qr-box .qr { flex: none; width: 260px; height: 260px; padding: 12px; background: #fff; border-radius: 18px; }
+.qr-box .qr svg { width: 100%; height: 100%; display: block; }
+.qr-box p { margin: 0 0 10px; font-size: 20px; line-height: 1.4; }
+.qr-box .dom { font-family: var(--font-mono); font-size: 16px; color: var(--muted); word-break: break-all; }
 .tip { flex: none; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); font-size: 19px; line-height: 1.35; }
 .tip b { display: block; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
 .tip kbd { font-family: var(--font-mono); font-size: 17px; padding: 1px 7px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); }
@@ -726,6 +746,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 
     <section class="card transit" data-k="transit" data-name="Abfahrten">
       <h3><svg class="icon"><use href="#i-train"/></svg>Abfahrten <span class="badge" id="trStop" style="max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span></h3>
+      <div class="tr-dir" id="trDir" hidden></div>
       <div class="tr-list" id="transit"></div>
       <div class="route" id="route" hidden><h4 id="routeTo"></h4><div class="tr-list" id="routeList"></div></div>
       <div class="tr-src">Fahrplandaten: DELFI · efa.de (Ersatz: VRR · www.vrr.de)</div>
@@ -756,6 +777,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 </div>
 
 <script src="/static/mascot.js"></script>
+<script src="/static/qrcode.js"></script>
 <script>
 (() => {
   const $ = (s, r = document) => r.querySelector(s);
@@ -1231,9 +1253,16 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   function renderTransit() {
     const T = S.extras?.transit, el = $('#transit');
     $('#trStop').textContent = T?.stop?.name ? T.stop.name.replace(/^Hannover[ ,-]*/, '') : ''; $('#trStop').hidden = !T?.stop?.name;
+    $('#trDir').hidden = true;
     if (!T || !T.deps) { el.innerHTML = `<div class="tr-msg">${T?.error ? esc(T.error) : 'Abfahrten werden geladen …'}${T?.why ? `<small class="tr-why">${esc(T.why)}</small>` : ''}</div>`; renderRoute(); return; }
-    const now = Date.now();
-    const deps = T.deps.filter(d => new Date(d.when) - now > -60000).slice(0, 8);
+    const now = Date.now(), dir = settings().transitDir;
+    const all = T.deps.filter(d => new Date(d.when) - now > -60000);
+    let deps = dir ? all.filter(d => dirKey(d) === dir) : all;
+    // Gewählte Richtung gibt es an dieser Haltestelle nicht: dann alle zeigen
+    if (dir && !T.deps.some(d => dirKey(d) === dir)) deps = all;
+    deps = deps.slice(0, 8);
+    const g = dir && dirGroups(T.deps).get(dir);
+    $('#trDir').hidden = !g; if (g) $('#trDir').textContent = dirLabel(g);
     el.innerHTML = deps.length ? deps.map(d => {
       const min = Math.max(0, Math.round((new Date(d.when) - now) / 60000));
       return `<div class="dep ${d.cancelled ? 'x' : ''}"><span class="ln ${esc(d.kind)}">${esc(d.line)}</span><span class="dir">${esc(d.dir)}</span>
@@ -1247,6 +1276,40 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     fitRows(el);
   }
   // Feste Verbindung zum Ziel, z. B. nach Hemmingen: nächste Fahrten mit Linien und Ankunft
+  // Richtung = Steig (z. B. SB1); ohne Steigangabe das einzelne Fahrtziel
+  const dirKey = d => d.platform || `dir:${d.dir}`;
+  function dirGroups(deps) {
+    const m = new Map();
+    for (const d of deps) {
+      const k = dirKey(d); if (!m.has(k)) m.set(k, { dirs: new Map(), lines: new Map() });
+      const g = m.get(k); g.dirs.set(d.dir, (g.dirs.get(d.dir) || 0) + 1); g.lines.set(d.line, d.kind);
+    }
+    return m;
+  }
+  const dirLabel = g => 'Richtung ' + [...g.dirs].sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]).join(', ');
+  function openDirDialog() {
+    const T = S.extras?.transit;
+    if (!T?.deps?.length || stage.querySelector('.arr')) return;
+    const groups = dirGroups(T.deps), cur = settings().transitDir || '';
+    const opt = (k, title, g) => `<button type="button" data-k="${esc(k)}" aria-pressed="${cur === k}">${g ? [...g.lines].sort((x, y) => x[0].localeCompare(y[0], 'de', { numeric: true })).map(([l, kind]) => `<span class="ln ${esc(kind)}">${esc(l)}</span>`).join('') : ''}<span>${esc(title)}</span>${g && k.startsWith('dir:') ? '' : g ? `<small>Steig ${esc(k)}</small>` : ''}</button>`;
+    const scrim = h(`<div class="scrim center"><div class="panel dialog" role="dialog" aria-label="Richtung wählen">
+      <h2>Welche Richtung? <button class="tool" data-close title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
+      <div class="dir-opts">${opt('', 'Beide Richtungen')}${[...groups].map(([k, g]) => opt(k, dirLabel(g), g)).join('')}</div>
+      <p class="hint">Die Auswahl gilt für ${esc(T.stop?.name || 'diese Haltestelle')} und bleibt gespeichert. Die Verbindung nach Hemmingen bleibt immer sichtbar.</p>
+    </div></div>`);
+    showDialog(scrim, 60);
+    scrim.querySelectorAll('.dir-opts button').forEach(b => b.onclick = () => { setSettings({ transitDir: b.dataset.k || null }); renderTransit(); scrim.remove(); });
+  }
+  $('.card.transit').addEventListener('click', openDirDialog);
+  // Fenster zeigen; schließt über das X, Tippen daneben oder nach sec Sekunden von selbst
+  function showDialog(scrim, sec) {
+    const close = () => { clearTimeout(t); scrim.remove(); };
+    const t = sec ? setTimeout(close, sec * 1000) : 0;
+    scrim.addEventListener('click', e => { if (e.target === scrim || e.target.closest('[data-close]')) close(); });
+    $('#overlayHost').append(scrim);
+    return close;
+  }
+
   function renderRoute() {
     const R2 = S.extras?.route, box = $('#route'), el = $('#routeList');
     box.hidden = !R2 || settings().routeOn === false;
@@ -1299,10 +1362,29 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     ['<kbd>Strg</kbd> + <kbd>Umschalt</kbd> + <kbd>N</kbd> legt im Explorer einen neuen Ordner an.'],
     ['<kbd>Win</kbd> + <kbd>I</kbd> öffnet die Einstellungen.'],
   ];
+  // Das Board läuft im Vollbild ohne Zurück-Knopf: Links nicht hier öffnen, sondern als QR-Code fürs Handy zeigen
+  function qrSvg(text) {
+    try { const q = qrcode(0, 'M'); q.addData(text, 'Byte'); q.make(); return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); }
+    catch { return ''; }
+  }
+  function openLink(i) {
+    if (!i?.link || stage.querySelector('.arr')) return;
+    const scrim = h(`<div class="scrim center"><div class="panel dialog" role="dialog" aria-label="Link öffnen" style="width:820px">
+      <h2>BSI-Warnung <button class="tool" data-close title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
+      <div class="qr-box"><div class="qr">${qrSvg(i.link)}</div><div>
+        <p><b>${esc(i.title)}</b></p>
+        <p>Mit der Handy-Kamera scannen, dann öffnet sich die Warnung beim BSI auf dem Handy.</p>
+        <div class="dom">${esc(i.link.replace(/^https:\/\//, ''))}</div>
+      </div></div>
+      <p class="hint">Schließt sich nach einer Minute von selbst.</p>
+    </div></div>`);
+    showDialog(scrim, 60);
+  }
   function renderSec() {
     const now = Date.now(), items = (S.extras?.bsi || []).filter(i => now - i.date < 4 * 864e5).slice(0, 2);
-    $('#secList').innerHTML = items.length ? items.map(i => `<div class="sec-item"><svg class="icon"><use href="#i-shield"/></svg><span>${esc(i.title)}<small>BSI-Warnung · ${new Date(i.date).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' })}</small></span></div>`).join('')
+    $('#secList').innerHTML = items.length ? items.map((i, n) => `<div class="sec-item ${i.link ? 'link' : ''}" data-i="${n}"><svg class="icon"><use href="#i-shield"/></svg><span>${esc(i.title)}<small>BSI-Warnung · ${new Date(i.date).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' })}</small></span></div>`).join('')
       : '<div class="sec-item" style="color:var(--muted)">Keine neuen Warnungen des BSI für Verbraucher.</div>';
+    $('#secList').querySelectorAll('.sec-item.link').forEach(el => el.onclick = () => openLink(items[+el.dataset.i]));
     fitRows($('#secList'));
     const d = new Date(), day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 864e5);
     $('#tip').innerHTML = `<b>Tipp des Tages</b>${TIPS[day % TIPS.length][0]}`;
@@ -1347,6 +1429,26 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     if (H?.uv) { const u = H.uv.today, lv = u >= 8 ? 3 : u >= 6 ? 3 : u >= 3 ? 2 : 1; out.push(`<span><i class="l${lv}"></i>UV ${u} ${u >= 6 ? 'hoch' : u >= 3 ? 'mittel' : 'niedrig'}</span>`); }
     $('#wxHealth').innerHTML = out.join(''); $('#wxHealth').hidden = !out.length;
   }
+  const RAIN_MAX = 6;
+  function openRainDialog() {
+    if (stage.querySelector('.arr')) return;
+    const p = hh => W.hours?.[hh]?.prob;
+    const scrim = h(`<div class="scrim center"><div class="panel dialog" role="dialog" aria-label="Uhrzeiten für Regen">
+      <h2>Regen um wie viel Uhr? <button class="tool" data-close title="Fertig"><svg class="icon"><use href="#i-x"/></svg></button></h2>
+      <p class="hint" style="margin:0">Antippen zum An- und Abwählen, zum Beispiel euren Feierabend. Bis zu ${RAIN_MAX} Uhrzeiten, die Kachel zeigt dafür die Regenwahrscheinlichkeit von heute.</p>
+      <div class="rain-pick">${Array.from({ length: 17 }, (_, i) => i + 6).map(hh => `<button type="button" data-h="${hh}" aria-pressed="${settings().rainHours.includes(hh)}">${hh}:00<small>${p(hh) != null ? `${p(hh)} % Regen` : '–'}</small></button>`).join('')}</div>
+      <p class="hint" id="rainMax" style="margin:0;min-height:1.4em"></p>
+    </div></div>`);
+    showDialog(scrim, 90);
+    scrim.querySelectorAll('.rain-pick button').forEach(b => b.onclick = () => {
+      const v = +b.dataset.h, list = settings().rainHours, on = list.includes(v);
+      if (!on && list.length >= RAIN_MAX) { scrim.querySelector('#rainMax').textContent = `Höchstens ${RAIN_MAX} Uhrzeiten, bitte erst eine abwählen.`; return; }
+      scrim.querySelector('#rainMax').textContent = '';
+      setSettings({ rainHours: on ? list.filter(x => x !== v) : [...list, v].sort((a, b) => a - b) });
+      b.setAttribute('aria-pressed', !on);
+    });
+  }
+  ['#rainAlert', '#rainTimes', '#hours'].forEach(sel => $(sel).addEventListener('click', openRainDialog));
   function renderWeather() {
     const hNow = new Date().getHours();
     const sel = [...(settings().rainHours || [])].sort((a, b) => a - b);
@@ -1361,7 +1463,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     }
     renderHealth();
     const el = $('#hours'); el.innerHTML = '';
-    for (let hh = 7; hh < 19; hh++) {
+    for (let hh = Math.min(7, sel[0] ?? 7); hh <= Math.max(18, sel[sel.length - 1] ?? 18); hh++) {
       const p = prob(hh);
       el.append(h(`<div class="hour ${sel.includes(hh) ? 'key' : ''}" title="${p ?? '?'} % Regen"><i style="height:${Math.max(3, (p ?? 0) * .5)}px"></i><span>${hh}</span></div>`));
     }
@@ -1792,7 +1894,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       </div>
       <div><h4>Wetter</h4>
         <p class="hint" style="margin-bottom:10px">Regenwarnung zu diesen Uhrzeiten:</p>
-        <div class="chips" id="sRain">${[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(v => `<button type="button" data-h="${v}" aria-pressed="${st.rainHours.includes(v)}">${v}:00</button>`).join('')}</div>
+        <div class="chips" id="sRain">${Array.from({ length: 17 }, (_, i) => i + 6).map(v => `<button type="button" data-h="${v}" aria-pressed="${st.rainHours.includes(v)}">${v}:00</button>`).join('')}</div>
         <div class="field" style="margin-top:10px">Regenradar automatisch abspielen <button class="switch" id="sRadarPlay" role="switch" aria-checked="${st.radar?.play !== false}"></button></div>
         <p class="hint" style="margin-top:10px">Amtliche Unwetterwarnungen des DWD werden immer angezeigt.</p>
       </div>
