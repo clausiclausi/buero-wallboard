@@ -156,7 +156,7 @@ function sanitizeSettings(b) {
   if ('visitor' in b) s.visitor = !!b.visitor;
   if ('lead' in b) s.lead = oneOf(+b.lead, [5, 10, 15, 30], 15);
   if ('volume' in b) s.volume = Math.max(0, Math.min(1, +b.volume || 0));
-  if (Array.isArray(b.rainHours)) s.rainHours = [...new Set(b.rainHours.map(Number).filter(h => h >= 0 && h <= 23))].slice(0, 12);
+  if (Array.isArray(b.rainHours)) s.rainHours = [...new Set(b.rainHours.map(Number).filter(h => h >= 0 && h <= 23.5 && Number.isInteger(h * 2)))].slice(0, 12); // auch halbe Stunden, z. B. 16.5
   if (isTime(b.officeStart)) s.officeStart = b.officeStart;
   if (isTime(b.officeEnd)) s.officeEnd = b.officeEnd;
   if ('skin' in b) s.skin = oneOf(b.skin, ['standard', 'glas', 'neon', 'klar', 'fluid'], 'standard');

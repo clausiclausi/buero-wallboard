@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.23.0",
+    "date": "2026-10-29",
+    "changes": [
+      "Wetter: Regen-Uhrzeiten jetzt auch halbstündig wählbar (z. B. 16:30). Für halbe Stunden zeigt das Board den Mittelwert der beiden Nachbarstunden.",
+      "Regenwahrscheinlichkeit farbig: grün bei wenig Regen, über Gelb und Orange bis Rot bei viel Regen. Auch die Stundenbalken sind so eingefärbt."
+    ]
+  },
+  {
     "version": "1.22.0",
     "date": "2026-10-29",
     "changes": [

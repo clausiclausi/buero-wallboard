@@ -1,22 +1,21 @@
 {
-  "version": "1.22.0",
-  "notes": "Abfahrten antippen: Richtung wählen (z. B. nur Richtung Stöcken / Garbsen) oder beide. Die Auswahl bleibt gespeichert, die Verbindung nach Hemmingen bleibt sichtbar.",
+  "version": "1.23.0",
+  "notes": "Wetter: Regen-Uhrzeiten jetzt auch halbstündig wählbar (z. B. 16:30). Für halbe Stunden zeigt das Board den Mittelwert der beiden Nachbarstunden. Regenwahrscheinlichkeit farbig: grün bei wenig Regen, über Gelb und Orange bis Rot bei viel Regen. Auch die Stundenbalken sind so eingefärbt.",
   "changes": [
-    "Abfahrten antippen: Richtung wählen (z. B. nur Richtung Stöcken / Garbsen) oder beide. Die Auswahl bleibt gespeichert, die Verbindung nach Hemmingen bleibt sichtbar.",
-    "Wetter antippen (Regenhinweis oder Stundenbalken): Uhrzeiten für die Regenwahrscheinlichkeit wählen, jetzt von 6 bis 22 Uhr, zum Beispiel für den Feierabend.",
-    "Sicherheit: BSI-Warnungen antippen zeigt einen QR-Code. Mit dem Handy scannen, dann öffnet sich die Warnung auf dem Handy. Das Fenster schließt sich nach einer Minute von selbst."
+    "Wetter: Regen-Uhrzeiten jetzt auch halbstündig wählbar (z. B. 16:30). Für halbe Stunden zeigt das Board den Mittelwert der beiden Nachbarstunden.",
+    "Regenwahrscheinlichkeit farbig: grün bei wenig Regen, über Gelb und Orange bis Rot bei viel Regen. Auch die Stundenbalken sind so eingefärbt."
   ],
   "files": {
-    "changelog.json": "c401695886649328d41f1756cbb3bbd095ea3644061498aa14cc994b870a4856",
+    "changelog.json": "6bdc7c6faab5859fc470243e6db480edd9e28f929d2ce3bdfcef2c30d676b4a9",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
     "extras.js": "8d57000ec43f01b1d62a20003934ebf8009e9c09730e0a84daa379e6684c82ad",
-    "public/board.html": "3e3ca689d7ea74f1b80ececad2b8b9925e5a5cb8ffc83ac8140eaf536dda5ee8",
+    "public/board.html": "8f04ffb11994f5b79455acb654ba72e424b730f8dc0f5fb63494b34aec38ee53",
     "public/m.html": "51f4c46130b9710c6f2995f6a028d81ec9139521416ab7042636a67b49fd3c78",
     "public/mascot.js": "880c1e69a1d7f16509da00ec9c0fe70aae4bd28c1dc90d7a919a69ab1c2df196",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
     "radar.js": "2de0dd59de4067ed5a90383e0f6b809fcba6522fa9299c1a4bc5595a464aeaff",
-    "server.js": "eb7740f6d14e7db7e1285623ba084a50ddaaca6b09ad74e0f071df88c021a744",
+    "server.js": "f50c57f6f7540d0c39c59bcd38eed07cb76003eaa3b1a866674dc026cafea4c1",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "28f233d752aa6641f79ac7ac75576549b9b90aef0de42d6201676a578843caa1"
+    "version.json": "6026a1c1192b20b2b3ceb43eec8d2a16ecff023e1b18d4f0680deeedea2fd53f"
   }
 }
