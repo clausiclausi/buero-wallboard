@@ -50,6 +50,16 @@ let db = Object.assign({ tasks: [], events: [], scans: [], loans: DEFAULT_LOANS,
 db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings);
 // Ab 1.21.0 kommen Haltestellen aus der offenen EFA-Auskunft (andere Kennungen): alte Auswahl einmalig zurücksetzen
 if ((db.transitDefault || 0) < 2) { db.settings.transit = null; db.settings.route = null; db.transitDefault = 2; }
+// 1.24: BSI-Warnungen stehen jetzt oben unter dem Datum. Die Sicherheits-Kachel einmalig ausblenden,
+// das Wetter bekommt ihren Platz, wenn sie direkt darunter lag.
+if ((db.secMoved || 0) < 1) {
+  const L = db.settings.layout;
+  if (L && typeof L === 'object' && Array.isArray(L.wx) && Array.isArray(L.sec) && !(L.hidden || []).includes('sec')) {
+    L.hidden = [...(L.hidden || []), 'sec'];
+    if (L.sec[0] === L.wx[0] && L.sec[2] === L.wx[2] && L.sec[1] === L.wx[1] + L.wx[3]) L.wx = [L.wx[0], L.wx[1], L.wx[2], L.wx[3] + L.sec[3]];
+  }
+  db.secMoved = 1;
+}
 
 // Passwort zum Entsperren des Besuchermodus (nur als Hash gespeichert, Standard: 123)
 const hashPw = (pw, salt) => crypto.scryptSync(String(pw), salt, 32).toString('hex');
@@ -185,7 +195,7 @@ function sanitizeSettings(b) {
   }
   // Richtung der Abfahrten: Steig (z. B. SB1) oder einzelnes Fahrtziel, null = alle
   if ('transitDir' in b) s.transitDir = typeof b.transitDir === 'string' && b.transitDir.trim() ? clean(b.transitDir, 60) : null;
-  if (b.radar && typeof b.radar === 'object') s.radar = { zoom: oneOf(+b.radar.zoom, [1, 1.5, 2, 3, 4], 1), play: b.radar.play !== false };
+  if (b.radar && typeof b.radar === 'object') s.radar = { zoom: oneOf(+b.radar.zoom, [1, 1.5, 2, 3, 4, 6, 8], 1), play: b.radar.play !== false };
   if ('route' in b) {
     const r = b.route;
     // Ziele können Straßen sein, deren Kennung Leerzeichen und Klammern enthält

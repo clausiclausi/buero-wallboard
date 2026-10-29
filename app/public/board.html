@@ -59,6 +59,12 @@ header .hl { grid-column: 1; } header .update-pill { grid-column: 2; } header .h
 .date { display: flex; flex-direction: column; gap: 4px; }
 .date .day { font-size: 30px; font-weight: 600; }
 .date .sub { font-size: 22px; color: var(--muted); }
+.date { min-width: 0; }
+.bsi-line { display: flex; flex-direction: column; gap: 2px; min-width: 0; max-width: 560px; }
+.bsi-line button { display: flex; align-items: center; gap: 8px; min-width: 0; font: inherit; font-size: 16px; line-height: 1.25; color: var(--muted); background: none; border: 0; padding: 0; text-align: left; cursor: pointer; }
+.bsi-line button span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bsi-line button .icon { color: var(--warn); font-size: 16px; }
+.bsi-line button b { color: var(--text); font-weight: 600; flex: none; }
 .overall { display: flex; align-items: center; gap: 14px;
   font-size: 26px; font-weight: 600; padding: 14px 26px; border-radius: 999px;
   background: var(--surface); border: 1px solid var(--line);
@@ -237,9 +243,17 @@ main > .card.off { display: none; }
 .ev.compact .ev-title { font-weight: 500; }
 
 /* Wetter */
-.wx-now { display: flex; align-items: center; gap: 18px; }
-.wx-temp { font-size: 64px; font-weight: 700; line-height: 1; white-space: nowrap; }
-.wx-desc { font-size: 22px; color: var(--muted); line-height: 1.3; }
+.wx-now { margin-left: auto; display: flex; align-items: center; gap: 10px; min-width: 0; text-transform: none; letter-spacing: 0; }
+.wx-temp { font-size: 30px; font-weight: 700; line-height: 1; white-space: nowrap; color: var(--text); order: 2; }
+.wx-desc { font-size: 15px; font-weight: 500; color: var(--muted); line-height: 1.2; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.card.wx .radar-wrap { flex: 1 1 0; min-height: 240px; }
+.card.wx .rain-alert { font-size: 18px; padding: 8px 12px; gap: 10px; }
+.card.wx .rain-times span { font-size: 16px; padding: 2px 8px; }
+.card.wx .hours { height: 56px; }
+.radar-mode { position: absolute; right: 8px; top: 8px; display: flex; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.radar-mode button { font: 700 15px/1 system-ui, sans-serif; padding: 0 12px; height: 40px; border: 0; background: rgba(255,255,255,.9); color: #24302b; cursor: pointer; white-space: nowrap; }
+.radar-mode button[aria-pressed="true"] { background: #2f6fd6; color: #fff; }
+.radar-zl { position: absolute; left: 8px; top: 54px; font: 700 13px/1 var(--font-mono); color: #24302b; background: rgba(255,255,255,.85); padding: 4px 6px; border-radius: 6px; }
 .radar-wrap { position: relative; border-radius: 16px; overflow: hidden; flex: 1; min-height: 0; background: #e8eaea; }
 .radar-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .radar-wrap .rf { opacity: 0; transition: opacity .35s; }
@@ -256,7 +270,7 @@ main > .card.off { display: none; }
 .radar-track { position: relative; flex: 1; height: 6px; border-radius: 3px; background: #c9d1cd; }
 .radar-track .now { position: absolute; top: -4px; width: 2px; height: 14px; background: #24302b; border-radius: 1px; }
 .radar-track .knob { position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%; background: #2f6fd6; border: 2px solid #fff; transform: translate(-50%, -50%); transition: left .35s; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
-.radar-src { position: absolute; right: 10px; top: 8px; font-size: 11px; color: #4b5852; background: rgba(255,255,255,.75); padding: 1px 6px; border-radius: 6px; }
+.radar-src { position: absolute; right: 10px; bottom: 46px; font-size: 11px; color: #4b5852; background: rgba(255,255,255,.75); padding: 1px 6px; border-radius: 6px; }
 .rain-alert { display: flex; align-items: center; gap: 14px; font-size: 22px; font-weight: 600; padding: 12px 16px; border-radius: 14px; background: var(--bg); }
 .rain-alert .icon { font-size: 30px; color: var(--rain); }
 .rain-alert.yes { box-shadow: inset 0 0 0 2px var(--rain); }
@@ -682,7 +696,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   <header>
     <div class="hl">
       <div class="clock" id="clock">--:--</div>
-      <div class="date"><div class="day" id="day"></div><div class="sub" id="kw"></div></div>
+      <div class="date"><div class="day" id="day"></div><div class="sub" id="kw"></div><div class="bsi-line" id="bsiLine"></div></div>
     </div>
     <button class="update-pill" id="updBtn" hidden><span class="badge"><svg class="icon"><use href="#i-download"/></svg></span><span><b id="updText"></b><small id="updSub"></small></span></button>
     <div class="hr">
@@ -708,17 +722,15 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 
 
     <section class="card wx" data-k="wx" data-name="Wetter Büro">
-      <h3>Wetter Büro</h3>
-      <div class="wx-now">
-        <div class="wx-temp" id="wxTemp">--°</div>
-        <div class="wx-desc" id="wxDesc">Wetter wird geladen</div>
-      </div>
+      <h3>Wetter Büro<span class="wx-now"><span class="wx-desc" id="wxDesc">Wetter wird geladen</span><span class="wx-temp" id="wxTemp">--°</span></span></h3>
       <div class="radar-wrap" id="radarWrap">
         <div class="radar-zoom" id="radarZoom"><img id="radarMap" alt="" hidden></div>
         <svg class="radar-pin" viewBox="0 0 22 30" aria-hidden="true"><path d="M11 29C11 29 2 17.5 2 11a9 9 0 0 1 18 0c0 6.5-9 18-9 18z" fill="#e2453c" stroke="#fff" stroke-width="2"/><circle cx="11" cy="11" r="3.5" fill="#fff"/></svg>
-        <span class="radar-src">Radar © DWD · Karte © BKG</span>
         <div class="radar-btns"><button type="button" class="radar-btn" id="radarIn" title="Hineinzoomen">+</button><button type="button" class="radar-btn" id="radarOut" title="Herauszoomen">−</button></div>
-        <div class="radar-bar"><button type="button" class="radar-btn" id="radarPlay" title="Abspielen oder anhalten">❚❚</button><span class="radar-tag" id="radarTime">--:--</span><div class="radar-track" id="radarTrack"><span class="knob" id="radarKnob"></span></div></div>
+        <span class="radar-zl" id="radarZl">1×</span>
+        <div class="radar-mode" role="group" aria-label="Radar abspielen"><button type="button" data-m="auto" id="radarAuto">▶ Abspielen</button><button type="button" data-m="hand" id="radarHand">Selbst tippen</button></div>
+        <div class="radar-bar"><button type="button" class="radar-btn" id="radarPrev" title="Früher">‹</button><span class="radar-tag" id="radarTime">--:--</span><div class="radar-track" id="radarTrack"><span class="knob" id="radarKnob"></span></div><button type="button" class="radar-btn" id="radarNext" title="Später">›</button></div>
+        <span class="radar-src">Radar © DWD · Karte © BKG</span>
         <div class="radar-msg" id="radarMsg" hidden></div>
       </div>
       <div class="rain-alert" id="rainAlert"><svg class="icon"><use href="#i-cloud-rain"/></svg><span id="rainText"></span></div>
@@ -868,7 +880,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 
   /* ---------- Kacheln anordnen: 12x6-Raster, Lage und Größe je Kachel [Spalte, Zeile, Breite, Höhe] ---------- */
   const COLS = 12, ROWS = 6, MIN = 2;
-  const DEF_LAYOUT = { cal: [1, 1, 3, 3], transit: [4, 1, 3, 3], notes: [7, 1, 3, 3], wx: [10, 1, 3, 3], loan: [1, 4, 3, 3], month: [4, 4, 3, 3], incident: [7, 4, 3, 3], sec: [10, 4, 3, 3], hidden: [] };
+  const DEF_LAYOUT = { cal: [1, 1, 3, 3], transit: [4, 1, 3, 3], notes: [7, 1, 3, 3], wx: [10, 1, 3, 6], loan: [1, 4, 3, 3], month: [4, 4, 3, 3], incident: [7, 4, 3, 3], sec: [10, 4, 3, 3], hidden: ['sec'] };
   // Größe, für die der Inhalt gestaltet ist; größere Kacheln zeigen größere Schrift, kleinere kleinere
   const BASE = { cal: [3, 3], transit: [3, 3], sec: [3, 3], wx: [3, 4], loan: [3, 3], month: [3, 3], incident: [3, 3], notes: [3, 3] };
   const TILE_KEYS = Object.keys(BASE);
@@ -1369,13 +1381,13 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     catch { return ''; }
   }
   function openLink(i) {
-    if (!i?.link || stage.querySelector('.arr')) return;
+    if (!i || stage.querySelector('.arr')) return;
     const scrim = h(`<div class="scrim center"><div class="panel dialog" role="dialog" aria-label="Link öffnen" style="width:820px">
       <h2>BSI-Warnung <button class="tool" data-close title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
-      <div class="qr-box"><div class="qr">${qrSvg(i.link)}</div><div>
+      <div class="qr-box">${i.link ? `<div class="qr">${qrSvg(i.link)}</div>` : ''}<div>
         <p><b>${esc(i.title)}</b></p>
-        <p>Mit der Handy-Kamera scannen, dann öffnet sich die Warnung beim BSI auf dem Handy.</p>
-        <div class="dom">${esc(i.link.replace(/^https:\/\//, ''))}</div>
+        ${i.link ? `<p>Mit der Handy-Kamera scannen, dann öffnet sich die Warnung beim BSI auf dem Handy.</p>
+        <div class="dom">${esc(i.link.replace(/^https:\/\//, ''))}</div>` : '<p>Zu dieser Warnung gibt es keinen Link.</p>'}
       </div></div>
       <p class="hint">Schließt sich nach einer Minute von selbst.</p>
     </div></div>`);
@@ -1383,6 +1395,12 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   }
   function renderSec() {
     const now = Date.now(), items = (S.extras?.bsi || []).filter(i => now - i.date < 4 * 864e5).slice(0, 2);
+    // Kopfzeile unter dem Datum: die neuesten BSI-Warnungen, antippen zeigt den QR-Code
+    // Eine Zeile, bei mehreren Warnungen wechselt sie alle 15 Sekunden
+    const all = (S.extras?.bsi || []).filter(i => now - i.date < 4 * 864e5).slice(0, 3);
+    const k = all.length ? Math.floor(now / 15000) % all.length : 0, top = all.slice(k, k + 1);
+    $('#bsiLine').innerHTML = top.map((i, n) => `<button type="button" data-i="${n}" title="${esc(i.title)}"><svg class="icon"><use href="#i-shield"/></svg><b>BSI${all.length > 1 ? ` ${k + 1}/${all.length}` : ''} · ${new Date(i.date).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' })}</b><span>${esc(i.title)}</span></button>`).join('');
+    $('#bsiLine').querySelectorAll('button').forEach(b => b.onclick = () => openLink(top[+b.dataset.i]));
     $('#secList').innerHTML = items.length ? items.map((i, n) => `<div class="sec-item ${i.link ? 'link' : ''}" data-i="${n}"><svg class="icon"><use href="#i-shield"/></svg><span>${esc(i.title)}<small>BSI-Warnung · ${new Date(i.date).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' })}</small></span></div>`).join('')
       : '<div class="sec-item" style="color:var(--muted)">Keine neuen Warnungen des BSI für Verbraucher.</div>';
     $('#secList').querySelectorAll('.sec-item.link').forEach(el => el.onclick = () => openLink(items[+el.dataset.i]));
@@ -1470,6 +1488,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       $('#wxTemp').textContent = `${t}°`; $('#wxMini').textContent = `${t}°`;
       const desc = ICON_TXT[W.now.icon] || COND[W.now.condition] || '';
       $('#wxDesc').innerHTML = `${esc(desc)}<br>Wind ${Math.round(W.now.wind ?? 0)} km/h ${compass(W.now.windDir)}`;
+      $('#wxDesc').title = $('#wxDesc').textContent;
     } else {
       $('#wxDesc').textContent = 'Wetterdaten gerade nicht erreichbar';
     }
@@ -1526,18 +1545,25 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     $('#radarKnob').style.left = `${fr.length > 1 ? frameIdx / (fr.length - 1) * 100 : 100}%`;
   }
   // Zoom und Abspielen, gemerkt in den Einstellungen
-  const ZOOMS = [1, 1.5, 2, 3, 4];
+  const ZOOMS = [1, 1.5, 2, 3, 4, 6, 8];
   const radarCfg = () => Object.assign({ zoom: 1, play: true }, settings().radar || {});
   function applyRadarCfg() {
     const c = radarCfg(), i = ZOOMS.indexOf(c.zoom);
     $('#radarZoom').style.transform = `scale(${c.zoom})`;
     $('#radarIn').disabled = i >= ZOOMS.length - 1; $('#radarOut').disabled = i <= 0;
-    $('#radarPlay').textContent = c.play && !reduced ? '❚❚' : '▶';
+    const auto = c.play && !reduced;
+    $('#radarAuto').setAttribute('aria-pressed', auto); $('#radarHand').setAttribute('aria-pressed', !auto);
+    $('#radarZl').textContent = `${String(c.zoom).replace('.', ',')}×`;
   }
   const setRadar = (patch) => { setSettings({ radar: Object.assign(radarCfg(), patch) }); applyRadarCfg(); };
   $('#radarIn').onclick = () => { const i = ZOOMS.indexOf(radarCfg().zoom); setRadar({ zoom: ZOOMS[Math.min(ZOOMS.length - 1, i + 1)] }); };
   $('#radarOut').onclick = () => { const i = ZOOMS.indexOf(radarCfg().zoom); setRadar({ zoom: ZOOMS[Math.max(0, i - 1)] }); };
-  $('#radarPlay').onclick = () => setRadar({ play: !radarCfg().play });
+  $('#radarAuto').onclick = () => setRadar({ play: true });
+  $('#radarHand').onclick = () => setRadar({ play: false });
+  // Bild für Bild weiter: schaltet auf „Selbst tippen“
+  const step = d => { const n = R.frames?.length || 0; if (n < 2) return; frameIdx = (frameIdx + d + n) % n; if (radarCfg().play) setRadar({ play: false }); drawRadar(); };
+  $('#radarPrev').onclick = () => step(-1);
+  $('#radarNext').onclick = () => step(1);
   // Auf die Zeitleiste tippen: diesen Zeitpunkt zeigen und anhalten
   $('#radarTrack').onclick = (e) => {
     const n = R.frames?.length || 0; if (n < 2) return;

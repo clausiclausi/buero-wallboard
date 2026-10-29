@@ -6,10 +6,10 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = function createRadar({ DATA, config, log }) {
-  const MAP_FILE = path.join(DATA, 'radar-karte.png');
+  const SIZE = 2400; // groß genug, um am Board bis achtfach hineinzuzoomen
+  const MAP_FILE = path.join(DATA, `radar-karte-${SIZE}.png`);
   const GEO = (config.radarGeoserver || 'https://maps.dwd.de/geoserver/dwd').replace(/\/$/, ''), DWD = `${GEO}/wms`;
   const MAP = config.radarMapUrl || 'https://sgx.geodatenzentrum.de/wms_topplus_open';
-  const SIZE = 1400; // groß genug, um am Board bis vierfach hineinzuzoomen
   // Ausschnitt etwa 95 km um das Büro, wie in der WetterOnline-App (Minden bis Braunschweig)
   const R = 6378137, x = R * config.lon * Math.PI / 180, y = R * Math.log(Math.tan(Math.PI / 4 + config.lat * Math.PI / 360));
   const half = (config.radarKm || 95) * 1000 / Math.cos(config.lat * Math.PI / 180);
@@ -64,7 +64,8 @@ module.exports = function createRadar({ DATA, config, log }) {
     try {
       // Vergangenheit: Niederschlagsradar, alle 10 Minuten der letzten Stunde
       let past = [];
-      try { past = (await times('Niederschlagsradar')).filter(t => t > Date.now() - 65 * 60000 && t <= Date.now() + 60000); }
+      try { past = (await times('Niederschlagsradar')).filter(t => t > Date.now() - 75 * 60000 && t <= Date.now() - 8 * 60000); }
+      // (Der DWD meldet auch Zeiten, deren Bild noch nicht fertig ist; die letzten Minuten deshalb auslassen)
       catch (e) { log('Radarzeiten nicht lesbar:', e.message); }
       // Ohne Zeitliste: die letzten 5-Minuten-Schritte selbst ausrechnen (DWD liefert mit etwa 10 Minuten Verzug)
       if (!past.length) { const t0 = Math.floor((Date.now() - 10 * 60000) / 300000) * 300000; for (let i = 6; i >= 0; i--) past.push(t0 - i * 600000); }

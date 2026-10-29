@@ -1,5 +1,14 @@
 [
   {
+    "version": "1.24.0",
+    "date": "2026-10-29",
+    "changes": [
+      "BSI-Warnungen stehen jetzt klein oben unter dem Datum (bei mehreren im Wechsel). Antippen zeigt den QR-Code. Die Sicherheits-Kachel ist ausgeblendet und lässt sich unter Einstellungen → Kacheln wieder einblenden.",
+      "Wetter-Kachel neu geordnet: Temperatur klein oben rechts, das Regenradar ist deutlich höher. Wo die Sicherheits-Kachel direkt darunter lag, bekommt das Wetter ihren Platz.",
+      "Regenradar: bis achtfach hineinzoomen (schärfere Bilder), oben rechts gut sichtbar „Abspielen“ oder „Selbst tippen“, dazu Pfeile ‹ › für Bild für Bild."
+    ]
+  },
+  {
     "version": "1.23.0",
     "date": "2026-10-29",
     "changes": [

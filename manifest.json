@@ -1,21 +1,22 @@
 {
-  "version": "1.23.0",
-  "notes": "Wetter: Regen-Uhrzeiten jetzt auch halbstündig wählbar (z. B. 16:30). Für halbe Stunden zeigt das Board den Mittelwert der beiden Nachbarstunden. Regenwahrscheinlichkeit farbig: grün bei wenig Regen, über Gelb und Orange bis Rot bei viel Regen. Auch die Stundenbalken sind so eingefärbt.",
+  "version": "1.24.0",
+  "notes": "BSI-Warnungen stehen jetzt klein oben unter dem Datum (bei mehreren im Wechsel). Antippen zeigt den QR-Code. Die Sicherheits-Kachel ist ausgeblendet und lässt sich unter Einstellungen → Kacheln wieder einblenden.",
   "changes": [
-    "Wetter: Regen-Uhrzeiten jetzt auch halbstündig wählbar (z. B. 16:30). Für halbe Stunden zeigt das Board den Mittelwert der beiden Nachbarstunden.",
-    "Regenwahrscheinlichkeit farbig: grün bei wenig Regen, über Gelb und Orange bis Rot bei viel Regen. Auch die Stundenbalken sind so eingefärbt."
+    "BSI-Warnungen stehen jetzt klein oben unter dem Datum (bei mehreren im Wechsel). Antippen zeigt den QR-Code. Die Sicherheits-Kachel ist ausgeblendet und lässt sich unter Einstellungen → Kacheln wieder einblenden.",
+    "Wetter-Kachel neu geordnet: Temperatur klein oben rechts, das Regenradar ist deutlich höher. Wo die Sicherheits-Kachel direkt darunter lag, bekommt das Wetter ihren Platz.",
+    "Regenradar: bis achtfach hineinzoomen (schärfere Bilder), oben rechts gut sichtbar „Abspielen“ oder „Selbst tippen“, dazu Pfeile ‹ › für Bild für Bild."
   ],
   "files": {
-    "changelog.json": "6bdc7c6faab5859fc470243e6db480edd9e28f929d2ce3bdfcef2c30d676b4a9",
+    "changelog.json": "a114710c7a330b006bbfa39bc30daa1b9431114778e2db94efe31170dde86079",
     "display.js": "dba3da642fdcaca968121c97bcb07697b2744a7237afe2513c20e5bcd91074d8",
     "extras.js": "8d57000ec43f01b1d62a20003934ebf8009e9c09730e0a84daa379e6684c82ad",
-    "public/board.html": "8f04ffb11994f5b79455acb654ba72e424b730f8dc0f5fb63494b34aec38ee53",
+    "public/board.html": "e5cc7b2c2f18404d51d8354c6e73f5dd5da2f76d45059dc776aa3f9e275f2788",
     "public/m.html": "51f4c46130b9710c6f2995f6a028d81ec9139521416ab7042636a67b49fd3c78",
     "public/mascot.js": "880c1e69a1d7f16509da00ec9c0fe70aae4bd28c1dc90d7a919a69ab1c2df196",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
-    "radar.js": "2de0dd59de4067ed5a90383e0f6b809fcba6522fa9299c1a4bc5595a464aeaff",
-    "server.js": "f50c57f6f7540d0c39c59bcd38eed07cb76003eaa3b1a866674dc026cafea4c1",
+    "radar.js": "8b1c845b4d636dedb6d978a602779bb4e1e7dfd2f5e9b03f408a9f34662b185e",
+    "server.js": "d949fe20888e7106c18415f0646639a0fc0f559370c4439f580ebc10cb62d682",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "6026a1c1192b20b2b3ceb43eec8d2a16ecff023e1b18d4f0680deeedea2fd53f"
+    "version.json": "baa151415bbc3ce1b8f0ee6e1a34d17a6e8850c62d4234da37fa6af49478333c"
   }
 }
