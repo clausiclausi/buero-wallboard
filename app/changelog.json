@@ -1,5 +1,15 @@
 [
  {
+  "version": "1.29.0",
+  "date": "2026-10-29",
+  "changes": [
+   "Jahreskalender: Die neue Kalender-Taste oben öffnet das ganze Jahr als Vollbild. Darin sind Feiertage, Schulferien, Brückentage und der Urlaub jeder Person in ihrer Farbe eingetragen.",
+   "Direkt eintragen: Ersten und letzten Tag antippen, Kürzel und Urlaub oder Abwesend wählen, fertig. Wer einen Tag antippt, kann bestehende Einträge dort auch löschen.",
+   "Urlaubs-Tipps: Das Board zeigt, wo wenige Urlaubstage rund um Feiertage die meisten freien Tage bringen. Ein Tipp lässt sich antippen und gleich eintragen.",
+   "„Dauerhaft zeigen“: Das Board bleibt im Kalendermodus. Schließen blendet den Kalender für 2 Minuten aus."
+  ]
+ },
+ {
   "version": "1.28.0",
   "date": "2026-10-29",
   "changes": [

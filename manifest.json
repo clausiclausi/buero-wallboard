@@ -1,21 +1,23 @@
 {
-  "version": "1.28.0",
-  "notes": "Aufgabe abhaken: Man tippt sein Kürzel an. Es steht bis zum Ende des Tages an der Aufgabe, damit alle sehen, wer sich gekümmert hat.",
+  "version": "1.29.0",
+  "notes": "Jahreskalender: Die neue Kalender-Taste oben öffnet das ganze Jahr als Vollbild. Darin sind Feiertage, Schulferien, Brückentage und der Urlaub jeder Person in ihrer Farbe eingetragen.",
   "changes": [
-    "Aufgabe abhaken: Man tippt sein Kürzel an. Es steht bis zum Ende des Tages an der Aufgabe, damit alle sehen, wer sich gekümmert hat.",
-    "Neue Taste oben (Balken-Symbol): Auswertung der Aufgaben fürs ganze Team über 7, 30 oder 90 Tage. Sie zeigt erledigt, pünktlich, typische Dauer vom Einstellen bis erledigt, liegen gebliebene Aufgaben und die Verteilung nach Wochentag und Uhrzeit. Am Board ist dafür das Passwort nötig. Gespeichert werden nur Zeitpunkte, ohne Personen."
+    "Jahreskalender: Die neue Kalender-Taste oben öffnet das ganze Jahr als Vollbild. Darin sind Feiertage, Schulferien, Brückentage und der Urlaub jeder Person in ihrer Farbe eingetragen.",
+    "Direkt eintragen: Ersten und letzten Tag antippen, Kürzel und Urlaub oder Abwesend wählen, fertig. Wer einen Tag antippt, kann bestehende Einträge dort auch löschen.",
+    "Urlaubs-Tipps: Das Board zeigt, wo wenige Urlaubstage rund um Feiertage die meisten freien Tage bringen. Ein Tipp lässt sich antippen und gleich eintragen.",
+    "„Dauerhaft zeigen“: Das Board bleibt im Kalendermodus. Schließen blendet den Kalender für 2 Minuten aus."
   ],
   "files": {
-    "changelog.json": "1b04a0701d1c170798d7f1b6eee3936d0333b5bdadb6cc380afe590548d1e252",
+    "changelog.json": "546181eb805098ec5a1663ba27223e56c374eb1ca6daa73f876c1de4e69c7b01",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
     "extras.js": "beea3b28a7ff70bb90353ca9a5b2d438b28380d29cef59d6690bb5a08998683b",
-    "public/board.html": "ecafed91dfea60758d99cccc47d12f26fc972cae4c768dbd943d0d2e1eb5945b",
+    "public/board.html": "3f458cf8f9629f8203078573deca9b6041e9307019e47c51b19a94b7cfc72b89",
     "public/m.html": "7bfa16962f6c6a27ec9b975253cec85182d63a56c14eb9be1d63217aacfecf81",
     "public/mascot.js": "880c1e69a1d7f16509da00ec9c0fe70aae4bd28c1dc90d7a919a69ab1c2df196",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
-    "server.js": "77324736edc57e2e512d063e147441058701e6ec7828d347edb3a1c3bd7c62c6",
+    "server.js": "7a80fff4462b21fdec27aec0e115fbcf96fd4eb4a9fb89a265c7b69693cfe2cc",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "e6db66f3a8e1de04dac5d0f35f34ced8ec4bd3841851f3599bf18431b284e8b1"
+    "version.json": "3824becd57f3e09bd9b2a3c3524f659d52701135d707bcc1676411f39657ae08"
   }
 }

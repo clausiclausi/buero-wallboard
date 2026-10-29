@@ -419,6 +419,44 @@ footer .sp { margin-left: auto; }
 .done-pick button i { width: 18px; height: 18px; border-radius: 6px; }
 .done-pick button.none { font-size: 20px; font-weight: 600; color: var(--muted); }
 .stats-dlg { width: 980px; }
+/* Jahreskalender als Vollbild */
+.year-view { position: absolute; inset: 20px; z-index: 8; display: flex; flex-direction: column; gap: 14px; padding: 22px 26px; border-radius: 24px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 20px 60px rgba(0,0,0,.45); }
+.year-view header { display: flex; align-items: center; gap: 16px; }
+.year-view header h2 { margin: 0; font-size: 38px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.year-view header .yl { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-left: 18px; font-size: 16px; color: var(--muted); align-items: center; }
+.year-view header .yl span { display: inline-flex; align-items: center; gap: 6px; }
+.year-view header .yl i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+.year-view header .tool:last-child { margin-left: auto; }
+.year-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 380px; gap: 22px; }
+.year-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); gap: 12px 20px; min-height: 0; }
+.ym { min-height: 0; overflow: hidden; }
+.ym h5 { margin: 0 0 4px; font-size: 20px; font-weight: 800; letter-spacing: .5px; }
+.ym .g { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 30px; align-content: start; gap: 2px; font-size: 17px; text-align: center; font-variant-numeric: tabular-nums; }
+.ym .g b { font-size: 13px; color: var(--muted); font-weight: 700; }
+.ym .g > span { position: relative; line-height: 28px; border-radius: 6px; }
+.ym .g b { line-height: 22px; }
+.ym .g .we { color: var(--muted); }
+.ym .g .hol { background: color-mix(in srgb, var(--warn) 30%, transparent); color: var(--text); font-weight: 800; }
+.ym .g .sf { box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--rain) 70%, transparent); }
+.ym .g .bt { outline: 1.5px dashed var(--warn); outline-offset: -2px; }
+.ym .g .dd { cursor: pointer; }
+.ym .g .abs { color: var(--text); font-weight: 700; }
+.ym .g .pk { box-shadow: inset 0 0 0 3px var(--text); }
+.ym .g .yt { outline: 2px solid #4CAF50; outline-offset: -2px; }
+.yedit:empty { display: none; }
+.yedit { padding: 12px 14px; border-radius: 16px; background: var(--bg); border: 2px solid var(--text); }
+.ym .g .today { background: var(--text); color: var(--bg); font-weight: 800; }
+.ym .g .ab { position: absolute; left: 2px; right: 2px; bottom: 1px; display: flex; gap: 1px; height: 4px; }
+.ym .g .ab i { flex: 1; border-radius: 2px; }
+.year-side { display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow: hidden; }
+.year-side h4 { margin: 0; font-size: 18px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); }
+.ytip { padding: 10px 14px; border-radius: 14px; background: var(--bg); border-left: 5px solid #4CAF50; cursor: pointer; }
+.ytip b { display: block; font-size: 19px; }
+.ytip span { font-size: 16px; color: var(--muted); }
+.ytip.on { box-shadow: inset 0 0 0 2px #4CAF50; }
+.ypeople { display: flex; flex-direction: column; gap: 6px; font-size: 17px; }
+.ypeople div { display: flex; align-items: center; gap: 8px; }
+.ypeople i { width: 14px; height: 14px; border-radius: 4px; }
 .stats-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .stats-kpis div { padding: 14px 16px; border-radius: 16px; background: var(--bg); }
 .stats-kpis b { display: block; font-size: 38px; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -862,6 +900,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     <div class="tools">
       <button class="tool" id="btnMute" aria-pressed="false" title="Erinnerungston stumm schalten"><svg class="icon"><use href="#i-bell"/></svg></button>
       <button class="tool" id="btnVisitor" aria-pressed="false" title="Besuchermodus: Freitexte verbergen"><svg class="icon"><use href="#i-eye-off"/></svg></button>
+      <button class="tool" id="btnYear" title="Jahreskalender mit Urlaub, Feiertagen und Urlaubs-Tipps"><svg class="icon"><use href="#i-calendar"/></svg></button>
       <button class="tool" id="btnStats" title="Auswertung der Aufgaben (nur Team-Zahlen)"><svg class="icon"><use href="#i-chart"/></svg></button>
       <button class="tool" id="btnSettings" title="Einstellungen"><svg class="icon"><use href="#i-gear"/></svg></button>
       <button class="tool" id="btnFull" title="Vollbild"><svg class="icon"><use href="#i-expand"/></svg></button>
@@ -1367,6 +1406,135 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     const close = showDialog(scrim, 45);
     scrim.querySelectorAll('.done-pick button').forEach(b => b.onclick = () => { api('PATCH', `/api/tasks/${t.id}`, { done: true, by: b.dataset.p }); close(); });
   }
+
+  /* ---------- Jahreskalender: Urlaub, Feiertage, Schulferien, Brückentage und Urlaubs-Tipps ---------- */
+  // Tipps: zusammenhängende freie Zeiträume rund um Feiertage, bei denen wenige Urlaubstage viele freie Tage ergeben
+  function vacationTips(y) {
+    const days = [], first = new Date(y, 0, 1), last = new Date(y + 1, 0, 6), todayK = dkey(new Date());
+    for (const d = new Date(first); d <= last; d.setDate(d.getDate() + 1)) {
+      const hol = holMap(d.getFullYear()).get(d.toDateString());
+      days.push({ k: dkey(d), work: isWorkday(d), hol, wd: d.getDay() });
+    }
+    const cands = [];
+    for (let i = 1; i < days.length; i++) {
+      if (!days[i - 1].work || days[i].k < todayK) continue; // Zeitraum beginnt direkt nach einem Arbeitstag
+      let cost = 0, hol = new Set();
+      for (let j = i; j < days.length - 1; j++) {
+        if (days[j].work && ++cost > 9) break;
+        if (days[j].hol && days[j].wd !== 0 && days[j].wd !== 6) hol.add(days[j].hol);
+        if (!days[j + 1].work || cost === 0 || !hol.size) continue; // endet vor einem Arbeitstag, mit Feiertag drin
+        const free = j - i + 1;
+        // lohnt sich: mindestens 2 freie Tage je Urlaubstag
+        if (free >= 4 && free / cost >= 2) cands.push({ i, j, cost, free, hol: [...hol] });
+      }
+    }
+    // Je Feiertag der beste Zeitraum: jeder Urlaubstag zählt anderthalbfach gegen die freien Tage, bei Gleichstand weniger Urlaubstage
+    const val = c => c.free - 1.5 * c.cost;
+    cands.sort((a, b) => val(b) - val(a) || a.cost - b.cost);
+    const pick = [];
+    for (const c of cands) {
+      if (pick.length >= 6) break;
+      if (pick.some(p => c.i <= p.j + 3 && p.i <= c.j + 3)) continue;
+      if (days[c.i].k.slice(0, 4) !== String(y)) continue;
+      pick.push(c);
+    }
+    return pick.sort((a, b) => a.i - b.i).map(c => ({ from: days[c.i].k, to: days[c.j].k, cost: c.cost, free: c.free, hol: c.hol }));
+  }
+  // sticky: dauerhafter Kalendermodus (Einstellung calendarMode), dann ohne Selbst-Schließen
+  let yearRedraw = null, yearHiddenUntil = 0;
+  function openYear(sticky = false) {
+    if (stage.querySelector('.arr') || $('#overlayHost .year-view')) return;
+    let y = new Date().getFullYear(), sel = -1, tips = [], pick = null, who = null, kind = 'urlaub';
+    const el = h(`<div class="year-view" role="dialog" aria-label="Jahreskalender">
+      <header><button class="tool" id="yPrev" title="Vorjahr">‹</button><h2 id="yTitle"></h2><button class="tool" id="yNext" title="Nächstes Jahr">›</button>
+        <div class="yl"><span><i style="background:color-mix(in srgb, var(--warn) 30%, transparent)"></i>Feiertag (Niedersachsen)</span><span><i style="box-shadow:inset 0 -3px 0 var(--rain)"></i>Schulferien</span><span><i style="outline:1.5px dashed var(--warn);outline-offset:-2px"></i>Brückentag</span><span><i style="outline:2px solid #4CAF50;outline-offset:-2px"></i>Urlaubs-Tipp</span><span>Tag antippen = eintragen</span></div>
+        <div class="field" style="margin-left:auto;font-size:17px;gap:10px">Dauerhaft zeigen <button type="button" class="switch" id="ySticky" role="switch" aria-checked="${settings().calendarMode === true}"></button></div>
+        <button class="tool" data-close title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></header>
+      <div class="year-body"><div class="year-grid" id="yGrid"></div>
+        <div class="year-side"><div class="yedit" id="yEdit"></div><h4>Wo sich Urlaub lohnt</h4><div id="yTips" style="display:flex;flex-direction:column;gap:10px"></div>
+          <h4 style="margin-top:6px">Urlaub eingetragen</h4><div class="ypeople" id="yPeople"></div></div></div>
+    </div>`);
+    const q = s => el.querySelector(s);
+    const people = () => S.people || [];
+    // Hintergrund in der Farbe der Person, bei mehreren Personen gestreift
+    const absBg = abs => { const cs = [...new Set(abs.map(a => person(a.person).color))]; return cs.length === 1 ? `background:color-mix(in srgb, ${cs[0]} 55%, transparent)` : `background:linear-gradient(90deg, ${cs.map((c, i) => `color-mix(in srgb, ${c} 60%, transparent) ${i / cs.length * 100}% ${(i + 1) / cs.length * 100}%`).join(', ')})`; };
+    function drawEdit() {
+      const e = q('#yEdit');
+      if (!pick) { e.innerHTML = ''; return; }
+      const span = pick.to ? (pick.from === pick.to ? fmtD(pick.from) : `${fmtD(pick.from)}–${fmtD(pick.to)}`) : fmtD(pick.from);
+      const here = (S.absences || []).filter(a => person(a.person) && a.from <= (pick.to || pick.from) && a.to >= pick.from);
+      if (!who || !person(who)) who = people()[0]?.id || null;
+      e.innerHTML = `<h4>Eintragen: ${span}${pick.to ? '' : ' …'}</h4>
+        ${pick.to ? '' : '<p class="hint" style="margin:0 0 8px">Jetzt den letzten Tag antippen oder gleich für diesen einen Tag eintragen.</p>'}
+        ${people().length ? `<div class="done-pick" style="gap:8px">${people().map(p => `<button type="button" data-p="${p.id}" style="font-size:20px;padding:8px 14px;${p.id === who ? `border-color:${p.color};box-shadow:inset 0 0 0 2px ${p.color}` : ''}"><i style="background:${p.color}"></i>${esc(p.short)}</button>`).join('')}</div>
+        <div class="seg" style="margin-top:8px"><button type="button" data-k="urlaub" aria-pressed="${kind === 'urlaub'}">Urlaub</button><button type="button" data-k="abwesend" aria-pressed="${kind === 'abwesend'}">Abwesend</button></div>
+        <div class="row" style="margin-top:8px"><button class="btn primary" id="yAdd">Eintragen${(() => { const n = workdays(pick.from, pick.to || pick.from); return ` (${n} AT)`; })()}</button><button class="btn" id="yCancel">Abbrechen</button></div>`
+        : '<p class="hint">Zuerst im Monatskalender eine Person mit Kürzel und Farbe anlegen.</p><div class="row"><button class="btn" id="yCancel">Abbrechen</button></div>'}
+        ${here.length ? `<div class="ypeople" style="margin-top:10px">${here.map(a => `<div><i style="background:${person(a.person).color}"></i><b>${esc(person(a.person).short)}</b><span style="color:var(--muted)">${a.kind === 'abwesend' ? 'Abwesend' : 'Urlaub'} ${fmtD(a.from)}${a.to !== a.from ? '–' + fmtD(a.to) : ''}</span><button class="x" data-del="${a.id}" title="Eintrag löschen" style="margin-left:auto;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--muted)">✕</button></div>`).join('')}</div>` : ''}
+        <p class="hint" id="yErr" style="color:var(--crit);margin:6px 0 0"></p>`;
+      const fail = err => { q('#yErr').textContent = 'Hat nicht geklappt: ' + err.message; };
+      e.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { who = b.dataset.p; drawEdit(); });
+      e.querySelectorAll('.seg [data-k]').forEach(b => b.onclick = () => { kind = b.dataset.k; drawEdit(); });
+      e.querySelectorAll('[data-del]').forEach(b => b.onclick = () => pwApi('DELETE', '/api/absences/' + b.dataset.del).then(() => setTimeout(draw, 300), fail));
+      if (q('#yCancel')) q('#yCancel').onclick = () => { pick = null; draw(); };
+      if (q('#yAdd')) q('#yAdd').onclick = () => pwApi('POST', '/api/absences', { person: who, kind, from: pick.from, to: pick.to || pick.from }).then(() => { pick = null; setTimeout(draw, 300); }, fail);
+    }
+    function draw() {
+      q('#yTitle').textContent = y;
+      tips = vacationTips(y);
+      const tip = sel >= 0 ? tips[sel] : null, todayK = dkey(new Date());
+      const inPick = k => pick && k >= pick.from && k <= (pick.to || pick.from);
+      let html = '';
+      for (let m = 0; m < 12; m++) {
+        const f = new Date(y, m, 1), n = new Date(y, m + 1, 0).getDate();
+        html += `<div class="ym"><h5>${f.toLocaleDateString('de-DE', { month: 'long' })}</h5><div class="g">${['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(d => `<b>${d}</b>`).join('')}${'<span></span>'.repeat((f.getDay() + 6) % 7)}`;
+        for (let d = 1; d <= n; d++) {
+          const dt = new Date(y, m, d), k = dkey(dt), hol = holMap(y).get(dt.toDateString()), sf = schoolOn(k), we = dt.getDay() === 0 || dt.getDay() === 6;
+          const inTip = tips.some(t => t.from <= k && t.to >= k && (!tip || t === tip));
+          const abs = absentOn(k);
+          const cls = ['dd', we ? 'we' : '', hol ? 'hol' : '', sf ? 'sf' : '', bridgeDay(dt) ? 'bt' : '', inTip ? 'yt' : '', abs.length ? 'abs' : '', inPick(k) ? 'pk' : '', k === todayK ? 'today' : ''].join(' ');
+          const title = [hol, sf?.name, ...abs.map(a => `${person(a.person).short} ${a.kind === 'abwesend' ? 'abwesend' : 'Urlaub'}`)].filter(Boolean).join(' · ');
+          html += `<span class="${cls}" data-k="${k}"${abs.length && k !== todayK ? ` style="${absBg(abs)}"` : ''}${title ? ` title="${esc(title)}"` : ''}>${d}</span>`;
+        }
+        html += '</div></div>';
+      }
+      q('#yGrid').innerHTML = html;
+      q('#yGrid').querySelectorAll('.dd').forEach(c => c.onclick = () => {
+        const k = c.dataset.k;
+        if (!pick || pick.to) pick = { from: k }; else pick = k < pick.from ? { from: k, to: pick.from } : { from: pick.from, to: k };
+        draw();
+      });
+      q('#yTips').innerHTML = tips.length ? tips.map((t, i) => `<div class="ytip ${i === sel ? 'on' : ''}" data-i="${i}"><b>${fmtD(t.from)}–${fmtD(t.to)} · ${t.free} Tage frei</b><span>${t.cost} Urlaubstag${t.cost === 1 ? '' : 'e'} · ${esc(t.hol.join(', '))}${(() => { const n = new Set((S.absences || []).filter(a => a.from <= t.to && a.to >= t.from && person(a.person)).map(a => a.person)).size; return n ? ` · ${n} schon eingetragen` : ''; })()}</span></div>`).join('')
+        : '<p class="hint">Für dieses Jahr gibt es keine Feiertage mehr, rund um die sich Urlaub besonders lohnt.</p>';
+      // Tipp antippen: hervorheben und gleich als Zeitraum zum Eintragen vorschlagen
+      q('#yTips').querySelectorAll('.ytip').forEach(b => b.onclick = () => { const i = +b.dataset.i; sel = sel === i ? -1 : i; pick = sel >= 0 ? { from: tips[i].from, to: tips[i].to } : null; draw(); });
+      const yS = `${y}-01-01`, yE = `${y}-12-31`;
+      q('#yPeople').innerHTML = people().length ? people().map(p => {
+        const n = (S.absences || []).filter(a => a.person === p.id && a.kind !== 'abwesend' && a.to >= yS && a.from <= yE).reduce((s, a) => s + workdays(a.from < yS ? yS : a.from, a.to > yE ? yE : a.to), 0);
+        return `<div><i style="background:${p.color}"></i><b>${esc(p.short)}</b><span style="color:var(--muted)">${n} Urlaubstag${n === 1 ? '' : 'e'} ${y}</span></div>`;
+      }).join('') : '<p class="hint" style="margin:0">Noch niemand angelegt. Personen legt ihr im Monatskalender an.</p>';
+      drawEdit();
+    }
+    q('#yPrev').onclick = () => { y--; sel = -1; pick = null; draw(); };
+    q('#yNext').onclick = () => { y++; sel = -1; pick = null; draw(); };
+    q('#ySticky').onclick = () => { const v = settings().calendarMode !== true; q('#ySticky').setAttribute('aria-checked', v); setSettings({ calendarMode: v }); arm(); };
+    let t = 0;
+    // Ohne Dauerbetrieb nach 5 Minuten ohne Antippen zu; im Dauerbetrieb nach 2 Minuten zurück aufs aktuelle Jahr
+    const arm = () => { clearTimeout(t); t = setTimeout(() => settings().calendarMode === true ? (y = new Date().getFullYear(), sel = -1, pick = null, draw(), arm()) : close(), settings().calendarMode === true ? 120000 : 300000); };
+    const close = () => { clearTimeout(t); el.remove(); yearRedraw = null; if (settings().calendarMode === true) yearHiddenUntil = Date.now() + 120000; };
+    el.addEventListener('pointerdown', arm);
+    q('[data-close]').onclick = close;
+    yearRedraw = draw;
+    draw(); arm();
+    $('#overlayHost').append(el);
+  }
+  // Dauerhafter Kalendermodus: Jahresansicht offen halten; „Schließen“ blendet sie für 2 Minuten aus
+  function checkYearMode() {
+    if (yearRedraw) return yearRedraw();
+    if (settings().calendarMode === true && Date.now() > yearHiddenUntil && !document.querySelector('#overlayHost .scrim')) openYear(true);
+  }
+  setInterval(checkYearMode, 30000);
+  $('#btnYear').onclick = () => openYear();
 
   // Auswertung: nur Team-Zahlen, am Board mit Passwort
   function fmtDur(m) { if (m == null) return '–'; if (m < 60) return `${m} min`; if (m < 1440) return `${Math.floor(m / 60)} h ${pad(m % 60)}`; return `${Math.round(m / 144) / 10} Tage`.replace('.', ','); }
@@ -2610,7 +2778,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   });
 
   /* ---------- Verbindung zum Server ---------- */
-  function renderAll() { applyRadarCfg(); applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderNotes(); renderTransit(); renderSec(); renderNews(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); }
+  function renderAll() { applyRadarCfg(); applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderNotes(); renderTransit(); renderSec(); renderNews(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); checkYearMode(); }
   function connect() {
     const es = new EventSource('/api/stream');
     es.onopen = () => { connected = true; };

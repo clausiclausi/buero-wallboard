@@ -248,6 +248,8 @@ function sanitizeSettings(b) {
   // Nachrichten: welche Quellen, Laufband unten an/aus
   if (Array.isArray(b.newsSources)) s.newsSources = ['tagesschau', 'dlf', 'ntv', 'zdf', 'welt'].filter(k => b.newsSources.includes(k));
   if ('newsTicker' in b) s.newsTicker = !!b.newsTicker;
+  // Board zeigt dauerhaft den Jahreskalender
+  if ('calendarMode' in b) s.calendarMode = !!b.calendarMode;
   // Themen, die ausgeblendet werden (z. B. Fußball)
   if (Array.isArray(b.newsHide)) s.newsHide = ['politik', 'wirtschaft', 'fussball', 'sport', 'panorama', 'wissen', 'kultur'].filter(k => b.newsHide.includes(k));
   if ('autoUpdate' in b) s.autoUpdate = oneOf(b.autoUpdate, ['sofort', 'nachts', 'aus'], 'sofort');
