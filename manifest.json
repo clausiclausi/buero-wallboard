@@ -1,23 +1,20 @@
 {
-  "version": "1.26.0",
-  "notes": "Nachrichten: neue Kachel mit aktuellen Schlagzeilen, die langsam durchlaufen, dazu ein Laufband unten am Rand. Quellen: tagesschau, Deutschlandfunk und n-tv, in den Einstellungen auch ZDFheute und WELT. Antippen zeigt einen QR-Code zum Artikel.",
+  "version": "1.26.1",
+  "notes": "Ausgeblendete Störungen-Kachel schien nach einer Aktualisierung wieder durch. Sie bleibt jetzt wirklich ausgeblendet. Eine gemeldete Störung steht weiterhin oben rechts im Kopf.",
   "changes": [
-    "Nachrichten: neue Kachel mit aktuellen Schlagzeilen, die langsam durchlaufen, dazu ein Laufband unten am Rand. Quellen: tagesschau, Deutschlandfunk und n-tv, in den Einstellungen auch ZDFheute und WELT. Antippen zeigt einen QR-Code zum Artikel.",
-    "Wetter-Kachel etwas kürzer, darunter sitzt jetzt die Nachrichten-Kachel. Über „Kacheln anordnen“ lässt sich das ändern.",
-    "Termine: Im Urlaubs-Kalender (Monatskalender antippen) lassen sich jetzt auch normale Termine eintragen. Sie erscheinen am Tag selbst und am Tag davor oben bei den Aufgaben, im Monat zeigt ein Punkt den Tag.",
-    "Neuer Termin und neue Aufgabe: Neben Heute und Morgen gibt es „Datum …“ für jeden beliebigen Tag."
+    "Ausgeblendete Störungen-Kachel schien nach einer Aktualisierung wieder durch. Sie bleibt jetzt wirklich ausgeblendet. Eine gemeldete Störung steht weiterhin oben rechts im Kopf."
   ],
   "files": {
-    "changelog.json": "e9306b18fc84201301b0f64ab4882fe161b99061a2e8214ad257140af4a9abda",
+    "changelog.json": "caa75b7d1bedf17977f0d42237938ca73a7bda1d6052d3965eec2d7854dc299d",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
     "extras.js": "f5e43255a9482e53ade4d28351e4be39dee48947cd35fab2acd9e7ccc541c656",
-    "public/board.html": "a255eb53ccc0e815d4709c8d2f4631d8371be22c29060983d84e86032c4655e7",
+    "public/board.html": "de27ca1ef06c8c638ed9bba7a28b5fb91356a5b62d30ad1a3e9986ce08b5219d",
     "public/m.html": "7bfa16962f6c6a27ec9b975253cec85182d63a56c14eb9be1d63217aacfecf81",
     "public/mascot.js": "880c1e69a1d7f16509da00ec9c0fe70aae4bd28c1dc90d7a919a69ab1c2df196",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
     "server.js": "21fc77958c6e278cdeed6e8e2c3241a045abbca03cffa37182634658e05c1423",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "5a000d3da7e0bab489ab315541f0190a467d5cf2f4e459bcbce8e0a4649c0fc6"
+    "version.json": "be46d9bb6a2be1513730dabd4dac57bdc1984f5d457f507b05b4085478ad881e"
   }
 }

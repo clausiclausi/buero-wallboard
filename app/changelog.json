@@ -1,5 +1,12 @@
 [
  {
+  "version": "1.26.1",
+  "date": "2026-10-29",
+  "changes": [
+   "Ausgeblendete Störungen-Kachel schien nach einer Aktualisierung wieder durch. Sie bleibt jetzt wirklich ausgeblendet. Eine gemeldete Störung steht weiterhin oben rechts im Kopf."
+  ]
+ },
+ {
   "version": "1.26.0",
   "date": "2026-10-29",
   "changes": [

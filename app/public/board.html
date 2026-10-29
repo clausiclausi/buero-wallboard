@@ -2020,7 +2020,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   const AREAS = ['Internet', 'WLAN', 'Telefonie', 'E-Mail', 'Drucker', 'Dateiablage', 'Strom / Gebäude', 'Sonstiges'];
   function renderIncident() {
     const incident = S.incident, card = $('#incCard'), body = $('#incBody');
-    card.className = 'card incident' + (incident ? ' ' + incident.level : '');
+    // Nur die Stufe umschalten: className neu setzen würde „ausgeblendet“ (off) wieder entfernen
+    card.classList.toggle('warn', incident?.level === 'warn'); card.classList.toggle('crit', incident?.level === 'crit');
     stage.classList.toggle('alarm-crit', incident?.level === 'crit');
     stage.classList.toggle('alarm-warn', incident?.level === 'warn');
     const ov = $('#overall');
