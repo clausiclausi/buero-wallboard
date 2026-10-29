@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0E2A1F">
+<link rel="manifest" href="/m.webmanifest">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<link rel="icon" href="/static/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Board">
 <title>Wallboard eintragen</title>
 <style>
 :root {
@@ -60,6 +66,11 @@ nav button[aria-current="page"] { color: var(--text); }
 .login { max-width: 360px; margin: 18vh auto 0; display: flex; flex-direction: column; gap: 14px; text-align: center; }
 .login input { font-size: 28px; letter-spacing: 8px; text-align: center; font-family: var(--mono); }
 [hidden] { display: none !important; }
+.knock-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.knock-grid button { text-align: left; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.knock-grid button b { display: block; font-size: 16px; }
+.knock-grid button small { color: var(--muted); font-size: 13px; }
+.knock-grid button[aria-pressed="true"] { border-color: var(--ok); box-shadow: inset 0 0 0 1px var(--ok); }
 </style>
 </head>
 <body>
@@ -94,6 +105,12 @@ nav button[aria-current="page"] { color: var(--text); }
       <p class="hint">Sichtbar für Besucher: bitte keine Namen, Kundendaten oder Passwörter.</p>
       <button class="btn primary" type="submit">Notiz eintragen</button>
     </form>
+    <h2>Lob-Ecke</h2>
+    <form class="card" id="lobForm" autocomplete="off">
+      <label class="f">Danke für … <input id="lText" maxlength="140" required placeholder="z. B. Danke fürs Einrichten der neuen Drucker!"></label>
+      <p class="hint">Erscheint ohne Absender am Board und verschwindet am Ende des Tages. Bitte keine Kundendaten.</p>
+      <button class="btn primary" type="submit">♥ Lob schicken</button>
+    </form>
     <div class="list" id="noteList" style="margin-top:10px"></div>
   </section>
 
@@ -108,6 +125,7 @@ nav button[aria-current="page"] { color: var(--text); }
         <label class="f">Uhrzeit <input id="eTime" type="time" required></label>
       </div>
       <label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="eTop" style="width:auto"> Auch oben bei den Aufgaben zeigen (am Tag und am Vortag)</label>
+      <label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="eCount" style="width:auto"> Countdown oben am Board („Noch 12 Tage bis …“)</label>
       <button class="btn primary" type="submit">Termin eintragen</button>
     </form>
     <h2>Kommende Termine</h2>
@@ -142,6 +160,12 @@ nav button[aria-current="page"] { color: var(--text); }
   <!-- Störung -->
   <section data-tab="incident" hidden>
     <h1>Board</h1>
+    <h2>Anklopfen</h2>
+    <div class="card">
+      <p class="hint" style="margin-top:0">Spielt am Board ein Klopfgeräusch ab, z. B. wenn ihr aus der Ferne Bescheid geben wollt. Antippen hört es hier zur Probe an.</p>
+      <div class="knock-grid" id="knockGrid"></div>
+      <button class="btn primary" id="knockGo" style="margin-top:12px">Am Board anklopfen</button>
+    </div>
     <h2>Anzeige am Notebook</h2>
     <div class="card">
       <div class="inc" id="dispNow"></div>
@@ -194,6 +218,7 @@ nav button[aria-current="page"] { color: var(--text); }
   <button data-go="loans"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="11" rx="2"/><path d="M2 20h20"/></svg>Geräte</button>
 </nav>
 
+<script src="/static/knock.js"></script>
 <script>
 (() => {
   const $ = (s, r = document) => r.querySelector(s);
@@ -257,10 +282,28 @@ nav button[aria-current="page"] { color: var(--text); }
     });
   }
 
+  /* ---------- Anklopfen ---------- */
+  let knockSel = 0, actx = null;
+  try { knockSel = Math.max(0, Math.min(5, +localStorage.getItem('knock') || 0)); } catch {}
+  function drawKnock() {
+    $('#knockGrid').innerHTML = WBKnock.SOUNDS.map((s, i) => `<button type="button" data-i="${i}" aria-pressed="${i === knockSel}"><b>${esc(s.name)}</b><small>${esc(s.hint)}</small></button>`).join('');
+    $('#knockGrid').querySelectorAll('button').forEach(b => b.onclick = () => {
+      knockSel = +b.dataset.i; try { localStorage.setItem('knock', knockSel); } catch {}
+      drawKnock();
+      try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); WBKnock.play(actx, knockSel, .9); } catch {}
+    });
+  }
+  if (window.WBKnock) drawKnock();
+  $('#knockGo').onclick = () => run(api('POST', '/api/knock', { sound: knockSel }), `Am Board geklopft: ${WBKnock.SOUNDS[knockSel].name}`);
+
   /* ---------- Notizen ---------- */
   $('#noteForm').onsubmit = (e) => {
     e.preventDefault();
     run(api('POST', '/api/notes', { text: $('#nText').value }).then(() => { $('#nText').value = ''; }), 'Notiz eingetragen');
+  };
+  $('#lobForm').onsubmit = (e) => {
+    e.preventDefault();
+    run(api('POST', '/api/notes', { text: $('#lText').value, kind: 'lob' }).then(() => { $('#lText').value = ''; }), 'Lob ist am Board');
   };
   function renderNotes() {
     const el = $('#noteList'); el.innerHTML = '';
@@ -268,7 +311,7 @@ nav button[aria-current="page"] { color: var(--text); }
     if (!list.length) el.innerHTML = '<div class="empty">Keine Notizen.</div>';
     list.forEach(n => {
       const d = document.createElement('div'); d.className = 'item';
-      d.innerHTML = `<div class="main"><b>${esc(n.text)}</b></div><button class="icon-btn" title="Löschen">✕</button>`;
+      d.innerHTML = `<div class="main"><b>${n.kind === 'lob' ? '♥ ' : ''}${esc(n.text)}</b>${n.kind === 'lob' ? '<small>Lob · bis heute Abend</small>' : ''}</div><button class="icon-btn" title="Löschen">✕</button>`;
       d.querySelector('button').onclick = () => run(api('DELETE', `/api/notes/${n.id}`), 'Gelöscht');
       el.append(d);
     });
@@ -277,7 +320,7 @@ nav button[aria-current="page"] { color: var(--text); }
   /* ---------- Termine ---------- */
   $('#evForm').onsubmit = (e) => {
     e.preventDefault();
-    run(api('POST', '/api/events', { title: $('#eTitle').value, meta: $('#eMeta').value, date: $('#eDate').value, time: $('#eTime').value, top: $('#eTop').checked })
+    run(api('POST', '/api/events', { title: $('#eTitle').value, meta: $('#eMeta').value, date: $('#eDate').value, time: $('#eTime').value, top: $('#eTop').checked, countdown: $('#eCount').checked })
       .then(() => { $('#eTitle').value = ''; $('#eMeta').value = ''; }), 'Termin eingetragen');
   };
   function renderEvents() {
@@ -286,7 +329,7 @@ nav button[aria-current="page"] { color: var(--text); }
     if (!list.length) el.innerHTML = '<div class="empty">Keine Termine eingetragen.</div>';
     list.forEach(ev => {
       const n = document.createElement('div'); n.className = 'item';
-      n.innerHTML = `<span class="time">${esc(ev.time)}</span><div class="main"><b>${esc(ev.title)}</b><small>${fmtDate(ev.date)}${ev.meta ? ' · ' + esc(ev.meta) : ''}${ev.top ? ' · oben angezeigt' : ''}</small></div><button class="icon-btn" title="Löschen">✕</button>`;
+      n.innerHTML = `<span class="time">${esc(ev.time)}</span><div class="main"><b>${esc(ev.title)}</b><small>${fmtDate(ev.date)}${ev.meta ? ' · ' + esc(ev.meta) : ''}${ev.top ? ' · oben angezeigt' : ''}${ev.countdown ? ' · Countdown' : ''}</small></div><button class="icon-btn" title="Löschen">✕</button>`;
       n.querySelector('button').onclick = () => run(api('DELETE', `/api/events/${ev.id}`), 'Gelöscht');
       el.append(n);
     });

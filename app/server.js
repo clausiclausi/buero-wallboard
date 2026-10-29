@@ -46,7 +46,7 @@ const DEFAULT_LOANS = [
   { id: 'l3', type: 'Smartphones', icon: 'phone', avail: 0, total: 0 },
   { id: 'l4', type: 'Headsets', icon: 'box', avail: 0, total: 0 },
 ];
-let db = Object.assign({ tasks: [], events: [], scans: [], loans: DEFAULT_LOANS, incident: null, settings: {}, people: [], absences: [], notes: [], taskLog: [] }, readJson(DB_FILE, {}));
+let db = Object.assign({ tasks: [], events: [], scans: [], loans: DEFAULT_LOANS, incident: null, settings: {}, people: [], absences: [], notes: [], taskLog: [], rueckscan: {} }, readJson(DB_FILE, {}));
 db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings);
 // Ab 1.21.0 kommen Haltestellen aus der offenen EFA-Auskunft (andere Kennungen): alte Auswahl einmalig zurücksetzen
 if ((db.transitDefault || 0) < 2) { db.settings.transit = null; db.settings.route = null; db.transitDefault = 2; }
@@ -89,14 +89,19 @@ function save() {
   broadcast();
 }
 
-// Tägliche Sicherung, 14 Tage aufbewahren
+// Tägliche Sicherung, 14 Tage aufbewahren: im Wallboard-Ordner und zusätzlich in einem eigenen Ordner (z. B. Netzlaufwerk)
+const BACKUP_DEFAULT = process.platform === 'win32' ? path.join(process.env.PUBLIC || 'C:\\Users\\Public', 'Documents', 'Wallboard-Sicherung') : path.join(DATA, 'sicherung');
+let backupInfo = { at: 0, ok: null, error: '', dir: '' };
+function backupTo(dir) {
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, `db-${localDate(0)}.json`), JSON.stringify(db));
+  for (const f of fs.readdirSync(dir).filter(f => /^db-\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort().slice(0, -14)) fs.unlinkSync(path.join(dir, f));
+}
 function backup() {
-  try {
-    const dir = path.join(DATA, 'backup'); fs.mkdirSync(dir, { recursive: true });
-    const day = localDate(0);
-    fs.writeFileSync(path.join(dir, `db-${day}.json`), JSON.stringify(db));
-    for (const f of fs.readdirSync(dir).sort().slice(0, -14)) fs.unlinkSync(path.join(dir, f));
-  } catch (e) { log('Backup fehlgeschlagen', e.message); }
+  try { backupTo(path.join(DATA, 'backup')); } catch (e) { log('Backup fehlgeschlagen', e.message); }
+  const dir = (db.settings && db.settings.backupDir) || BACKUP_DEFAULT;
+  try { backupTo(dir); backupInfo = { at: Date.now(), ok: true, error: '', dir }; }
+  catch (e) { backupInfo = { at: Date.now(), ok: false, error: e.code === 'EACCES' || e.code === 'EPERM' ? 'Keine Schreibrechte für diesen Ordner' : e.code === 'ENOENT' ? 'Ordner nicht erreichbar' : e.message, dir }; log('Sicherung in Ordner fehlgeschlagen', dir, e.message); }
 }
 
 function localDate(offsetDays) {
@@ -107,13 +112,18 @@ function localDate(offsetDays) {
 // Alte Aufgaben und Termine aufräumen
 function cleanup() {
   const today = localDate(0);
-  const before = db.tasks.length + db.events.length;
+  let before = db.tasks.length + db.events.length;
   // Liegen gebliebene Aufgaben für die Team-Auswertung merken (ohne Titel, ohne Person)
   for (const t of db.tasks) if (t.date < today && !t.done) logTask(t);
   db.tasks = db.tasks.filter(t => t.date >= today);
   const keepLog = Date.now() - 90 * 864e5, nLog = db.taskLog.length;
   db.taskLog = db.taskLog.filter(e => e.due >= keepLog);
   db.events = db.events.filter(e => e.date >= today);
+  const nNotes = db.notes.length;
+  db.notes = db.notes.filter(n => n.kind !== 'lob' || (n.date || today) >= today);
+  if (db.notes.length !== nNotes) before++;
+  // Rückscan-Stand: nach 8 Stunden ohne Meldung oder am Tag nach dem Abschluss ausblenden
+  for (const [k, r] of Object.entries(db.rueckscan || {})) if (Date.now() - r.at > 8 * 3600000 || (r.done && localDateOf(new Date(r.at)) < today)) { delete db.rueckscan[k]; before++; }
   // Abwesenheiten nur so lange aufheben, wie sie im Monatskalender noch zu sehen sind
   const keep = localDate(-62), nAbs = db.absences.length;
   db.absences = db.absences.filter(a => a.to >= keep);
@@ -168,7 +178,8 @@ const schemas = {
   events: b => {
     if (!clean(b.title, 40) || !isTime(b.time)) return null;
     // top: auch oben bei den Aufgaben zeigen, am Tag selbst und am Tag davor
-    return { title: clean(b.title, 40), meta: clean(b.meta, 24), time: b.time, date: isDate(b.date) ? b.date : localDate(0), top: !!b.top };
+    // countdown: oben in der Hinweiszeile „Noch 12 Tage bis …“
+    return { title: clean(b.title, 40), meta: clean(b.meta, 24), time: b.time, date: isDate(b.date) ? b.date : localDate(0), top: !!b.top, countdown: !!b.countdown };
   },
   // Personen nur als Kürzel mit Farbe, keine Klarnamen
   people: b => {
@@ -182,9 +193,10 @@ const schemas = {
     return { person: b.person, from: b.from, to: b.to, kind: oneOf(b.kind, ['urlaub', 'abwesend'], 'urlaub') };
   },
   // Notizen fürs Board: kurzer Text, sichtbar für Besucher (im Besuchermodus unscharf)
+  // kind 'lob': anonymer Dank in der Lob-Ecke, verschwindet am Ende des Tages
   notes: b => {
     if (!clean(b.text, 140)) return null;
-    return { text: clean(b.text, 140) };
+    return b.kind === 'lob' ? { text: clean(b.text, 140), kind: 'lob', date: isDate(b.date) ? b.date : localDate(0) } : { text: clean(b.text, 140) };
   },
   loans: b => {
     const total = Math.max(0, Math.min(999, parseInt(b.total, 10) || 0));
@@ -193,7 +205,7 @@ const schemas = {
 };
 // Felder, die beim Ändern erlaubt sind
 const patchable = {
-  tasks: ['title', 'time', 'remind', 'done', 'by'], events: ['title', 'meta', 'time', 'date', 'top'],
+  tasks: ['title', 'time', 'remind', 'done', 'by'], events: ['title', 'meta', 'time', 'date', 'top', 'countdown'],
   loans: ['type', 'icon', 'avail', 'total'],
   people: ['short', 'color'], absences: ['person', 'from', 'to', 'kind'], notes: ['text'],
 };
@@ -256,6 +268,18 @@ function sanitizeSettings(b) {
   if ('calendarMode' in b) s.calendarMode = !!b.calendarMode;
   // Themen, die ausgeblendet werden (z. B. Fußball)
   if (Array.isArray(b.newsHide)) s.newsHide = ['politik', 'wirtschaft', 'fussball', 'sport', 'panorama', 'wissen', 'kultur'].filter(k => b.newsHide.includes(k));
+  // QR-Codes zu eigenen Anleitungen (Drucker, VPN …) und Gäste-WLAN
+  if (Array.isArray(b.guides)) s.guides = b.guides.map(g => ({ title: clean(g && g.title, 30), url: clean(g && g.url, 300) })).filter(g => g.title && /^https?:\/\/[^\s]+$/i.test(g.url)).slice(0, 8);
+  if ('wifi' in b) {
+    const w = b.wifi;
+    s.wifi = w && typeof w === 'object' && clean(w.ssid, 32) ? { ssid: String(w.ssid).trim().slice(0, 32), pass: String(w.pass ?? '').slice(0, 63), sec: oneOf(w.sec, ['WPA', 'nopass'], 'WPA') } : null;
+  }
+  // Zusätzlicher Ordner für die tägliche Sicherung (leer = Standardordner)
+  if ('backupDir' in b) s.backupDir = clean(b.backupDir, 200).replace(/[<>|"?*]/g, '');
+  if ('rueckscanKey' in b) s.rueckscanKey = clean(b.rueckscanKey, 64);
+  // Müllabfuhr (aha): Straße und Hausnummer der Büro-Adresse
+  if ('waste' in b) { const w = b.waste; s.waste = w && typeof w === 'object' && clean(w.street, 60) ? { street: clean(w.street, 60), nr: clean(w.nr, 6), town: clean(w.town, 30) || 'Hannover' } : null; }
+  if ('wasteOn' in b) s.wasteOn = !!b.wasteOn;
   if ('autoUpdate' in b) s.autoUpdate = oneOf(b.autoUpdate, ['sofort', 'nachts', 'aus'], 'sofort');
   if ('updateEvery' in b) s.updateEvery = oneOf(+b.updateEvery, [30, 60, 300, 1800], 30);
   return s;
@@ -268,13 +292,16 @@ function boardView() {
     // Auch spätere Tage: das Board zeigt sie im Monatskalender und zählt geplante Aufgaben
     tasks: db.tasks.filter(t => t.date >= today),
     events: db.events.filter(e => e.date >= today),
-    loans: db.loans, incident: db.incident, settings: db.settings, mobileUrl: mobileUrl(),
+    loans: db.loans, incident: db.incident, settings: publicSettings(), mobileUrl: mobileUrl(),
+    backup: backupInfo, rueckscan: Object.values(db.rueckscan || {}),
     people: db.people, absences: db.absences, notes: db.notes, extras: extras.view(),
     version: VERSION, changelog: CHANGELOG, lastUpdate: readJson(path.join(DATA, 'last-update.json'), null), display: display.view(),
     update: { available: update.available, notes: update.notes, changes: update.changes, error: update.error, checked: update.checked, busy: update.busy },
     scanTool,
   };
 }
+// Den Rückscan-Schlüssel nicht an Board und Handy schicken, nur ob einer gesetzt ist
+function publicSettings() { const { rueckscanKey, ...rest } = db.settings; return { ...rest, rueckscanKeySet: !!rueckscanKey }; }
 function fullView() {
   return { ...boardView(), tasks: db.tasks, events: db.events, tunnel: tunnel.status() };
 }
@@ -498,6 +525,29 @@ async function installUpdate() {
   }
 }
 
+/* ---------- Rückscan-Stand ----------
+   Das Programm Rückscan meldet nur Zahlen und den Vorgangsnamen (z. B. „Wagen 1“), keine Geräte- und keine Personendaten.
+   Es läuft als Datei im Browser eines anderen Büro-PCs, deshalb mit CORS. Ohne Schlüssel nur aus dem lokalen Netz. */
+const privateIp = a => /^(::ffff:)?(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|127\.)/.test(a) || a === '::1' || /^f[cd]/i.test(a);
+async function rueckscanStand(req, res) {
+  const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Rueckscan-Schluessel', 'Access-Control-Allow-Private-Network': 'true', 'Access-Control-Max-Age': '600' };
+  const reply = (code, obj) => { res.writeHead(code, { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(obj)); };
+  if (req.method === 'OPTIONS') { res.writeHead(204, cors); return res.end(); }
+  if (req.method !== 'POST') return reply(405, { error: 'Nur POST' });
+  const key = db.settings.rueckscanKey;
+  if (key ? String(req.headers['x-rueckscan-schluessel'] || '') !== key : (viaProxy(req) || !privateIp(req.socket.remoteAddress || ''))) return reply(403, { error: key ? 'Schlüssel stimmt nicht' : 'Nur aus dem Büro-Netz' });
+  let b; try { b = await readBody(req, 2000); } catch { return reply(400, { error: 'Ungültige Daten' }); }
+  const name = clean(b.vorgang, 40), num = v => Math.max(0, Math.min(100000, parseInt(v, 10) || 0));
+  if (!name) return reply(400, { error: 'vorgang fehlt' });
+  const keys = Object.keys(db.rueckscan);
+  if (!db.rueckscan[name] && keys.length >= 6) delete db.rueckscan[keys.sort((x, y) => db.rueckscan[x].at - db.rueckscan[y].at)[0]];
+  db.rueckscan[name] = { name, art: clean(b.art, 20) || 'Rückscan', done: !!b.abgeschlossen, count: num(b.erledigt), total: num(b.gesamt), extra: num(b.nichtErwartet), at: Date.now() };
+  save();
+  return reply(200, { ok: true });
+}
+
+let lastKnock = 0;
+
 /* ---------- HTTP ---------- */
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2' };
 function send(res, code, obj, type = 'application/json; charset=utf-8') {
@@ -531,6 +581,8 @@ const server = http.createServer(async (req, res) => {
       if (!f.startsWith(PUBLIC)) return send(res, 403, 'Nein', 'text/plain');
       return serveFile(res, f);
     }
+    if (req.method === 'GET' && p === '/m.webmanifest') return send(res, 200, JSON.stringify({ name: 'Büro-Board', short_name: 'Board', start_url: '/m', scope: '/', display: 'standalone', background_color: '#0F2A1F', theme_color: '#0F2A1F', lang: 'de', icons: [{ src: '/static/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/static/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }] }), 'application/manifest+json');
+    if (p === '/api/rueckscan/stand') return rueckscanStand(req, res);
     if (req.method === 'POST' && p === '/api/login') return login(req, res, await readBody(req, 1000));
     if (req.method === 'GET' && p === '/api/me') return send(res, 200, { authed: authed(req) });
 
@@ -591,11 +643,28 @@ const server = http.createServer(async (req, res) => {
       db.unlock = { salt, hash: hashPw(pw, salt) }; save();
       return send(res, 200, { ok: true });
     }
+    // Anklopfen vom Handy: das Board spielt ein Klopfgeräusch ab (höchstens alle 3 Sekunden)
+    if (req.method === 'POST' && p === '/api/knock') {
+      const b = await readBody(req, 500), s = Math.max(0, Math.min(5, parseInt(b.sound, 10) || 0));
+      if (Date.now() - lastKnock < 3000) return send(res, 429, { error: 'Gerade erst geklopft, kurz warten' });
+      const boards = [...clients].filter(c => !c.full);
+      if (!boards.length) return send(res, 409, { error: 'Das Board ist gerade nicht verbunden' });
+      lastKnock = Date.now();
+      for (const c of boards) c.res.write(`event: knock\ndata: ${JSON.stringify({ s, at: lastKnock })}\n\n`);
+      return send(res, 200, { ok: true });
+    }
+    if (req.method === 'POST' && p === '/api/backup') {
+      if (!isLocal(req)) return send(res, 403, { error: 'Nur am Board möglich' });
+      backup(); broadcast();
+      return send(res, backupInfo.ok ? 200 : 500, backupInfo.ok ? backupInfo : { error: backupInfo.error });
+    }
     if (req.method === 'PUT' && p === '/api/settings') {
       const patch = sanitizeSettings(await readBody(req, 10000));
       Object.assign(db.settings, patch); save();
       if ('transit' in patch || 'route' in patch || 'routeOn' in patch) extras.refreshTransit();
       if ('newsSources' in patch) extras.refreshNews();
+      if ('waste' in patch || 'wasteOn' in patch) extras.refreshWaste();
+      if ('backupDir' in patch) backup();
       return send(res, 200, db.settings);
     }
     // Haltestelle für die Abfahrten suchen (öffentliche Fahrplanauskunft)

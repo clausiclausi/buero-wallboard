@@ -1,20 +1,33 @@
 {
-  "version": "1.32.0",
-  "notes": "Scan-Tool: Im Fenster gibt es jetzt die Taste „Auf diesem PC speichern“. Sie legt die neueste Rückscan-Version als ZIP-Datei auf den Desktop dieses PCs (für alle Benutzer sichtbar). Eine ältere Version dort wird dabei ersetzt.",
+  "version": "1.33.0",
+  "notes": "Hinweiszeile unter dem Datum: wechselt alle 15 Sekunden zwischen Countdowns („Noch 12 Tage bis …“), Müllabfuhr am Vortag (aha), Microsoft-Patchday, Hitzewarnung und schlechter Luft, Rückscan-Stand, BSI-Warnungen und einem Spruch des Tages. Antippen zeigt alles auf einen Blick.",
   "changes": [
-    "Scan-Tool: Im Fenster gibt es jetzt die Taste „Auf diesem PC speichern“. Sie legt die neueste Rückscan-Version als ZIP-Datei auf den Desktop dieses PCs (für alle Benutzer sichtbar). Eine ältere Version dort wird dabei ersetzt."
+    "Hinweiszeile unter dem Datum: wechselt alle 15 Sekunden zwischen Countdowns („Noch 12 Tage bis …“), Müllabfuhr am Vortag (aha), Microsoft-Patchday, Hitzewarnung und schlechter Luft, Rückscan-Stand, BSI-Warnungen und einem Spruch des Tages. Antippen zeigt alles auf einen Blick.",
+    "Countdown: Beim Termin „Countdown“ einschalten, gut für besondere Tage und Fristen.",
+    "Lob-Ecke: In der Notizen-Kachel und am Handy ein anonymes Lob anheften, es verschwindet am Ende des Tages.",
+    "Abfahrten: Meldungen von Üstra und regiobus zu Linien an eurer Haltestelle (z. B. Umleitungen) erscheinen als Hinweis in der Kachel.",
+    "Wetter-Kachel zeigt die Luftqualität der Messstation Hannover (Umweltbundesamt).",
+    "Unten rechts „Anleitungen“: QR-Codes zu euren Anleitungen und zum Gäste-WLAN, pflegbar unter Einstellungen → Hinweise und Extras.",
+    "Tägliche Datensicherung zusätzlich in einen eigenen Ordner (Standard: Öffentliche Dokumente\\Wallboard-Sicherung, auch Netzlaufwerk möglich), mit „Jetzt sichern“.",
+    "Anklopfen: Auf der Handy-Seite unter „Board“ eines von 6 dumpfen Klopfgeräuschen wählen, das Board klopft dann hörbar an.",
+    "Neue Männchen-Aktionen: Freitags-Tänzchen vor Feierabend, Eis bei Hitze, Schirm bei Regen.",
+    "Handy-Seite lässt sich als App-Symbol auf den Startbildschirm legen.",
+    "Rückscan kann seinen Stand als Teamzahl ans Board melden („Wagen 1: 412 von 500“)."
   ],
   "files": {
-    "changelog.json": "af3765632b1ebf2981f0db10e6b8d202716de48aceec0d4053f5ed1a5e0fce63",
+    "changelog.json": "bc1a5612d79cfe2620758ab4b8d538eb72b8149910c15a239b79eadf5d85663f",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
-    "extras.js": "beea3b28a7ff70bb90353ca9a5b2d438b28380d29cef59d6690bb5a08998683b",
-    "public/board.html": "cadda9c54e53b416da62e85ad2e652a6340735a115f425ff285269900cb6f9d6",
-    "public/m.html": "7bfa16962f6c6a27ec9b975253cec85182d63a56c14eb9be1d63217aacfecf81",
-    "public/mascot.js": "880c1e69a1d7f16509da00ec9c0fe70aae4bd28c1dc90d7a919a69ab1c2df196",
+    "extras.js": "5d47a979293bb19350e5a86fe2c784fb1df3bd984c2f5eb6b35fd53585a7d523",
+    "public/board.html": "afe0995392b4b9adb9f2a4cac08caac2a71f64f86f798270082ca2e41b198086",
+    "public/icon-192.png": "c6b866b885e711fdb607de892d36300c9da80127f2d833cd672ce40af65f5637",
+    "public/icon-512.png": "0330db0ae5d581a2bd979a907dbdcb1f3d626ebe2df8c3e4a9469771a2e2dec6",
+    "public/knock.js": "422d5ca78ea4873c002673f42c0e7db747b70f86c8ec489a95638bb18ae9e667",
+    "public/m.html": "6a991591bf2a54b4a45f4250699d33ee2c30601e7f2e70bf5154acd0f0b781e7",
+    "public/mascot.js": "a414057fb572b03b3321873c8d436b99567876adc288dc72d1a7bf48b5c97b5d",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
-    "server.js": "c674aee0c4b984ee134e72f81666c2bc0ac7e751660eda8dc78780c64cc8aff8",
+    "server.js": "04238a3bd2dc86a5784490c6ae90f16b6b190feed6656b73dafe761131ffd0c9",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "742de6ee6b4f7ad7d922d996e1b7786e89e372d82100bdbe88ae81dfdd0bef26"
+    "version.json": "7dbed681e9a5d8db14b23cec9645876f08d2addb94a605c163bb34095cf6cfe4"
   }
 }

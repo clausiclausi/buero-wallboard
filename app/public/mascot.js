@@ -44,6 +44,18 @@
     buchstabe: { name: 'Buchstabe wegtreten', mood: 'frech' }, schieben: { name: 'Kachel schieben', mood: 'frech' },
     strecken: { name: 'Gähnen und Strecken', mood: 'lieb' }, spazieren: { name: 'Spaziergang-Hinweis', mood: 'info' },
     klopfen: { name: 'Termin-Klopfen', mood: 'info' },
+    tanzen: { name: 'Freitags-Tänzchen', mood: 'info' }, eis: { name: 'Eis bei Hitze', mood: 'info' }, schirm: { name: 'Schirm bei Regen', mood: 'info' },
+  };
+  // Mitgebrachtes zu besonderen Aktionen: Eis in der Hand, Schirm über dem Kopf, Noten beim Tanzen
+  const PROPS = { eis: 'eis', schirm: 'schirm', tanzen: 'noten' };
+  const PROP_SVG = {
+    eis: `<path d="M-3.2 0 L3.2 0 L0 9.5 Z" fill="#E2A55B" stroke="#1B1410" stroke-width=".5" stroke-linejoin="round"/><path d="M-2 2.2 L1.4 5.6 M-.6 0.4 L2.4 3.4 M2 2.2 L-1.4 5.6 M.6 0.4 L-2.4 3.4" stroke="#B9783A" stroke-width=".45"/>
+      <circle cx="0" cy="-2.4" r="3.5" fill="#FF9EB5" stroke="#1B1410" stroke-width=".5"/><circle cx="0" cy="-6.6" r="3" fill="#8FE3C0" stroke="#1B1410" stroke-width=".5"/><circle cx=".7" cy="-9.9" r="1.1" fill="#E0403A" stroke="#1B1410" stroke-width=".4"/>`,
+    schirm: `<path d="M0 -11 L0 9 Q0 12 -3 11.2" stroke="#5A3E2B" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <path d="M-12 0 Q-12 -10.5 0 -11.5 Q12 -10.5 12 0 Q9 -2.6 6 0 Q3 -2.6 0 0 Q-3 -2.6 -6 0 Q-9 -2.6 -12 0 Z" fill="#4A86E8" stroke="#1B1410" stroke-width=".6" stroke-linejoin="round"/>
+      <path d="M0 -11.5 Q-4 -6 -6 0 M0 -11.5 Q4 -6 6 0" stroke="#2F62B8" stroke-width=".6" fill="none"/><circle cx="0" cy="-12" r="1" fill="#2F62B8"/>`,
+    noten: `<g stroke="#1B1410" stroke-width=".5"><ellipse cx="-4" cy="2" rx="2.2" ry="1.6" fill="#FFFFFF" transform="rotate(-20 -4 2)"/><path d="M-2 1.6 L-2 -8 Q1 -6.5 1.5 -4" fill="none" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round"/>
+      <ellipse cx="4" cy="-1" rx="2" ry="1.5" fill="#FFE27A" transform="rotate(-20 4 -1)"/><path d="M5.8 -1.4 L5.8 -10 L10 -11 L10 -3" fill="none" stroke="#FFE27A" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="8.2" cy="-2.6" rx="2" ry="1.5" fill="#FFE27A" transform="rotate(-20 8.2 -2.6)"/></g>`,
   };
   const SIZES = { klein: .42, mittel: .55, gross: .72 };
   // Welche Deko gerade passt: Kürbis vor Halloween, Nikolausmütze im Advent, Wollmütze im Winter, Hasenohren zu Ostern
@@ -419,6 +431,7 @@
       E.sparks = [0, 1, 2].map(() => el('path', { d: '', fill: '#FFFFFF', opacity: 0 }, svg));
       E.zzz = [0, 1, 2].map(i => { const z = el('text', { fill: LC, 'font-size': ((10 + i * 3) * k).toFixed(1), 'font-weight': 700, opacity: 0, style: "font-family:'Segoe UI',system-ui,sans-serif" }, svg); z.textContent = 'z'; return z; });
       E.held = el('text', { 'text-anchor': 'middle', 'dominant-baseline': 'central', opacity: 0 }, svg);
+      E.prop = el('g', { opacity: 0 }, svg); E.propKind = '';
       E.yawn = el('ellipse', { fill: '#3A1F1A', opacity: 0 }, E.fig);
       // Jahreszeiten-Deko auf dem Kopf, gezeichnet für einen Kopf mit Radius 1
       E.deco = el('g', { opacity: 0 }, E.fig);
@@ -566,6 +579,15 @@
         E.held.setAttribute('transform', `rotate(${(Math.sin(t * 6) * 12 * (1 - u)).toFixed(1)} ${lx.toFixed(1)} ${ly.toFixed(1)})`);
         E.held.setAttribute('opacity', 1);
       } else E.held.setAttribute('opacity', 0);
+      // Eis, Schirm oder Noten, solange die Figur zu sehen ist
+      if (move && move.prop) {
+        const kind = move.prop, up = kind === 'schirm', notes = kind === 'noten';
+        const px = up ? fp.O.cx + s.dir * (fp.O.rx + 6 * k) : notes ? fp.O.cx + s.dir * (fp.O.rx + 8 * k) : h[0], py = up ? fp.O.cy - fp.O.ry + 4 * k : notes ? fp.O.cy - 2 * k - Math.abs(Math.sin(t * 3)) * 6 * k : h[1] - 3 * k;
+        if (E.propKind !== kind) { E.prop.innerHTML = PROP_SVG[kind] || ''; E.propKind = kind; }
+        const sc = (up ? 1.6 : notes ? 1.2 : 1.25) * k, rot = (up ? -s.dir * 14 : 0) + Math.sin(t * (notes ? 5 : 2)) * (up ? 4 : 10);
+        E.prop.setAttribute('transform', `translate(${px.toFixed(1)} ${py.toFixed(1)}) rotate(${rot.toFixed(1)}) scale(${sc.toFixed(2)})`);
+        E.prop.setAttribute('opacity', eyeOn.toFixed(2));
+      } else E.prop.setAttribute('opacity', 0);
     }
 
     // Kacheln als Sitzplätze (in 1/3 Board-Pixeln)
@@ -725,12 +747,14 @@
         else if (act === 'klopfen') add({ d: 4.2, k: 'act', name: 'knock', dir: x > 320 ? -1 : 1 }, { d: 1.2, k: 'act', name: 'wave' });
         else if (act === 'grimasse') add({ d: 2.6, k: 'act', name: 'grim' });
         else if (act === 'spazieren') add({ d: 4, k: 'act', name: 'wave' }, { d: .6, k: 'act', name: 'look' });
+        else if (act === 'tanzen') { const x0 = x; [1, -1, 1, -1, 1, -1].forEach(d => jump(x0 + d * 7 * k, y, (6 + Math.random() * 4) * k)); jump(x0, y, 10 * k); add({ d: 1.8, k: 'act', name: 'cheer' }, { d: 1, k: 'act', name: 'wave' }); }
+        else if (act === 'eis' || act === 'schirm') add({ d: .4, k: 'act', name: 'look' }, { d: 4.6, k: 'act', name: 'wave' }, { d: .8, k: 'act', name: 'cheer' });
         else sitAct(2.4, 'wave');
         if (opts.say && segs[iAct]) segs[iAct].say = opts.say;
       }
       add({ d: 1.3, k: 'morph', to: 0, say: '' });
       if (E.text) add({ d: .35, k: 'txt', to: 1 });
-      return { segs, events, letter, total, to: { x, y, card: B ? B.el : to.card } };
+      return { segs, events, letter, total, prop: PROPS[act] || '', to: { x, y, card: B ? B.el : to.card } };
     }
 
     function schedule() {
@@ -918,6 +942,9 @@
       if (name === 'klopfen') return alert(10, '10:30');
       if (name === 'spazieren') return announce('Wir gehen gleich spazieren?', 'spazieren');
       if (name === 'strecken') return announce('Guten Morgen!', 'strecken');
+      if (name === 'tanzen') return announce('Freitag! Schönes Wochenende!', 'tanzen');
+      if (name === 'eis') return announce('28 Grad! Zeit für ein Eis?', 'eis');
+      if (name === 'schirm') return announce('Gleich Regen: Schirm nicht vergessen!', 'schirm');
       if (name === 'klettern') return go({ target: 'oben', act: 'winken' });
       if (name === 'freuen') { if (move) stop(); if (!pos) pos = pickSpot(null); return pos && start(plan(pos, { x: pos.x, y: pos.y, card: pos.card }, { act: 'freuen' })); }
       const hasText = c => [...(c.el.querySelector('h3')?.childNodes || [])].some(n => n.nodeType === 3 && /[A-Za-zÄÖÜäöü]/.test(n.nodeValue));
