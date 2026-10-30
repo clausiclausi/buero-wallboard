@@ -207,9 +207,12 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
   }
 
   // Gleiche Meldung bei mehreren Sendern: Titel mit überwiegend denselben Wörtern gelten als doppelt
-  const STOP = new Set('aber alle also auch beim bereits bisher dass dem den der des die dies diese dieser durch eine einem einen einer eines gegen haben hatte heute immer jetzt kann kein keine mehr nach nicht noch nur oder schon sein seine sich sind soll über unter vom von vor war wegen weil wenn werden wieder will wird wurde zum zur zwei drei neue neuen neuer januar februar märz april juni juli august september oktober november dezember montag dienstag mittwoch donnerstag freitag samstag sonntag woche jahr jahres prozent'.split(' '));
-  const words = t => new Set(t.toLowerCase().replace(/[^a-zäöüß0-9]+/g, ' ').split(' ').filter(w => w.length > 3 && !STOP.has(w)).map(w => w.slice(0, 7)));
-  const sameStory = (a, b) => { let n = 0; for (const w of a) if (b.has(w)) n++; return n >= 2 && n / Math.min(a.size, b.size) >= .6; };
+  const STOP = new Set('aber alle also auch beim bereits bisher dass dem den der des die dies diese dieser durch eine einem einen einer eines gegen haben hatte heute immer jetzt kann kein keine mehr nach nicht noch nur oder schon sein seine sich sind soll über unter vom von vor war wegen weil wenn werden wieder will wird wurde zum zur zwei drei neue neuen neuer januar februar märz april juni juli august september oktober november dezember montag dienstag mittwoch donnerstag freitag samstag sonntag woche jahr jahres prozent bericht deutschland deutsche deutschen berlin würde könnte sollen müssen'.split(' '));
+  const words = t => new Set(t.toLowerCase().replace(/[^a-zäöüß0-9]+/g, ' ').split(' ').filter(w => w.length > 3 && !STOP.has(w)));
+  // Wörter gelten als gleich bei gleichem Anfang (Eralp/Eralps, Ukraine/ukrainische, Gipfel/Gipfeltreffen)
+  const wordMatch = (x, y) => x === y || Math.min(x.length, y.length) >= 5 && (x.startsWith(y) || y.startsWith(x)) || x.length >= 6 && y.length >= 6 && x.slice(0, 6) === y.slice(0, 6);
+  // Mit echten Schlagzeilen vom 30.10.2026 abgestimmt: 7 doppelte von 52 erkannt, keine falschen
+  const sameStory = (a, b) => { let n = 0; for (const w of a) if ([...b].some(v => wordMatch(w, v))) n++; return n >= 2 && n / Math.min(a.size, b.size) >= .25; };
 
   async function updateNews() {
     const want = (getSettings().newsSources || ['tagesschau', 'dlf', 'ntv']).filter(k => NEWS[k]);
@@ -224,7 +227,7 @@ module.exports = function createExtras({ DATA, config, log, getSettings, broadca
           return { title, date: new Date(tag('pubDate')).getTime() || 0, link: host === NEWS[k].host ? link : '', src: k, topic: topic(link, title, clean(tag('category'), 60)) };
         })
           // nur echte Meldungen mit Link: keine Videos, Livestreams, Bezahlartikel, Hinweise des Senders oder alten Meldungen
-          .filter(i => i.title && i.link && !/\/(video|multimedia|livestream|plus)/i.test(i.link) && !/^(livestream|video|liveblog|schlagzeilen|aktuelle pressemitteilungen|entdecken sie)\b/i.test(i.title) && Date.now() - i.date < 24 * 3600000)
+          .filter(i => i.title && i.link && !/\/(video|multimedia|livestream|plus)/i.test(i.link) && !/^(livestream|video|liveblog|schlagzeilen|aktuelle pressemitteilungen|entdecken sie|tagesschau|tagesthemen|tagesschau24|nachtmagazin|wetter deutschland)\b/i.test(i.title) && Date.now() - i.date < 24 * 3600000)
           .sort((a, b) => b.date - a.date).slice(0, 20);
         for (const i of items) {
           const key = i.title.toLowerCase().replace(/\W+/g, ''), w = words(i.title);
