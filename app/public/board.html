@@ -132,6 +132,17 @@ main {
 .cal { grid-area: 1 / 1 / span 3 / span 3; }
 .transit { grid-area: 1 / 4 / span 3 / span 3; }
 .notes { grid-area: 1 / 7 / span 3 / span 3; }
+.todo { grid-area: 1 / 1 / span 3 / span 3; }
+.todo-list { display: flex; flex-direction: column; gap: 6px; min-height: 0; overflow: hidden; }
+.todo-row { display: flex; align-items: flex-start; gap: 10px; padding: 7px 10px; border-radius: 12px; background: var(--bg); font-size: 19px; line-height: 1.28; font-weight: 500; }
+.todo-row .tick { flex: none; width: 27px; height: 27px; border-radius: 50%; border: 2px solid var(--muted); background: none; color: var(--bg); display: grid; place-items: center; padding: 0; cursor: pointer; }
+.todo-row .tick svg { width: 18px; height: 18px; opacity: 0; }
+.todo-row span { flex: 1; min-width: 0; overflow-wrap: anywhere; padding-top: 1px; }
+.todo-row.done span { text-decoration: line-through; color: var(--muted); }
+.todo-row.done .tick { background: var(--ok); border-color: var(--ok); }
+.todo-row.done .tick svg { opacity: 1; }
+.todo-row .del { flex: none; width: 30px; height: 30px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); display: grid; place-items: center; }
+.todo-more { font-size: 17px; color: var(--muted); padding: 0 4px; }
 .wx { grid-area: 1 / 10 / span 3 / span 3; }
 .loan { grid-area: 4 / 1 / span 3 / span 3; }
 .month { grid-area: 4 / 4 / span 3 / span 3; gap: calc(10px * var(--z, 1)); }
@@ -427,20 +438,16 @@ footer .mini-btn { margin-left: 0; font-size: 17px; }
 .news-track.run { animation: newsroll var(--dur, 60s) linear infinite; }
 @keyframes newsroll { to { transform: translateY(-50%); } }
 /* Beim Antippen oder Draufzeigen anhalten, damit man die Meldung erwischt */
-.news-list:hover .news-track, .ticker:hover .ticker-track { animation-play-state: paused; }
+.news-list:hover .news-track.run, .ticker:hover .ticker-track { animation-play-state: paused; }
 .news-item { display: flex; flex-direction: column; gap: 3px; margin-bottom: 10px; padding: 9px 12px; border-radius: 12px; background: var(--bg); cursor: pointer; text-align: left; font: inherit; color: var(--text); border: 0; width: 100%; }
 .news-item small { font-size: 15px; color: var(--muted); }
 .news-item small b { color: var(--text); font-weight: 700; }
-.news-item span { font-size: 20px; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.news-item span { font-size: 20px; font-weight: 600; line-height: 1.28; }
+.news-item span small { font-size: 15px; font-weight: 500; color: var(--muted); margin-left: 8px; white-space: nowrap; }
 .news-track.fade { animation: newsfade .6s var(--ease, ease) both; }
 @keyframes newsfade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.news-track.compact .news-item { flex-direction: row; align-items: baseline; gap: 8px; padding: 6px 10px; margin-bottom: 6px; }
-.news-track.compact .news-item small { flex: none; }
-.news-track.compact .news-item span { font-size: 18px; -webkit-line-clamp: 1; line-clamp: 1; }
-.news-track.tight .news-item small { display: none; }
-.news-track.tight .news-item { padding: 4px 10px; margin-bottom: 4px; }
-.news-track.tight .news-item span { font-size: 16px; }
-.news-track.tight .news-dots { padding: 0; }
+.news-track.tight .news-item { padding: 6px 10px; margin-bottom: 6px; }
+.news-track.tight .news-item span { font-size: 17px; }
 .news-dots { display: flex; justify-content: center; gap: 6px; padding: 2px 0 4px; cursor: pointer; }
 .news-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
 .news-dots i.on { background: var(--text); }
@@ -1019,6 +1026,10 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       <div class="news-list" id="newsList"><div class="news-track" id="newsTrack"></div></div>
     </section>
 
+    <section class="card todo" data-k="todo" data-name="To-Do">
+      <h3>To-Do <span class="badge" id="todoCount" hidden></span><button class="mini-btn" id="addTodo"><svg class="icon"><use href="#i-plus"/></svg>To-Do</button></h3>
+      <div class="todo-list" id="todos"></div>
+    </section>
     <section class="card notes" data-k="notes" data-name="Notizen">
       <h3>Notizen <button class="mini-btn" id="addLob" title="Anonymes Lob, bleibt bis heute Abend"><svg class="icon"><use href="#i-heart"/></svg>Lob</button><button class="mini-btn" id="addNote"><svg class="icon"><use href="#i-plus"/></svg>Notiz</button></h3>
       <div class="note-list" id="notes"></div>
@@ -1145,9 +1156,9 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 
   /* ---------- Kacheln anordnen: 12x6-Raster, Lage und Größe je Kachel [Spalte, Zeile, Breite, Höhe] ---------- */
   const COLS = 12, ROWS = 6, MIN = 2;
-  const DEF_LAYOUT = { cal: [1, 1, 3, 3], transit: [4, 1, 3, 3], notes: [7, 1, 3, 3], wx: [10, 1, 3, 4], loan: [1, 4, 3, 3], month: [4, 4, 3, 3], incident: [7, 4, 3, 3], sec: [10, 4, 3, 3], news: [10, 5, 3, 2], hidden: ['sec'] };
+  const DEF_LAYOUT = { todo: [1, 1, 3, 3], cal: [1, 1, 3, 3], transit: [4, 1, 3, 3], notes: [7, 1, 3, 3], wx: [10, 1, 3, 4], loan: [1, 4, 3, 3], month: [4, 4, 3, 3], incident: [7, 4, 3, 3], sec: [10, 4, 3, 3], news: [10, 5, 3, 2], hidden: ['sec', 'cal'] };
   // Größe, für die der Inhalt gestaltet ist; größere Kacheln zeigen größere Schrift, kleinere kleinere
-  const BASE = { cal: [3, 3], transit: [3, 3], sec: [3, 3], wx: [3, 4], loan: [3, 3], month: [3, 3], incident: [3, 3], notes: [3, 3], news: [3, 2] };
+  const BASE = { todo: [3, 3], cal: [3, 3], transit: [3, 3], sec: [3, 3], wx: [3, 4], loan: [3, 3], month: [3, 3], incident: [3, 3], notes: [3, 3], news: [3, 2] };
   const TILE_KEYS = Object.keys(BASE);
   const tiles = () => [...stage.querySelectorAll('main > .card[data-k]')];
   const fits = a => Array.isArray(a) && a.length === 4 && a.every(Number.isInteger) && a[0] >= 1 && a[1] >= 1 && a[2] >= MIN && a[3] >= MIN && a[0] + a[2] - 1 <= COLS && a[1] + a[3] - 1 <= ROWS;
@@ -1174,6 +1185,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     const L = { hidden: Array.isArray(saved.hidden) ? saved.hidden.filter(k => TILE_KEYS.includes(k)) : [] };
     const missing = [];
     for (const k of TILE_KEYS) fits(saved[k]) ? L[k] = saved[k].slice() : missing.push(k);
+    // Neue To-Do-Kachel übernimmt den Platz der Kalender-Kachel, der Kalender wird nur ausgeblendet
+    if (missing.includes('todo') && L.cal && !L.hidden.includes('cal')) { L.todo = L.cal.slice(); L.hidden.push('cal'); missing.splice(missing.indexOf('todo'), 1); }
     for (const k of missing) {
       L[k] = DEF_LAYOUT[k].slice();
       if (shownKeys(L).some(j => j !== k && fits(L[j]) && overlap(L[k], L[j]))) {
@@ -2143,31 +2156,36 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     const sig = JSON.stringify([items.map(n => n.title + n.date), tile, tick, view]);
     if (sig === newsSig) return;
     newsSig = sig;
-    const one = n => `<small><b>${esc(NEWS_NAMES[n.src] || '')}</b> · ${newsTime(n.date)}</small><span>${esc(n.title)}</span>`;
+    const one = n => `<span>${esc(n.title)}<small>${newsTime(n.date)}</small></span>`;
     const track = $('#newsTrack'), list = items.slice(0, view.mode === 'page' ? 30 : 15);
     track.classList.remove('run', 'compact', 'tight');
     clearInterval(newsTimer);
     const empty = `<div class="news-empty">${newsSources().length ? 'Nachrichten werden geladen …' : 'Keine Anbieter gewählt. Oben auf „Auswahl“ tippen.'}</div>`;
     if (view.mode === 'page') {
-      // Seitenweise: je view.per Meldungen, nach view.every Sekunden die nächsten
-      const pages = Math.max(1, Math.ceil(list.length / view.per));
+      // Seitenweise: bis zu view.per Meldungen mit vollem Titel. Passt nicht alles, kommen weniger auf die Seite, der Rest auf die nächste.
+      const box = $('#newsList'), fits = () => track.scrollHeight <= box.clientHeight + 2;
+      const html = (part, dots) => part.map(n => `<button type="button" class="news-item" data-i="${list.indexOf(n)}">${one(n)}</button>`).join('') + dots;
+      const pages = [];
+      for (let i = 0; i < list.length;) {
+        let part = list.slice(i, i + view.per);
+        track.innerHTML = html(part, '<div class="news-dots"><i></i></div>');
+        while (part.length > 1 && !fits()) { part = part.slice(0, -1); track.innerHTML = html(part, '<div class="news-dots"><i></i></div>'); }
+        pages.push(part); i += part.length;
+      }
       const show = () => {
-        newsPage %= pages;
-        const part = list.slice(newsPage * view.per, newsPage * view.per + view.per);
-        track.innerHTML = part.length ? part.map(n => `<button type="button" class="news-item" data-i="${list.indexOf(n)}">${one(n)}</button>`).join('')
-          + (pages > 1 ? `<div class="news-dots">${Array.from({ length: pages }, (_, i) => `<i class="${i === newsPage ? 'on' : ''}"></i>`).join('')}</div>` : '') : empty;
-        // Passt die Seite nicht in die Kachel, zuerst einzeilig, dann ohne Quelle/Uhrzeit
-        track.classList.remove('compact', 'tight');
-        const box = $('#newsList');
-        if (track.scrollHeight > box.clientHeight + 2) track.classList.add('compact');
-        if (track.scrollHeight > box.clientHeight + 2) track.classList.add('tight');
+        newsPage = pages.length ? newsPage % pages.length : 0;
+        const part = pages[newsPage] || [];
+        track.classList.remove('tight');
+        track.innerHTML = part.length ? html(part, pages.length > 1 ? `<div class="news-dots">${pages.map((_, i) => `<i class="${i === newsPage ? 'on' : ''}"></i>`).join('')}</div>` : '') : empty;
+        if (!fits()) track.classList.add('tight');
         track.classList.remove('fade'); void track.offsetWidth; track.classList.add('fade');
         track.querySelectorAll('.news-item').forEach(b => b.onclick = () => openNews(list[+b.dataset.i]));
       };
+      const next = () => { newsPage++; show(); };
       show();
-      if (pages > 1) newsTimer = setInterval(() => { newsPage++; show(); }, view.every * 1000);
+      if (pages.length > 1) newsTimer = setInterval(next, view.every * 1000);
       // Antippen der Punkte blättert sofort weiter
-      $('#newsList').onclick = e => { if (e.target.closest('.news-dots')) { newsPage++; show(); clearInterval(newsTimer); newsTimer = setInterval(() => { newsPage++; show(); }, view.every * 1000); } };
+      $('#newsList').onclick = e => { if (e.target.closest('.news-dots')) { next(); clearInterval(newsTimer); newsTimer = setInterval(next, view.every * 1000); } };
     } else {
     $('#newsList').onclick = null;
     track.innerHTML = list.length ? list.map((n, i) => `<button type="button" class="news-item" data-i="${i}">${one(n)}</button>`).join('') : empty;
@@ -2190,6 +2208,37 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       tt.querySelectorAll('button').forEach(b => b.onclick = () => openNews(tl[+b.dataset.i]));
     });
   }
+
+  /* ---------- To-Do ---------- */
+  function renderTodos() {
+    const el = $('#todos'); el.innerHTML = '';
+    const all = S.todos || [], open = all.filter(t => !t.done).sort((a, b) => a.created - b.created), done = all.filter(t => t.done).sort((a, b) => b.created - a.created);
+    $('#todoCount').hidden = !all.length; $('#todoCount').textContent = open.length ? `${open.length} offen` : 'alles erledigt';
+    if (!all.length) el.append(h('<div class="cal-empty" style="font-size:20px;padding:6px 4px">Nichts zu tun. Oben auf „To-Do“ tippen oder am Handy eintragen.</div>'));
+    const rows = [...open, ...done].map(t => {
+      const row = h(`<div class="todo-row ${t.done ? 'done' : ''}"><button class="tick" title="${t.done ? 'Wieder offen' : 'Erledigt'}"><svg class="icon"><use href="#i-check"/></svg></button><span class="private">${esc(t.title)}</span><button class="del" title="To-Do löschen"><svg class="icon"><use href="#i-x"/></svg></button></div>`);
+      row.querySelector('.tick').onclick = () => api('PATCH', `/api/todos/${t.id}`, { done: !t.done }).then(() => { if (!t.done && mascot) mascot.cheer(); }, () => {});
+      row.querySelector('.del').onclick = () => { if (confirm('Dieses To-Do löschen?')) api('DELETE', `/api/todos/${t.id}`); };
+      el.append(row); return row;
+    });
+    // Was nicht in die Kachel passt, als „+ N weitere“ zusammenfassen
+    const more = h('<div class="todo-more"></div>'); el.append(more);
+    let hidden = 0;
+    while (rows.length > 1 && el.scrollHeight > el.clientHeight + 2) { rows.pop().remove(); hidden++; more.textContent = `+ ${hidden} weitere`; }
+    if (!hidden) more.remove();
+  }
+  function openTodoDialog() {
+    const scrim = h(`<div class="scrim center"><form class="panel dialog" autocomplete="off">
+      <h2>Neues To-Do</h2>
+      <label class="field">Was ist zu tun? <input type="text" id="tdText" required maxlength="80" placeholder="z. B. Toner für Drucker 2 bestellen"></label>
+      <p class="hint">Bleibt stehen, bis es abgehakt ist. Abgehakte verschwinden am Ende des Tages. Bitte keine Namen oder Kundendaten.</p>
+      <div class="row"><button class="btn primary" type="submit">Speichern</button><button class="btn" type="button" id="tdCancel">Abbrechen</button></div>
+    </form></div>`);
+    scrim.querySelector('#tdCancel').onclick = () => scrim.remove();
+    scrim.querySelector('form').onsubmit = (e) => { e.preventDefault(); api('POST', '/api/todos', { title: scrim.querySelector('#tdText').value }); scrim.remove(); };
+    $('#overlayHost').append(scrim); scrim.querySelector('#tdText').focus();
+  }
+  $('#addTodo').onclick = openTodoDialog;
 
   /* ---------- Notizen ---------- */
   function renderNotes() {
@@ -3128,7 +3177,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   });
 
   /* ---------- Verbindung zum Server ---------- */
-  function renderAll() { applyRadarCfg(); applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderNotes(); renderTransit(); renderSec(); renderScanTool(); renderNews(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); checkYearMode(); }
+  function renderAll() { applyRadarCfg(); applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderTodos(); renderNotes(); renderTransit(); renderSec(); renderScanTool(); renderNews(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); checkYearMode(); }
   function connect() {
     const es = new EventSource('/api/stream');
     es.onopen = () => { connected = true; };

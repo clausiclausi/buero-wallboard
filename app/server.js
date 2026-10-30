@@ -46,7 +46,7 @@ const DEFAULT_LOANS = [
   { id: 'l3', type: 'Smartphones', icon: 'phone', avail: 0, total: 0 },
   { id: 'l4', type: 'Headsets', icon: 'box', avail: 0, total: 0 },
 ];
-let db = Object.assign({ tasks: [], events: [], scans: [], loans: DEFAULT_LOANS, incident: null, settings: {}, people: [], absences: [], notes: [], taskLog: [], rueckscan: {} }, readJson(DB_FILE, {}));
+let db = Object.assign({ tasks: [], events: [], scans: [], loans: DEFAULT_LOANS, incident: null, settings: {}, people: [], absences: [], notes: [], taskLog: [], rueckscan: {}, todos: [] }, readJson(DB_FILE, {}));
 db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings);
 // Ab 1.21.0 kommen Haltestellen aus der offenen EFA-Auskunft (andere Kennungen): alte Auswahl einmalig zurücksetzen
 if ((db.transitDefault || 0) < 2) { db.settings.transit = null; db.settings.route = null; db.transitDefault = 2; }
@@ -122,6 +122,10 @@ function cleanup() {
   const nNotes = db.notes.length;
   db.notes = db.notes.filter(n => n.kind !== 'lob' || (n.date || today) >= today);
   if (db.notes.length !== nNotes) before++;
+  // Erledigte To-Dos bleiben bis Tagesende sichtbar
+  const nTodo = db.todos.length;
+  db.todos = db.todos.filter(t => !t.done || (t.doneDate || today) >= today);
+  if (db.todos.length !== nTodo) before++;
   // Rückscan-Stand: nach 8 Stunden ohne Meldung oder am Tag nach dem Abschluss ausblenden
   for (const [k, r] of Object.entries(db.rueckscan || {})) if (Date.now() - r.at > 8 * 3600000 || (r.done && localDateOf(new Date(r.at)) < today)) { delete db.rueckscan[k]; before++; }
   // Abwesenheiten nur so lange aufheben, wie sie im Monatskalender noch zu sehen sind
@@ -198,6 +202,11 @@ const schemas = {
     if (!clean(b.text, 140)) return null;
     return b.kind === 'lob' ? { text: clean(b.text, 140), kind: 'lob', date: isDate(b.date) ? b.date : localDate(0) } : { text: clean(b.text, 140) };
   },
+  // To-Do-Liste ohne Datum und ohne Person; erledigt bleibt bis Tagesende stehen
+  todos: b => {
+    if (!clean(b.title, 80)) return null;
+    return { title: clean(b.title, 80), done: !!b.done, doneDate: b.done ? (isDate(b.doneDate) ? b.doneDate : localDate(0)) : '' };
+  },
   loans: b => {
     const total = Math.max(0, Math.min(999, parseInt(b.total, 10) || 0));
     return { type: clean(b.type, 24) || 'Geräte', icon: oneOf(b.icon, ICONS, 'box'), total, avail: Math.max(0, Math.min(total, parseInt(b.avail, 10) || 0)) };
@@ -207,7 +216,7 @@ const schemas = {
 const patchable = {
   tasks: ['title', 'time', 'remind', 'done', 'by'], events: ['title', 'meta', 'time', 'date', 'top', 'countdown'],
   loans: ['type', 'icon', 'avail', 'total'],
-  people: ['short', 'color'], absences: ['person', 'from', 'to', 'kind'], notes: ['text'],
+  people: ['short', 'color'], absences: ['person', 'from', 'to', 'kind'], notes: ['text'], todos: ['title', 'done'],
 };
 
 function sanitizeSettings(b) {
@@ -236,7 +245,7 @@ function sanitizeSettings(b) {
   }
   if ('layout' in b) {
     // Kachel-Anordnung im 12x6-Raster: [Spalte, Zeile, Breite, Höhe], nur vollständig und ohne Überlappung
-    const keys = ['cal', 'wx', 'loan', 'month', 'incident', 'notes', 'transit', 'sec', 'news'], L = b.layout || {};
+    const keys = ['cal', 'wx', 'loan', 'month', 'incident', 'notes', 'transit', 'sec', 'news', 'todo'], L = b.layout || {};
     const hidden = Array.isArray(L.hidden) ? keys.filter(k => L.hidden.includes(k)) : [];
     const shown = keys.filter(k => !hidden.includes(k));
     const ok = a => Array.isArray(a) && a.length === 4 && a.every(Number.isInteger) && a[0] >= 1 && a[1] >= 1 && a[2] >= 2 && a[3] >= 2 && a[0] + a[2] <= 13 && a[1] + a[3] <= 7;
@@ -294,7 +303,7 @@ function boardView() {
     events: db.events.filter(e => e.date >= today),
     loans: db.loans, incident: db.incident, settings: publicSettings(), mobileUrl: mobileUrl(),
     backup: backupInfo, rueckscan: Object.values(db.rueckscan || {}),
-    people: db.people, absences: db.absences, notes: db.notes, extras: extras.view(),
+    people: db.people, absences: db.absences, notes: db.notes, todos: db.todos, extras: extras.view(),
     version: VERSION, changelog: CHANGELOG, lastUpdate: readJson(path.join(DATA, 'last-update.json'), null), display: display.view(),
     update: { available: update.available, notes: update.notes, changes: update.changes, error: update.error, checked: update.checked, busy: update.busy },
     scanTool,
@@ -695,7 +704,7 @@ const server = http.createServer(async (req, res) => {
       }
       return send(res, 200, taskStats(oneOf(+url.searchParams.get('tage'), [7, 30, 90], 30)));
     }
-    if ((m = p.match(/^\/api\/(tasks|events|loans|people|absences|notes)(?:\/([a-z0-9]{1,16}))?$/))) {
+    if ((m = p.match(/^\/api\/(tasks|events|loans|people|absences|notes|todos)(?:\/([a-z0-9]{1,16}))?$/))) {
       const [, coll, id] = m;
       // Urlaube am Board nur mit Passwort ändern; am Handy reicht die PIN
       if ((coll === 'people' || coll === 'absences') && isLocal(req)) {
@@ -707,6 +716,7 @@ const server = http.createServer(async (req, res) => {
         const item = schemas[coll](b);
         if (!item) return send(res, 400, { error: 'Angaben unvollständig' });
         if (coll === 'notes' && db.notes.length >= 12) return send(res, 400, { error: 'Höchstens 12 Notizen, bitte erst eine löschen' });
+        if (coll === 'todos' && db.todos.length >= 25) return send(res, 400, { error: 'Höchstens 25 To-Dos, bitte erst welche abhaken oder löschen' });
         item.id = newId(); item.created = Date.now();
         db[coll].push(item); save();
         return send(res, 201, item);

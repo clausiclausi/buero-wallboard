@@ -99,6 +99,13 @@ nav button[aria-current="page"] { color: var(--text); }
     </form>
     <h2>Geplant</h2>
     <div class="list" id="taskList"></div>
+    <h2>To-Do-Liste</h2>
+    <form class="card" id="todoForm" autocomplete="off">
+      <label class="f">Was ist zu tun? <input id="tdText" maxlength="80" required placeholder="z. B. Toner für Drucker 2 bestellen"></label>
+      <p class="hint">Bleibt am Board, bis es abgehakt ist. Bitte keine Namen oder Kundendaten.</p>
+      <button class="btn primary" type="submit">To-Do eintragen</button>
+    </form>
+    <div class="list" id="todoList" style="margin-top:10px"></div>
     <h2>Notizen fürs Board</h2>
     <form class="card" id="noteForm" autocomplete="off">
       <label class="f">Notiz <input id="nText" maxlength="140" required placeholder="z. B. Lieferung Monitore kommt Freitag"></label>
@@ -296,6 +303,24 @@ nav button[aria-current="page"] { color: var(--text); }
   if (window.WBKnock) drawKnock();
   $('#knockGo').onclick = () => run(api('POST', '/api/knock', { sound: knockSel }), `Am Board geklopft: ${WBKnock.SOUNDS[knockSel].name}`);
 
+  /* ---------- To-Do ---------- */
+  $('#todoForm').onsubmit = (e) => {
+    e.preventDefault();
+    run(api('POST', '/api/todos', { title: $('#tdText').value }).then(() => { $('#tdText').value = ''; }), 'To-Do eingetragen');
+  };
+  function renderTodos() {
+    const el = $('#todoList'); el.innerHTML = '';
+    const all = S.todos || [], list = [...all.filter(t => !t.done), ...all.filter(t => t.done)];
+    if (!list.length) el.innerHTML = '<div class="empty">Keine To-Dos.</div>';
+    list.forEach(t => {
+      const d = document.createElement('div'); d.className = 'item' + (t.done ? ' done' : '');
+      d.innerHTML = `<input type="checkbox" ${t.done ? 'checked' : ''} style="width:26px;height:26px;flex:none" title="Erledigt"><div class="main"><b>${esc(t.title)}</b>${t.done ? '<small>erledigt · verschwindet heute Abend</small>' : ''}</div><button class="icon-btn" title="Löschen">✕</button>`;
+      d.querySelector('input').onchange = (e) => run(api('PATCH', `/api/todos/${t.id}`, { done: e.target.checked }), e.target.checked ? 'Abgehakt' : 'Wieder offen');
+      d.querySelector('button').onclick = () => run(api('DELETE', `/api/todos/${t.id}`), 'Gelöscht');
+      el.append(d);
+    });
+  }
+
   /* ---------- Notizen ---------- */
   $('#noteForm').onsubmit = (e) => {
     e.preventDefault();
@@ -461,7 +486,7 @@ nav button[aria-current="page"] { color: var(--text); }
     });
   }
 
-  function renderAll() { renderTasks(); renderNotes(); renderEvents(); renderIncident(); renderDisplay(); renderTunnel(); renderLoans(); renderAbsences(); }
+  function renderAll() { renderTasks(); renderTodos(); renderNotes(); renderEvents(); renderIncident(); renderDisplay(); renderTunnel(); renderLoans(); renderAbsences(); }
   let es = null;
   function start() {
     $('#login').hidden = true; $('#app').hidden = false; $('#nav').hidden = false;

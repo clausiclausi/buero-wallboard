@@ -1,33 +1,26 @@
 {
-  "version": "1.33.0",
-  "notes": "Hinweiszeile unter dem Datum: wechselt alle 15 Sekunden zwischen Countdowns („Noch 12 Tage bis …“), Müllabfuhr am Vortag (aha), Microsoft-Patchday, Hitzewarnung und schlechter Luft, Rückscan-Stand, BSI-Warnungen und einem Spruch des Tages. Antippen zeigt alles auf einen Blick.",
+  "version": "1.34.0",
+  "notes": "Nachrichten: Titel werden komplett ausgeschrieben, ohne Anbieter-Namen davor. Passt nicht alles auf eine Seite, kommen weniger Meldungen drauf und der Rest auf die nächste Seite. Nachrichten: Nach dem Antippen der Seiten-Punkte blieb die Kachel manchmal leer. Behoben.",
   "changes": [
-    "Hinweiszeile unter dem Datum: wechselt alle 15 Sekunden zwischen Countdowns („Noch 12 Tage bis …“), Müllabfuhr am Vortag (aha), Microsoft-Patchday, Hitzewarnung und schlechter Luft, Rückscan-Stand, BSI-Warnungen und einem Spruch des Tages. Antippen zeigt alles auf einen Blick.",
-    "Countdown: Beim Termin „Countdown“ einschalten, gut für besondere Tage und Fristen.",
-    "Lob-Ecke: In der Notizen-Kachel und am Handy ein anonymes Lob anheften, es verschwindet am Ende des Tages.",
-    "Abfahrten: Meldungen von Üstra und regiobus zu Linien an eurer Haltestelle (z. B. Umleitungen) erscheinen als Hinweis in der Kachel.",
-    "Wetter-Kachel zeigt die Luftqualität der Messstation Hannover (Umweltbundesamt).",
-    "Unten rechts „Anleitungen“: QR-Codes zu euren Anleitungen und zum Gäste-WLAN, pflegbar unter Einstellungen → Hinweise und Extras.",
-    "Tägliche Datensicherung zusätzlich in einen eigenen Ordner (Standard: Öffentliche Dokumente\\Wallboard-Sicherung, auch Netzlaufwerk möglich), mit „Jetzt sichern“.",
-    "Anklopfen: Auf der Handy-Seite unter „Board“ eines von 6 dumpfen Klopfgeräuschen wählen, das Board klopft dann hörbar an.",
-    "Neue Männchen-Aktionen: Freitags-Tänzchen vor Feierabend, Eis bei Hitze, Schirm bei Regen.",
-    "Handy-Seite lässt sich als App-Symbol auf den Startbildschirm legen.",
-    "Rückscan kann seinen Stand als Teamzahl ans Board melden („Wagen 1: 412 von 500“)."
+    "Nachrichten: Titel werden komplett ausgeschrieben, ohne Anbieter-Namen davor. Passt nicht alles auf eine Seite, kommen weniger Meldungen drauf und der Rest auf die nächste Seite.",
+    "Nachrichten: Nach dem Antippen der Seiten-Punkte blieb die Kachel manchmal leer. Behoben.",
+    "Neue Kachel To-Do: Aufgaben ohne Uhrzeit, die stehen bleiben, bis sie abgehakt sind. Abgehakte verschwinden am Ende des Tages. Eintragen am Board oder am Handy unter „Aufgaben“.",
+    "Die To-Do-Kachel steht dort, wo bisher der Kalender war. Die Kalender-Kachel ist nur ausgeblendet und lässt sich unter „Kacheln anordnen“ wieder einblenden."
   ],
   "files": {
-    "changelog.json": "bc1a5612d79cfe2620758ab4b8d538eb72b8149910c15a239b79eadf5d85663f",
+    "changelog.json": "f1a621c3e4b12d67511625acdac66d105c3cabf0356502a212a29ba2f709cdc4",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
     "extras.js": "5d47a979293bb19350e5a86fe2c784fb1df3bd984c2f5eb6b35fd53585a7d523",
-    "public/board.html": "afe0995392b4b9adb9f2a4cac08caac2a71f64f86f798270082ca2e41b198086",
+    "public/board.html": "11cf54ac9bef923fcf30657322218b9d03a835da6332d923be2b3e3f52a3639a",
     "public/icon-192.png": "c6b866b885e711fdb607de892d36300c9da80127f2d833cd672ce40af65f5637",
     "public/icon-512.png": "0330db0ae5d581a2bd979a907dbdcb1f3d626ebe2df8c3e4a9469771a2e2dec6",
     "public/knock.js": "422d5ca78ea4873c002673f42c0e7db747b70f86c8ec489a95638bb18ae9e667",
-    "public/m.html": "6a991591bf2a54b4a45f4250699d33ee2c30601e7f2e70bf5154acd0f0b781e7",
+    "public/m.html": "e51d4ff25bd7176fd2fcec5aad9dd13394355fcc4891ea371e37c7d1c64fa62b",
     "public/mascot.js": "a414057fb572b03b3321873c8d436b99567876adc288dc72d1a7bf48b5c97b5d",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
-    "server.js": "04238a3bd2dc86a5784490c6ae90f16b6b190feed6656b73dafe761131ffd0c9",
+    "server.js": "7495b04ef64e470b87b80359b1110fedc3427b21af0332bddf84db48afe0b48d",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "7dbed681e9a5d8db14b23cec9645876f08d2addb94a605c163bb34095cf6cfe4"
+    "version.json": "86e4328e9bc52ca33f03b072f1fb569ebb88c9b8a3072070ac57ded18fad64f2"
   }
 }

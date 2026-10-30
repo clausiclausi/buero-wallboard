@@ -1,332 +1,342 @@
 [
-  {
-    "version": "1.33.0",
-    "date": "2026-10-29",
-    "changes": [
-      "Hinweiszeile unter dem Datum: wechselt alle 15 Sekunden zwischen Countdowns („Noch 12 Tage bis …“), Müllabfuhr am Vortag (aha), Microsoft-Patchday, Hitzewarnung und schlechter Luft, Rückscan-Stand, BSI-Warnungen und einem Spruch des Tages. Antippen zeigt alles auf einen Blick.",
-      "Countdown: Beim Termin „Countdown“ einschalten, gut für besondere Tage und Fristen.",
-      "Lob-Ecke: In der Notizen-Kachel und am Handy ein anonymes Lob anheften, es verschwindet am Ende des Tages.",
-      "Abfahrten: Meldungen von Üstra und regiobus zu Linien an eurer Haltestelle (z. B. Umleitungen) erscheinen als Hinweis in der Kachel.",
-      "Wetter-Kachel zeigt die Luftqualität der Messstation Hannover (Umweltbundesamt).",
-      "Unten rechts „Anleitungen“: QR-Codes zu euren Anleitungen und zum Gäste-WLAN, pflegbar unter Einstellungen → Hinweise und Extras.",
-      "Tägliche Datensicherung zusätzlich in einen eigenen Ordner (Standard: Öffentliche Dokumente\\Wallboard-Sicherung, auch Netzlaufwerk möglich), mit „Jetzt sichern“.",
-      "Anklopfen: Auf der Handy-Seite unter „Board“ eines von 6 dumpfen Klopfgeräuschen wählen, das Board klopft dann hörbar an.",
-      "Neue Männchen-Aktionen: Freitags-Tänzchen vor Feierabend, Eis bei Hitze, Schirm bei Regen.",
-      "Handy-Seite lässt sich als App-Symbol auf den Startbildschirm legen.",
-      "Rückscan kann seinen Stand als Teamzahl ans Board melden („Wagen 1: 412 von 500“)."
-    ]
-  },
-  {
-    "version": "1.32.0",
-    "date": "2026-10-29",
-    "changes": [
-      "Scan-Tool: Im Fenster gibt es jetzt die Taste „Auf diesem PC speichern“. Sie legt die neueste Rückscan-Version als ZIP-Datei auf den Desktop dieses PCs (für alle Benutzer sichtbar). Eine ältere Version dort wird dabei ersetzt."
-    ]
-  },
-  {
-    "version": "1.31.0",
-    "date": "2026-10-29",
-    "changes": [
-      "Unten rechts gibt es die Taste „Scan-Tool“. Sie zeigt einen QR-Code und die Adresse zur jeweils neuesten Version des Rückscan-Programms zum Herunterladen, dazu drei Schritte zur Installation."
-    ]
-  },
-  {
-    "version": "1.30.0",
-    "date": "2026-10-29",
-    "changes": [
-      "Nachrichten-Kachel: Die Meldungen wechseln jetzt seitenweise statt durchzulaufen. Standard sind 3 Meldungen, alle 30 Sekunden kommen die nächsten. Unter „Auswahl“ lassen sich 2 bis 6 Meldungen pro Seite und ein Wechsel alle 10 Sekunden bis 2 Minuten einstellen, auf Wunsch auch wieder der Durchlauf. Ein Tipp auf die Punkte blättert sofort weiter."
-    ]
-  },
-  {
-    "version": "1.29.0",
-    "date": "2026-10-29",
-    "changes": [
-      "Jahreskalender: Die neue Kalender-Taste oben öffnet das ganze Jahr als Vollbild. Darin sind Feiertage, Schulferien, Brückentage und der Urlaub jeder Person in ihrer Farbe eingetragen.",
-      "Direkt eintragen: Ersten und letzten Tag antippen, Kürzel und Urlaub oder Abwesend wählen, fertig. Wer einen Tag antippt, kann bestehende Einträge dort auch löschen.",
-      "Urlaubs-Tipps: Das Board zeigt, wo wenige Urlaubstage rund um Feiertage die meisten freien Tage bringen. Ein Tipp lässt sich antippen und gleich eintragen.",
-      "„Dauerhaft zeigen“: Das Board bleibt im Kalendermodus. Schließen blendet den Kalender für 2 Minuten aus."
-    ]
-  },
-  {
-    "version": "1.28.0",
-    "date": "2026-10-29",
-    "changes": [
-      "Aufgabe abhaken: Man tippt sein Kürzel an. Es steht bis zum Ende des Tages an der Aufgabe, damit alle sehen, wer sich gekümmert hat.",
-      "Neue Taste oben (Balken-Symbol): Auswertung der Aufgaben fürs ganze Team über 7, 30 oder 90 Tage. Sie zeigt erledigt, pünktlich, typische Dauer vom Einstellen bis erledigt, liegen gebliebene Aufgaben und die Verteilung nach Wochentag und Uhrzeit. Am Board ist dafür das Passwort nötig. Gespeichert werden nur Zeitpunkte, ohne Personen."
-    ]
-  },
-  {
-    "version": "1.27.0",
-    "date": "2026-10-29",
-    "changes": [
-      "Nachrichten auswählen: Oben in der Nachrichten-Kachel auf „Auswahl“ tippen. Dort wählt ihr die Anbieter und blendet Themen aus, zum Beispiel Fußball, Sport, Promis oder Ratgeber. Das Laufband lässt sich dort auch ausschalten."
-    ]
-  },
-  {
-    "version": "1.26.1",
-    "date": "2026-10-29",
-    "changes": [
-      "Ausgeblendete Störungen-Kachel schien nach einer Aktualisierung wieder durch. Sie bleibt jetzt wirklich ausgeblendet. Eine gemeldete Störung steht weiterhin oben rechts im Kopf."
-    ]
-  },
-  {
-    "version": "1.26.0",
-    "date": "2026-10-29",
-    "changes": [
-      "Nachrichten: neue Kachel mit aktuellen Schlagzeilen, die langsam durchlaufen, dazu ein Laufband unten am Rand. Quellen: tagesschau, Deutschlandfunk und n-tv, in den Einstellungen auch ZDFheute und WELT. Antippen zeigt einen QR-Code zum Artikel.",
-      "Wetter-Kachel etwas kürzer, darunter sitzt jetzt die Nachrichten-Kachel. Über „Kacheln anordnen“ lässt sich das ändern.",
-      "Termine: Im Urlaubs-Kalender (Monatskalender antippen) lassen sich jetzt auch normale Termine eintragen. Sie erscheinen am Tag selbst und am Tag davor oben bei den Aufgaben, im Monat zeigt ein Punkt den Tag.",
-      "Neuer Termin und neue Aufgabe: Neben Heute und Morgen gibt es „Datum …“ für jeden beliebigen Tag."
-    ]
-  },
-  {
-    "version": "1.25.0",
-    "date": "2026-10-29",
-    "changes": [
-      "Regenradar: Nahansicht mit schärferer Straßenkarte, jetzt bis 16-fach hineinzoomen. Fehlende Radarbilder beim DWD werden automatisch neu geholt.",
-      "Regenradar: ein Knopf oben rechts, „❚❚ Pause“ hält an, „▶ Abspielen“ läuft weiter. Mit ‹ › blättert ihr Bild für Bild.",
-      "Schließen: Das Board bleibt nur bis zum nächsten Neustart des Notebooks zu. Startet es jemand vorher von Hand, bleibt es offen.",
-      "Designs: Beim Neon-Design läuft kein Strich mehr durchs Bild. Neu sind Aurora, Ozean, Sonnenaufgang, Papier und Pop, jeweils mit passenden Farben und eigenen Animationen."
-    ]
-  },
-  {
-    "version": "1.24.0",
-    "date": "2026-10-29",
-    "changes": [
-      "BSI-Warnungen stehen jetzt klein oben unter dem Datum (bei mehreren im Wechsel). Antippen zeigt den QR-Code. Die Sicherheits-Kachel ist ausgeblendet und lässt sich unter Einstellungen → Kacheln wieder einblenden.",
-      "Wetter-Kachel neu geordnet: Temperatur klein oben rechts, das Regenradar ist deutlich höher. Wo die Sicherheits-Kachel direkt darunter lag, bekommt das Wetter ihren Platz.",
-      "Regenradar: bis achtfach hineinzoomen (schärfere Bilder), oben rechts gut sichtbar „Abspielen“ oder „Selbst tippen“, dazu Pfeile ‹ › für Bild für Bild."
-    ]
-  },
-  {
-    "version": "1.23.0",
-    "date": "2026-10-29",
-    "changes": [
-      "Wetter: Regen-Uhrzeiten jetzt auch halbstündig wählbar (z. B. 16:30). Für halbe Stunden zeigt das Board den Mittelwert der beiden Nachbarstunden.",
-      "Regenwahrscheinlichkeit farbig: grün bei wenig Regen, über Gelb und Orange bis Rot bei viel Regen. Auch die Stundenbalken sind so eingefärbt."
-    ]
-  },
-  {
-    "version": "1.22.0",
-    "date": "2026-10-29",
-    "changes": [
-      "Abfahrten antippen: Richtung wählen (z. B. nur Richtung Stöcken / Garbsen) oder beide. Die Auswahl bleibt gespeichert, die Verbindung nach Hemmingen bleibt sichtbar.",
-      "Wetter antippen (Regenhinweis oder Stundenbalken): Uhrzeiten für die Regenwahrscheinlichkeit wählen, jetzt von 6 bis 22 Uhr, zum Beispiel für den Feierabend.",
-      "Sicherheit: BSI-Warnungen antippen zeigt einen QR-Code. Mit dem Handy scannen, dann öffnet sich die Warnung auf dem Handy. Das Fenster schließt sich nach einer Minute von selbst."
-    ]
-  },
-  {
-    "version": "1.21.0",
-    "date": "2026-10-28",
-    "changes": [
-      "Abfahrten und Verbindung nach Hemmingen laufen wieder: Fahrplandaten kommen jetzt von der öffentlichen Auskunft efa.de mit Live-Zeiten (bahn.de lässt das Board nicht mehr zu). Fällt efa.de aus, springt automatisch die Auskunft des VRR ein. Vorher echt getestet.",
-      "Einstellungen → Abfahrten → Verbindungstest: prüft jede Quelle einzeln und zeigt genau, was klappt und was nicht.",
-      "In kleinen Kacheln bleiben immer mindestens zwei Abfahrten sichtbar, die Hemmingen-Verbindungen passen sich an.",
-      "Neue Figuren: eine getigerte Katze, die echter aussieht, und ein Hündchen mit Schlappohren. Die bisherige Katze bleibt. Auswahl unter Einstellungen → Figur."
-    ]
-  },
-  {
-    "version": "1.20.0",
-    "date": "2026-10-28",
-    "changes": [
-      "Abfahrten-Kachel: darunter jetzt die Verbindung nach Hemmingen, Birkenkamp. Sie zeigt die nächsten Fahrten ab Clausewitzstraße mit Linien (z. B. 11 › 13 › 365), Verspätung und Ankunftszeit und wird jede Minute aktualisiert. Ziel änderbar oder abschaltbar unter Einstellungen → Abfahrten.",
-      "Ausgeblendete Kacheln lassen sich jetzt direkt unter Einstellungen → Kacheln mit einem Tipp wieder einblenden."
-    ]
-  },
-  {
-    "version": "1.19.0",
-    "date": "2026-10-28",
-    "changes": [
-      "Regenradar: mit + und − bis vierfach hineinzoomen. Der Pause-Knopf stoppt die Animation, Antippen der Zeitleiste zeigt einen bestimmten Zeitpunkt. Automatisches Abspielen lässt sich unter Einstellungen → Wetter abschalten.",
-      "Regenradar erscheint nach einem Neustart jetzt von selbst, statt bis zu 5 Minuten „nicht erreichbar“ zu zeigen.",
-      "Abfahrten: Standard ist jetzt die Haltestelle Clausewitzstraße. Die Suche fragt direkt bei bahn.de an und findet auch Üstra-Haltestellen.",
-      "AOK-Männchen: antippen, und es reagiert. Festhalten und ziehen, loslassen mit Schwung wirft es über das Board, und es landet auf einer Kachel."
-    ]
-  },
-  {
-    "version": "1.18.0",
-    "date": "2026-10-28",
-    "changes": [
-      "Neues Regenradar wie in der WetterOnline-App: hellgraue Landkarte rund um Hannover mit rotem Büro-Pin, echtes DWD-Radar der letzten Stunde plus Vorhersage, Zeitleiste spielt automatisch ab.",
-      "Das alte schwarze Radarbild ist entfernt.",
-      "Die Bilder holt das Notebook selbst vom DWD und vom Bundesamt für Kartographie. Keine Werbung, keine Cookies, kein fremder Dienst sieht das Board."
-    ]
-  },
-  {
-    "version": "1.17.0",
-    "date": "2026-10-28",
-    "changes": [
-      "Neue Kachel Abfahrten: die nächsten Bahnen und Busse mit Minuten und Verspätung. Haltestelle unter Einstellungen → Abfahrten wählen (Standard: nächste Haltestelle).",
-      "Neue Kachel Sicherheit: aktuelle Warnungen des BSI für Verbraucher und ein IT-Tipp des Tages.",
-      "Wetter: Pollenflug und UV-Index vom DWD.",
-      "Monatskalender: Schulferien Niedersachsen (blau unterstrichen) und Brückentage (gestrichelt).",
-      "AOK-Männchen trägt Jahreszeiten-Deko: Kürbis zu Halloween, Nikolausmütze im Advent, Wollmütze im Winter, Hasenohren zu Ostern (abschaltbar).",
-      "Neue Grundanordnung mit 8 Kacheln."
-    ]
-  },
-  {
-    "version": "1.16.0",
-    "date": "2026-10-28",
-    "changes": [
-      "Scan-Funktion entfernt: keine Scan-Kachel mehr am Board, keine Scan-Seite und keine Inventarliste am Handy, kein Mailversand (Gmail) mehr.",
-      "Neue Grundanordnung: Kalender, Notizen und Wetter oben, Leihgeräte, Monat und Störungen unten. Eigene Anordnungen mit der alten Scan-Kachel werden auf diese Grundanordnung gesetzt."
-    ]
-  },
-  {
-    "version": "1.15.0",
-    "date": "2026-10-28",
-    "changes": [
-      "Scan-Eingang: Papierkorb bei übernommenen Einträgen. Einmal antippen zeigt „Endgültig löschen?“, nochmal antippen löscht den Eintrag samt Foto.",
-      "Handy, Inventarliste: Knopf „Alle übernommenen löschen“."
-    ]
-  },
-  {
-    "version": "1.14.0",
-    "date": "2026-10-28",
-    "changes": [
-      "Handy: Live-Scanner. „Scannen“ öffnet die Kamera mit Rahmen, QR-Code oder Strichcode hineinhalten, die Nummer wird sofort erkannt und eingetragen. Funktioniert über die sichere Adresse (Zugang von unterwegs).",
-      "Im Büro-WLAN (ohne HTTPS) sperren Handys die Live-Kamera. Dort macht „Scannen“ ein Foto, die Nummer wird danach erkannt."
-    ]
-  },
-  {
-    "version": "1.13.0",
-    "date": "2026-10-28",
-    "changes": [
-      "Kacheln ausblenden: unter „Kacheln anordnen“ hat jede Kachel einen Knopf „Ausblenden“, oben in der Leiste holt „+ Name“ sie zurück.",
-      "Neue Kachel Notizen: am Board über „+ Notiz“ oder am Handy unter Aufgaben eintragen, mit ✕ löschen. Im Besuchermodus verwischt.",
-      "Handy: Knopf „Scannen“ neben Inventar- und Seriennummer liest QR-Codes und Strichcodes (EAN, Code 128 u. a.) aus einem Kamerafoto und trägt die Nummer ein. Funktioniert auf allen Handys, auch ohne Internet.",
-      "Updates: Prüfabstand einstellbar (Standard alle 30 Sekunden), automatisches Installieren per Schalter an oder aus.",
-      "Männchen: kleiner Darstellungsfehler bei der Kugel behoben."
-    ]
-  },
-  {
-    "version": "1.12.0",
-    "date": "2026-10-28",
-    "changes": [
-      "Kacheln selbst anordnen (Einstellungen → Kacheln → „Kacheln anordnen“): Kachel ziehen verschiebt sie, auf eine andere Kachel ziehen tauscht die Plätze, die Ecke unten rechts ändert die Größe. Nachbarn machen dabei Platz.",
-      "Schrift und Inhalt passen sich der Kachelgröße an, in kleinen Kacheln werden Nebensachen ausgeblendet.",
-      "Wetter Büro ist jetzt halb so hoch, Störungen dafür breiter. „Standard“ stellt diese Anordnung jederzeit wieder her."
-    ]
-  },
-  {
-    "version": "1.11.0",
-    "date": "2026-10-27",
-    "changes": [
-      "Frech schiebt jetzt auch eine Kachel ein Stück zur Seite, und getretene Kacheln hängen ein paar Sekunden schief, bevor sie zurückrutschen.",
-      "Zum Bürobeginn gähnt und streckt sich das Männchen und sagt „Guten Morgen!“. Montag bis Freitag fragt es kurz vor 10 Uhr „Wir gehen gleich spazieren?“ (Uhrzeit einstellbar, leer = aus).",
-      "10 und 5 Minuten vor Terminen und Erinnerungen klopft das Männchen an den Bildschirm und zeigt die Uhrzeit in einer Sprechblase (abschaltbar: „An Termine erinnern“). Kurz vor einem Termin läuft es nicht über die Kalender-Kachel.",
-      "Neue Test-Knöpfe: Schieben, Strecken, Spazieren, Klopfen."
-    ]
-  },
-  {
-    "version": "1.10.0",
-    "date": "2026-10-27",
-    "changes": [
-      "AOK-Männchen mit Charakter (Einstellungen → AOK-Männchen → Charakter): Lieb winkt, putzt die Kachelkante, schläft eine Runde, klettert an Kacheln hoch und freut sich, wenn eine Aufgabe abgehakt wird.",
-      "Frech tritt gegen Kacheln, hüpft darauf herum, bis sie wackeln, schneidet Grimassen und tritt einen Buchstaben aus einer Überschrift weg, holt ihn zurück und setzt ihn wieder ein. Gemischt wechselt zufällig.",
-      "Test-Knöpfe für jede Aktion in den Einstellungen. Bei einer Störung bleibt die Figur ruhig, im Besuchermodus ist sie immer lieb. Kacheln springen immer sofort in ihre Lage zurück."
-    ]
-  },
-  {
-    "version": "1.9.0",
-    "date": "2026-10-27",
-    "changes": [
-      "Neu: das AOK-Männchen. Die Buchstaben A, O und K sitzen auf einer Kachel und werden alle paar Minuten zu einer Figur, die zu einer anderen Kachel läuft, sich hinsetzt, winkt und wieder zu AOK wird.",
-      "Unter Einstellungen → AOK-Männchen wählbar: Strichmännchen, Kugel, Kätzchen, Lichtgeist oder Aus. Dazu Farbe der Figur, Farbe und Schriftart der Buchstaben, Größe und wie oft sie den Platz wechselt (Standard: zufällig alle 5 bis 15 Minuten).",
-      "Die Figur fängt keine Klicks ab, bleibt im Ruhemodus stehen und läuft nicht, solange ein Fenster offen ist."
-    ]
-  },
-  {
-    "version": "1.8.0",
-    "date": "2026-10-27",
-    "changes": [
-      "Neu: Gescannte Geräte per E-Mail. Auf der Handy-Seite unter Board → „Scans per E-Mail“ einstellbar: sofort, einmal täglich als Zusammenfassung oder aus.",
-      "Bis zu 3 feste Empfänger, nur mit eurer Firmen-Endung. Optional mit Foto, die Tageszusammenfassung kommt mit Tabelle (CSV).",
-      "Einrichten nur im Büro-WLAN und mit Board-Passwort, inklusive Testmail-Knopf. Jeder Scan in der Liste hat außerdem einen ✉-Knopf zum Nachsenden."
-    ]
-  },
-  {
-    "version": "1.7.0",
-    "date": "2026-10-27",
-    "changes": [
-      "Vier neue Designs unter Einstellungen → Design: Glas (im Stil von Apple), Neon (futuristisch), Klar (modern und ruhig) und Fluid (weich fließend). Standard bleibt eingestellt.",
-      "Die neuen Designs bewegen sich: Tasten reagieren beim Antippen, Fenster öffnen und schließen weich, Kacheln erscheinen beim Start nacheinander.",
-      "Farben bleiben frei einstellbar. Neu sind die Farb-Setups Weiß und Schwarz Cyan, und jedes Design schlägt passende Farben vor.",
-      "Im Ruhemodus stehen alle Animationen still."
-    ]
-  },
-  {
-    "version": "1.6.0",
-    "date": "2026-10-27",
-    "changes": [
-      "Zugriff von unterwegs: Auf der Handy-Seite unter „Board“ lässt sich ein Fernzugang einschalten. Danach ist die Handy-Seite unter einer festen Adresse erreichbar, ohne eigene Domain.",
-      "Von außen braucht jeder die PIN. Nach 30 Fehlversuchen in einer Stunde ist die Anmeldung von außen eine Stunde gesperrt.",
-      "Einrichten und Ausschalten geht nur im Büro-WLAN."
-    ]
-  },
-  {
-    "version": "1.5.1",
-    "date": "2026-10-27",
-    "changes": [
-      "Vorbereitung für den Zugriff von unterwegs: Wer über den gesicherten Fernzugang kommt, braucht immer die PIN, auch wenn die Verbindung über das Notebook selbst läuft.",
-      "Fehlversuche bei PIN und Passwort werden pro Gerät gezählt, auch beim Zugriff von außen."
-    ]
-  },
-  {
-    "version": "1.5.0",
-    "date": "2026-10-27",
-    "changes": [
-      "Updates kommen ab jetzt von selbst: Das Board installiert neue Versionen automatisch, ohne dass jemand tippen muss. Während einer gemeldeten Störung wartet es.",
-      "Einstellbar unter Einstellungen > Updates: automatisch sofort, automatisch außerhalb der Bürozeiten oder nur per Knopf.",
-      "Startet eine neue Version nicht, kommt wie bisher automatisch die alte zurück."
-    ]
-  },
-  {
-    "version": "1.4.0",
-    "date": "2026-10-27",
-    "changes": [
-      "Urlaub im Monatskalender: Kalender antippen, Personen mit Kürzel und Farbe anlegen, Urlaub oder Abwesenheit von–bis eintragen. Farbige Balken zeigen, wer an welchem Tag fehlt.",
-      "Übersicht unter dem Kalender: wer als Nächstes weg ist, „in X Tagen“ bzw. „noch X Tage“, mit Anzahl Arbeitstagen (ohne Wochenenden und Feiertage).",
-      "Warnung, wenn in den nächsten zwei Wochen an einem Arbeitstag nur noch eine Person im Büro ist.",
-      "Im Kalender blättern mit ‹ ›, nach einer Minute springt er zurück auf heute.",
-      "Eintragen und Löschen am Board nur mit Passwort, am Handy unter „Termine“. Urlaube sind (nur als Kürzel) auch im Besuchermodus sichtbar."
-    ]
-  },
-  {
-    "version": "1.3.0",
-    "date": "2026-10-27",
-    "changes": [
-      "Monatskalender statt Security-Tipp: ganzer Monat mit Kalenderwochen links, heute und die laufende Woche hervorgehoben, Feiertage in Niedersachsen markiert.",
-      "Besuchermodus mit Passwort: Einen verwischten Eintrag antippen, Passwort eingeben (anfangs 123), dann ist alles 2 Minuten lesbar und sperrt sich danach von selbst.",
-      "„Jetzt sperren“ unten in der Mitte verwischt sofort wieder.",
-      "Besuchermodus ausschalten geht nur noch mit Passwort. Einschalten geht jederzeit.",
-      "Passwort ändern unter Einstellungen > Datenschutz."
-    ]
-  },
-  {
-    "version": "1.2.0",
-    "date": "2026-10-27",
-    "changes": [
-      "Neue X-Taste oben rechts: Board minimieren, für 15 Minuten bis 2 Stunden oder bis morgen früh schließen, oder dauerhaft schließen.",
-      "Wieder anzeigen über das neue Desktop-Symbol „Wallboard anzeigen“ oder auf der Handy-Seite im Bereich „Board“.",
-      "Minimiert oder zeitweise geschlossen kommt das Board spätestens zum nächsten Bürobeginn von selbst zurück.",
-      "Update-Hinweis jetzt groß oben in der Mitte. Antippen zeigt die Patch-Notes und startet das Update.",
-      "Nach einem Update zeigt das Board einen Tag lang „Was ist neu“. Alle Patch-Notes stehen unter Einstellungen > Updates."
-    ]
-  },
-  {
-    "version": "1.1.0",
-    "date": "2026-10-27",
-    "changes": [
-      "Update-Funktion: neue Versionen per Knopfdruck am Board installieren, mit automatischer Rückkehr zur alten Version bei Problemen.",
-      "Versionsnummer unten rechts."
-    ]
-  },
-  {
-    "version": "1.0.0",
-    "date": "2026-10-27",
-    "changes": [
-      "Erste Version: Tagesaufgaben mit Gong, Kalender, Wetter mit Regenradar und Regenwarnung, Scan-Eingang, Leihgeräte, Störungsbanner, Security-Tipp, Handy-Seite mit PIN."
-    ]
-  }
+ {
+  "version": "1.34.0",
+  "date": "2026-10-30",
+  "changes": [
+   "Nachrichten: Titel werden komplett ausgeschrieben, ohne Anbieter-Namen davor. Passt nicht alles auf eine Seite, kommen weniger Meldungen drauf und der Rest auf die nächste Seite.",
+   "Nachrichten: Nach dem Antippen der Seiten-Punkte blieb die Kachel manchmal leer. Behoben.",
+   "Neue Kachel To-Do: Aufgaben ohne Uhrzeit, die stehen bleiben, bis sie abgehakt sind. Abgehakte verschwinden am Ende des Tages. Eintragen am Board oder am Handy unter „Aufgaben“.",
+   "Die To-Do-Kachel steht dort, wo bisher der Kalender war. Die Kalender-Kachel ist nur ausgeblendet und lässt sich unter „Kacheln anordnen“ wieder einblenden."
+  ]
+ },
+ {
+  "version": "1.33.0",
+  "date": "2026-10-29",
+  "changes": [
+   "Hinweiszeile unter dem Datum: wechselt alle 15 Sekunden zwischen Countdowns („Noch 12 Tage bis …“), Müllabfuhr am Vortag (aha), Microsoft-Patchday, Hitzewarnung und schlechter Luft, Rückscan-Stand, BSI-Warnungen und einem Spruch des Tages. Antippen zeigt alles auf einen Blick.",
+   "Countdown: Beim Termin „Countdown“ einschalten, gut für besondere Tage und Fristen.",
+   "Lob-Ecke: In der Notizen-Kachel und am Handy ein anonymes Lob anheften, es verschwindet am Ende des Tages.",
+   "Abfahrten: Meldungen von Üstra und regiobus zu Linien an eurer Haltestelle (z. B. Umleitungen) erscheinen als Hinweis in der Kachel.",
+   "Wetter-Kachel zeigt die Luftqualität der Messstation Hannover (Umweltbundesamt).",
+   "Unten rechts „Anleitungen“: QR-Codes zu euren Anleitungen und zum Gäste-WLAN, pflegbar unter Einstellungen → Hinweise und Extras.",
+   "Tägliche Datensicherung zusätzlich in einen eigenen Ordner (Standard: Öffentliche Dokumente\\Wallboard-Sicherung, auch Netzlaufwerk möglich), mit „Jetzt sichern“.",
+   "Anklopfen: Auf der Handy-Seite unter „Board“ eines von 6 dumpfen Klopfgeräuschen wählen, das Board klopft dann hörbar an.",
+   "Neue Männchen-Aktionen: Freitags-Tänzchen vor Feierabend, Eis bei Hitze, Schirm bei Regen.",
+   "Handy-Seite lässt sich als App-Symbol auf den Startbildschirm legen.",
+   "Rückscan kann seinen Stand als Teamzahl ans Board melden („Wagen 1: 412 von 500“)."
+  ]
+ },
+ {
+  "version": "1.32.0",
+  "date": "2026-10-29",
+  "changes": [
+   "Scan-Tool: Im Fenster gibt es jetzt die Taste „Auf diesem PC speichern“. Sie legt die neueste Rückscan-Version als ZIP-Datei auf den Desktop dieses PCs (für alle Benutzer sichtbar). Eine ältere Version dort wird dabei ersetzt."
+  ]
+ },
+ {
+  "version": "1.31.0",
+  "date": "2026-10-29",
+  "changes": [
+   "Unten rechts gibt es die Taste „Scan-Tool“. Sie zeigt einen QR-Code und die Adresse zur jeweils neuesten Version des Rückscan-Programms zum Herunterladen, dazu drei Schritte zur Installation."
+  ]
+ },
+ {
+  "version": "1.30.0",
+  "date": "2026-10-29",
+  "changes": [
+   "Nachrichten-Kachel: Die Meldungen wechseln jetzt seitenweise statt durchzulaufen. Standard sind 3 Meldungen, alle 30 Sekunden kommen die nächsten. Unter „Auswahl“ lassen sich 2 bis 6 Meldungen pro Seite und ein Wechsel alle 10 Sekunden bis 2 Minuten einstellen, auf Wunsch auch wieder der Durchlauf. Ein Tipp auf die Punkte blättert sofort weiter."
+  ]
+ },
+ {
+  "version": "1.29.0",
+  "date": "2026-10-29",
+  "changes": [
+   "Jahreskalender: Die neue Kalender-Taste oben öffnet das ganze Jahr als Vollbild. Darin sind Feiertage, Schulferien, Brückentage und der Urlaub jeder Person in ihrer Farbe eingetragen.",
+   "Direkt eintragen: Ersten und letzten Tag antippen, Kürzel und Urlaub oder Abwesend wählen, fertig. Wer einen Tag antippt, kann bestehende Einträge dort auch löschen.",
+   "Urlaubs-Tipps: Das Board zeigt, wo wenige Urlaubstage rund um Feiertage die meisten freien Tage bringen. Ein Tipp lässt sich antippen und gleich eintragen.",
+   "„Dauerhaft zeigen“: Das Board bleibt im Kalendermodus. Schließen blendet den Kalender für 2 Minuten aus."
+  ]
+ },
+ {
+  "version": "1.28.0",
+  "date": "2026-10-29",
+  "changes": [
+   "Aufgabe abhaken: Man tippt sein Kürzel an. Es steht bis zum Ende des Tages an der Aufgabe, damit alle sehen, wer sich gekümmert hat.",
+   "Neue Taste oben (Balken-Symbol): Auswertung der Aufgaben fürs ganze Team über 7, 30 oder 90 Tage. Sie zeigt erledigt, pünktlich, typische Dauer vom Einstellen bis erledigt, liegen gebliebene Aufgaben und die Verteilung nach Wochentag und Uhrzeit. Am Board ist dafür das Passwort nötig. Gespeichert werden nur Zeitpunkte, ohne Personen."
+  ]
+ },
+ {
+  "version": "1.27.0",
+  "date": "2026-10-29",
+  "changes": [
+   "Nachrichten auswählen: Oben in der Nachrichten-Kachel auf „Auswahl“ tippen. Dort wählt ihr die Anbieter und blendet Themen aus, zum Beispiel Fußball, Sport, Promis oder Ratgeber. Das Laufband lässt sich dort auch ausschalten."
+  ]
+ },
+ {
+  "version": "1.26.1",
+  "date": "2026-10-29",
+  "changes": [
+   "Ausgeblendete Störungen-Kachel schien nach einer Aktualisierung wieder durch. Sie bleibt jetzt wirklich ausgeblendet. Eine gemeldete Störung steht weiterhin oben rechts im Kopf."
+  ]
+ },
+ {
+  "version": "1.26.0",
+  "date": "2026-10-29",
+  "changes": [
+   "Nachrichten: neue Kachel mit aktuellen Schlagzeilen, die langsam durchlaufen, dazu ein Laufband unten am Rand. Quellen: tagesschau, Deutschlandfunk und n-tv, in den Einstellungen auch ZDFheute und WELT. Antippen zeigt einen QR-Code zum Artikel.",
+   "Wetter-Kachel etwas kürzer, darunter sitzt jetzt die Nachrichten-Kachel. Über „Kacheln anordnen“ lässt sich das ändern.",
+   "Termine: Im Urlaubs-Kalender (Monatskalender antippen) lassen sich jetzt auch normale Termine eintragen. Sie erscheinen am Tag selbst und am Tag davor oben bei den Aufgaben, im Monat zeigt ein Punkt den Tag.",
+   "Neuer Termin und neue Aufgabe: Neben Heute und Morgen gibt es „Datum …“ für jeden beliebigen Tag."
+  ]
+ },
+ {
+  "version": "1.25.0",
+  "date": "2026-10-29",
+  "changes": [
+   "Regenradar: Nahansicht mit schärferer Straßenkarte, jetzt bis 16-fach hineinzoomen. Fehlende Radarbilder beim DWD werden automatisch neu geholt.",
+   "Regenradar: ein Knopf oben rechts, „❚❚ Pause“ hält an, „▶ Abspielen“ läuft weiter. Mit ‹ › blättert ihr Bild für Bild.",
+   "Schließen: Das Board bleibt nur bis zum nächsten Neustart des Notebooks zu. Startet es jemand vorher von Hand, bleibt es offen.",
+   "Designs: Beim Neon-Design läuft kein Strich mehr durchs Bild. Neu sind Aurora, Ozean, Sonnenaufgang, Papier und Pop, jeweils mit passenden Farben und eigenen Animationen."
+  ]
+ },
+ {
+  "version": "1.24.0",
+  "date": "2026-10-29",
+  "changes": [
+   "BSI-Warnungen stehen jetzt klein oben unter dem Datum (bei mehreren im Wechsel). Antippen zeigt den QR-Code. Die Sicherheits-Kachel ist ausgeblendet und lässt sich unter Einstellungen → Kacheln wieder einblenden.",
+   "Wetter-Kachel neu geordnet: Temperatur klein oben rechts, das Regenradar ist deutlich höher. Wo die Sicherheits-Kachel direkt darunter lag, bekommt das Wetter ihren Platz.",
+   "Regenradar: bis achtfach hineinzoomen (schärfere Bilder), oben rechts gut sichtbar „Abspielen“ oder „Selbst tippen“, dazu Pfeile ‹ › für Bild für Bild."
+  ]
+ },
+ {
+  "version": "1.23.0",
+  "date": "2026-10-29",
+  "changes": [
+   "Wetter: Regen-Uhrzeiten jetzt auch halbstündig wählbar (z. B. 16:30). Für halbe Stunden zeigt das Board den Mittelwert der beiden Nachbarstunden.",
+   "Regenwahrscheinlichkeit farbig: grün bei wenig Regen, über Gelb und Orange bis Rot bei viel Regen. Auch die Stundenbalken sind so eingefärbt."
+  ]
+ },
+ {
+  "version": "1.22.0",
+  "date": "2026-10-29",
+  "changes": [
+   "Abfahrten antippen: Richtung wählen (z. B. nur Richtung Stöcken / Garbsen) oder beide. Die Auswahl bleibt gespeichert, die Verbindung nach Hemmingen bleibt sichtbar.",
+   "Wetter antippen (Regenhinweis oder Stundenbalken): Uhrzeiten für die Regenwahrscheinlichkeit wählen, jetzt von 6 bis 22 Uhr, zum Beispiel für den Feierabend.",
+   "Sicherheit: BSI-Warnungen antippen zeigt einen QR-Code. Mit dem Handy scannen, dann öffnet sich die Warnung auf dem Handy. Das Fenster schließt sich nach einer Minute von selbst."
+  ]
+ },
+ {
+  "version": "1.21.0",
+  "date": "2026-10-28",
+  "changes": [
+   "Abfahrten und Verbindung nach Hemmingen laufen wieder: Fahrplandaten kommen jetzt von der öffentlichen Auskunft efa.de mit Live-Zeiten (bahn.de lässt das Board nicht mehr zu). Fällt efa.de aus, springt automatisch die Auskunft des VRR ein. Vorher echt getestet.",
+   "Einstellungen → Abfahrten → Verbindungstest: prüft jede Quelle einzeln und zeigt genau, was klappt und was nicht.",
+   "In kleinen Kacheln bleiben immer mindestens zwei Abfahrten sichtbar, die Hemmingen-Verbindungen passen sich an.",
+   "Neue Figuren: eine getigerte Katze, die echter aussieht, und ein Hündchen mit Schlappohren. Die bisherige Katze bleibt. Auswahl unter Einstellungen → Figur."
+  ]
+ },
+ {
+  "version": "1.20.0",
+  "date": "2026-10-28",
+  "changes": [
+   "Abfahrten-Kachel: darunter jetzt die Verbindung nach Hemmingen, Birkenkamp. Sie zeigt die nächsten Fahrten ab Clausewitzstraße mit Linien (z. B. 11 › 13 › 365), Verspätung und Ankunftszeit und wird jede Minute aktualisiert. Ziel änderbar oder abschaltbar unter Einstellungen → Abfahrten.",
+   "Ausgeblendete Kacheln lassen sich jetzt direkt unter Einstellungen → Kacheln mit einem Tipp wieder einblenden."
+  ]
+ },
+ {
+  "version": "1.19.0",
+  "date": "2026-10-28",
+  "changes": [
+   "Regenradar: mit + und − bis vierfach hineinzoomen. Der Pause-Knopf stoppt die Animation, Antippen der Zeitleiste zeigt einen bestimmten Zeitpunkt. Automatisches Abspielen lässt sich unter Einstellungen → Wetter abschalten.",
+   "Regenradar erscheint nach einem Neustart jetzt von selbst, statt bis zu 5 Minuten „nicht erreichbar“ zu zeigen.",
+   "Abfahrten: Standard ist jetzt die Haltestelle Clausewitzstraße. Die Suche fragt direkt bei bahn.de an und findet auch Üstra-Haltestellen.",
+   "AOK-Männchen: antippen, und es reagiert. Festhalten und ziehen, loslassen mit Schwung wirft es über das Board, und es landet auf einer Kachel."
+  ]
+ },
+ {
+  "version": "1.18.0",
+  "date": "2026-10-28",
+  "changes": [
+   "Neues Regenradar wie in der WetterOnline-App: hellgraue Landkarte rund um Hannover mit rotem Büro-Pin, echtes DWD-Radar der letzten Stunde plus Vorhersage, Zeitleiste spielt automatisch ab.",
+   "Das alte schwarze Radarbild ist entfernt.",
+   "Die Bilder holt das Notebook selbst vom DWD und vom Bundesamt für Kartographie. Keine Werbung, keine Cookies, kein fremder Dienst sieht das Board."
+  ]
+ },
+ {
+  "version": "1.17.0",
+  "date": "2026-10-28",
+  "changes": [
+   "Neue Kachel Abfahrten: die nächsten Bahnen und Busse mit Minuten und Verspätung. Haltestelle unter Einstellungen → Abfahrten wählen (Standard: nächste Haltestelle).",
+   "Neue Kachel Sicherheit: aktuelle Warnungen des BSI für Verbraucher und ein IT-Tipp des Tages.",
+   "Wetter: Pollenflug und UV-Index vom DWD.",
+   "Monatskalender: Schulferien Niedersachsen (blau unterstrichen) und Brückentage (gestrichelt).",
+   "AOK-Männchen trägt Jahreszeiten-Deko: Kürbis zu Halloween, Nikolausmütze im Advent, Wollmütze im Winter, Hasenohren zu Ostern (abschaltbar).",
+   "Neue Grundanordnung mit 8 Kacheln."
+  ]
+ },
+ {
+  "version": "1.16.0",
+  "date": "2026-10-28",
+  "changes": [
+   "Scan-Funktion entfernt: keine Scan-Kachel mehr am Board, keine Scan-Seite und keine Inventarliste am Handy, kein Mailversand (Gmail) mehr.",
+   "Neue Grundanordnung: Kalender, Notizen und Wetter oben, Leihgeräte, Monat und Störungen unten. Eigene Anordnungen mit der alten Scan-Kachel werden auf diese Grundanordnung gesetzt."
+  ]
+ },
+ {
+  "version": "1.15.0",
+  "date": "2026-10-28",
+  "changes": [
+   "Scan-Eingang: Papierkorb bei übernommenen Einträgen. Einmal antippen zeigt „Endgültig löschen?“, nochmal antippen löscht den Eintrag samt Foto.",
+   "Handy, Inventarliste: Knopf „Alle übernommenen löschen“."
+  ]
+ },
+ {
+  "version": "1.14.0",
+  "date": "2026-10-28",
+  "changes": [
+   "Handy: Live-Scanner. „Scannen“ öffnet die Kamera mit Rahmen, QR-Code oder Strichcode hineinhalten, die Nummer wird sofort erkannt und eingetragen. Funktioniert über die sichere Adresse (Zugang von unterwegs).",
+   "Im Büro-WLAN (ohne HTTPS) sperren Handys die Live-Kamera. Dort macht „Scannen“ ein Foto, die Nummer wird danach erkannt."
+  ]
+ },
+ {
+  "version": "1.13.0",
+  "date": "2026-10-28",
+  "changes": [
+   "Kacheln ausblenden: unter „Kacheln anordnen“ hat jede Kachel einen Knopf „Ausblenden“, oben in der Leiste holt „+ Name“ sie zurück.",
+   "Neue Kachel Notizen: am Board über „+ Notiz“ oder am Handy unter Aufgaben eintragen, mit ✕ löschen. Im Besuchermodus verwischt.",
+   "Handy: Knopf „Scannen“ neben Inventar- und Seriennummer liest QR-Codes und Strichcodes (EAN, Code 128 u. a.) aus einem Kamerafoto und trägt die Nummer ein. Funktioniert auf allen Handys, auch ohne Internet.",
+   "Updates: Prüfabstand einstellbar (Standard alle 30 Sekunden), automatisches Installieren per Schalter an oder aus.",
+   "Männchen: kleiner Darstellungsfehler bei der Kugel behoben."
+  ]
+ },
+ {
+  "version": "1.12.0",
+  "date": "2026-10-28",
+  "changes": [
+   "Kacheln selbst anordnen (Einstellungen → Kacheln → „Kacheln anordnen“): Kachel ziehen verschiebt sie, auf eine andere Kachel ziehen tauscht die Plätze, die Ecke unten rechts ändert die Größe. Nachbarn machen dabei Platz.",
+   "Schrift und Inhalt passen sich der Kachelgröße an, in kleinen Kacheln werden Nebensachen ausgeblendet.",
+   "Wetter Büro ist jetzt halb so hoch, Störungen dafür breiter. „Standard“ stellt diese Anordnung jederzeit wieder her."
+  ]
+ },
+ {
+  "version": "1.11.0",
+  "date": "2026-10-27",
+  "changes": [
+   "Frech schiebt jetzt auch eine Kachel ein Stück zur Seite, und getretene Kacheln hängen ein paar Sekunden schief, bevor sie zurückrutschen.",
+   "Zum Bürobeginn gähnt und streckt sich das Männchen und sagt „Guten Morgen!“. Montag bis Freitag fragt es kurz vor 10 Uhr „Wir gehen gleich spazieren?“ (Uhrzeit einstellbar, leer = aus).",
+   "10 und 5 Minuten vor Terminen und Erinnerungen klopft das Männchen an den Bildschirm und zeigt die Uhrzeit in einer Sprechblase (abschaltbar: „An Termine erinnern“). Kurz vor einem Termin läuft es nicht über die Kalender-Kachel.",
+   "Neue Test-Knöpfe: Schieben, Strecken, Spazieren, Klopfen."
+  ]
+ },
+ {
+  "version": "1.10.0",
+  "date": "2026-10-27",
+  "changes": [
+   "AOK-Männchen mit Charakter (Einstellungen → AOK-Männchen → Charakter): Lieb winkt, putzt die Kachelkante, schläft eine Runde, klettert an Kacheln hoch und freut sich, wenn eine Aufgabe abgehakt wird.",
+   "Frech tritt gegen Kacheln, hüpft darauf herum, bis sie wackeln, schneidet Grimassen und tritt einen Buchstaben aus einer Überschrift weg, holt ihn zurück und setzt ihn wieder ein. Gemischt wechselt zufällig.",
+   "Test-Knöpfe für jede Aktion in den Einstellungen. Bei einer Störung bleibt die Figur ruhig, im Besuchermodus ist sie immer lieb. Kacheln springen immer sofort in ihre Lage zurück."
+  ]
+ },
+ {
+  "version": "1.9.0",
+  "date": "2026-10-27",
+  "changes": [
+   "Neu: das AOK-Männchen. Die Buchstaben A, O und K sitzen auf einer Kachel und werden alle paar Minuten zu einer Figur, die zu einer anderen Kachel läuft, sich hinsetzt, winkt und wieder zu AOK wird.",
+   "Unter Einstellungen → AOK-Männchen wählbar: Strichmännchen, Kugel, Kätzchen, Lichtgeist oder Aus. Dazu Farbe der Figur, Farbe und Schriftart der Buchstaben, Größe und wie oft sie den Platz wechselt (Standard: zufällig alle 5 bis 15 Minuten).",
+   "Die Figur fängt keine Klicks ab, bleibt im Ruhemodus stehen und läuft nicht, solange ein Fenster offen ist."
+  ]
+ },
+ {
+  "version": "1.8.0",
+  "date": "2026-10-27",
+  "changes": [
+   "Neu: Gescannte Geräte per E-Mail. Auf der Handy-Seite unter Board → „Scans per E-Mail“ einstellbar: sofort, einmal täglich als Zusammenfassung oder aus.",
+   "Bis zu 3 feste Empfänger, nur mit eurer Firmen-Endung. Optional mit Foto, die Tageszusammenfassung kommt mit Tabelle (CSV).",
+   "Einrichten nur im Büro-WLAN und mit Board-Passwort, inklusive Testmail-Knopf. Jeder Scan in der Liste hat außerdem einen ✉-Knopf zum Nachsenden."
+  ]
+ },
+ {
+  "version": "1.7.0",
+  "date": "2026-10-27",
+  "changes": [
+   "Vier neue Designs unter Einstellungen → Design: Glas (im Stil von Apple), Neon (futuristisch), Klar (modern und ruhig) und Fluid (weich fließend). Standard bleibt eingestellt.",
+   "Die neuen Designs bewegen sich: Tasten reagieren beim Antippen, Fenster öffnen und schließen weich, Kacheln erscheinen beim Start nacheinander.",
+   "Farben bleiben frei einstellbar. Neu sind die Farb-Setups Weiß und Schwarz Cyan, und jedes Design schlägt passende Farben vor.",
+   "Im Ruhemodus stehen alle Animationen still."
+  ]
+ },
+ {
+  "version": "1.6.0",
+  "date": "2026-10-27",
+  "changes": [
+   "Zugriff von unterwegs: Auf der Handy-Seite unter „Board“ lässt sich ein Fernzugang einschalten. Danach ist die Handy-Seite unter einer festen Adresse erreichbar, ohne eigene Domain.",
+   "Von außen braucht jeder die PIN. Nach 30 Fehlversuchen in einer Stunde ist die Anmeldung von außen eine Stunde gesperrt.",
+   "Einrichten und Ausschalten geht nur im Büro-WLAN."
+  ]
+ },
+ {
+  "version": "1.5.1",
+  "date": "2026-10-27",
+  "changes": [
+   "Vorbereitung für den Zugriff von unterwegs: Wer über den gesicherten Fernzugang kommt, braucht immer die PIN, auch wenn die Verbindung über das Notebook selbst läuft.",
+   "Fehlversuche bei PIN und Passwort werden pro Gerät gezählt, auch beim Zugriff von außen."
+  ]
+ },
+ {
+  "version": "1.5.0",
+  "date": "2026-10-27",
+  "changes": [
+   "Updates kommen ab jetzt von selbst: Das Board installiert neue Versionen automatisch, ohne dass jemand tippen muss. Während einer gemeldeten Störung wartet es.",
+   "Einstellbar unter Einstellungen > Updates: automatisch sofort, automatisch außerhalb der Bürozeiten oder nur per Knopf.",
+   "Startet eine neue Version nicht, kommt wie bisher automatisch die alte zurück."
+  ]
+ },
+ {
+  "version": "1.4.0",
+  "date": "2026-10-27",
+  "changes": [
+   "Urlaub im Monatskalender: Kalender antippen, Personen mit Kürzel und Farbe anlegen, Urlaub oder Abwesenheit von–bis eintragen. Farbige Balken zeigen, wer an welchem Tag fehlt.",
+   "Übersicht unter dem Kalender: wer als Nächstes weg ist, „in X Tagen“ bzw. „noch X Tage“, mit Anzahl Arbeitstagen (ohne Wochenenden und Feiertage).",
+   "Warnung, wenn in den nächsten zwei Wochen an einem Arbeitstag nur noch eine Person im Büro ist.",
+   "Im Kalender blättern mit ‹ ›, nach einer Minute springt er zurück auf heute.",
+   "Eintragen und Löschen am Board nur mit Passwort, am Handy unter „Termine“. Urlaube sind (nur als Kürzel) auch im Besuchermodus sichtbar."
+  ]
+ },
+ {
+  "version": "1.3.0",
+  "date": "2026-10-27",
+  "changes": [
+   "Monatskalender statt Security-Tipp: ganzer Monat mit Kalenderwochen links, heute und die laufende Woche hervorgehoben, Feiertage in Niedersachsen markiert.",
+   "Besuchermodus mit Passwort: Einen verwischten Eintrag antippen, Passwort eingeben (anfangs 123), dann ist alles 2 Minuten lesbar und sperrt sich danach von selbst.",
+   "„Jetzt sperren“ unten in der Mitte verwischt sofort wieder.",
+   "Besuchermodus ausschalten geht nur noch mit Passwort. Einschalten geht jederzeit.",
+   "Passwort ändern unter Einstellungen > Datenschutz."
+  ]
+ },
+ {
+  "version": "1.2.0",
+  "date": "2026-10-27",
+  "changes": [
+   "Neue X-Taste oben rechts: Board minimieren, für 15 Minuten bis 2 Stunden oder bis morgen früh schließen, oder dauerhaft schließen.",
+   "Wieder anzeigen über das neue Desktop-Symbol „Wallboard anzeigen“ oder auf der Handy-Seite im Bereich „Board“.",
+   "Minimiert oder zeitweise geschlossen kommt das Board spätestens zum nächsten Bürobeginn von selbst zurück.",
+   "Update-Hinweis jetzt groß oben in der Mitte. Antippen zeigt die Patch-Notes und startet das Update.",
+   "Nach einem Update zeigt das Board einen Tag lang „Was ist neu“. Alle Patch-Notes stehen unter Einstellungen > Updates."
+  ]
+ },
+ {
+  "version": "1.1.0",
+  "date": "2026-10-27",
+  "changes": [
+   "Update-Funktion: neue Versionen per Knopfdruck am Board installieren, mit automatischer Rückkehr zur alten Version bei Problemen.",
+   "Versionsnummer unten rechts."
+  ]
+ },
+ {
+  "version": "1.0.0",
+  "date": "2026-10-27",
+  "changes": [
+   "Erste Version: Tagesaufgaben mit Gong, Kalender, Wetter mit Regenradar und Regenwarnung, Scan-Eingang, Leihgeräte, Störungsbanner, Security-Tipp, Handy-Seite mit PIN."
+  ]
+ }
 ]
