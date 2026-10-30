@@ -1,5 +1,14 @@
 [
  {
+  "version": "1.36.0",
+  "date": "2026-10-30",
+  "changes": [
+   "Nachrichten: Dieselbe Meldung von mehreren Sendern (z. B. tagesschau und n-tv) erscheint nur noch einmal.",
+   "Nachrichten: Sendungshinweise wie „tagesschau“, „tagesthemen“ oder „Wetter Deutschland“ werden nicht mehr angezeigt.",
+   "Nachrichten: Jede Meldung kommt pro Durchlauf nur einmal. Neue Meldungen zuerst, danach beginnt der nächste Durchlauf in anderer Reihenfolge."
+  ]
+ },
+ {
   "version": "1.35.0",
   "date": "2026-10-30",
   "changes": [

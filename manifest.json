@@ -1,14 +1,16 @@
 {
-  "version": "1.35.0",
-  "notes": "Lob-Ecke: Ein neues Lob erscheint jetzt groß als Pop-up mitten auf dem Board, mit Herz, kurzem Ton und jubelndem Männchen. Es schließt sich nach 20 Sekunden oder beim Antippen und bleibt danach bis zum Abend bei den Notizen.",
+  "version": "1.36.0",
+  "notes": "Nachrichten: Dieselbe Meldung von mehreren Sendern (z. B. tagesschau und n-tv) erscheint nur noch einmal. Nachrichten: Sendungshinweise wie „tagesschau“, „tagesthemen“ oder „Wetter Deutschland“ werden nicht mehr angezeigt.",
   "changes": [
-    "Lob-Ecke: Ein neues Lob erscheint jetzt groß als Pop-up mitten auf dem Board, mit Herz, kurzem Ton und jubelndem Männchen. Es schließt sich nach 20 Sekunden oder beim Antippen und bleibt danach bis zum Abend bei den Notizen."
+    "Nachrichten: Dieselbe Meldung von mehreren Sendern (z. B. tagesschau und n-tv) erscheint nur noch einmal.",
+    "Nachrichten: Sendungshinweise wie „tagesschau“, „tagesthemen“ oder „Wetter Deutschland“ werden nicht mehr angezeigt.",
+    "Nachrichten: Jede Meldung kommt pro Durchlauf nur einmal. Neue Meldungen zuerst, danach beginnt der nächste Durchlauf in anderer Reihenfolge."
   ],
   "files": {
-    "changelog.json": "dcd90b3af62508b5e61f3e1fb9ecd2678fe5f7f78653a6a8d9b7c3cf42dac067",
+    "changelog.json": "52711656e9d0d900d1acbbc3ac54ca3452645046d31f2c23afc58a936fe178c7",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
-    "extras.js": "5d47a979293bb19350e5a86fe2c784fb1df3bd984c2f5eb6b35fd53585a7d523",
-    "public/board.html": "ac01516d3381a8df259fc8df30994350f06e71ea868f4a7b25817ae71ad0c0d5",
+    "extras.js": "b0a86a05ff18ace4e0d31985b3545fbc2e09114651bb408dd2dbd935f9f719eb",
+    "public/board.html": "8edc26f3ecea0db58382b2173a2980d751982bcc6d7daffc880a9dbcec4aab53",
     "public/icon-192.png": "c6b866b885e711fdb607de892d36300c9da80127f2d833cd672ce40af65f5637",
     "public/icon-512.png": "0330db0ae5d581a2bd979a907dbdcb1f3d626ebe2df8c3e4a9469771a2e2dec6",
     "public/knock.js": "422d5ca78ea4873c002673f42c0e7db747b70f86c8ec489a95638bb18ae9e667",
@@ -18,6 +20,6 @@
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
     "server.js": "7950d91c369117068cf4ed425bb1042752a3a1704e55ffbe00702a7df307e385",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "d260d4b5bcd6fd6661562f12a74ccc80c17a71b18a6e1e73c21608e68f13e3a7"
+    "version.json": "ff3138d2b58e255ca8a3f961da65b1088d3d2535f7ebd9ad4d5e4b1ef5ab4c5e"
   }
 }

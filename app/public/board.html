@@ -2168,7 +2168,10 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   $('#newsHead').addEventListener('click', openNewsPick);
   const openNews = n => openLink(n, 'Nachricht', `der Artikel bei ${NEWS_NAMES[n.src] || 'der Quelle'}`);
   const newsTime = d => { const t = new Date(d); return t.toDateString() === new Date().toDateString() ? t.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : t.toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' }); };
-  let newsSig = '', newsTimer = 0, newsPage = 0;
+  let newsSig = '', newsTimer = 0, newsPage = 0, newsCycle = 0;
+  // Schon gezeigte Meldungen: jede kommt pro Durchlauf nur einmal, danach beginnt ein neuer Durchlauf in anderer Reihenfolge
+  const newsSeen = new Set(), newsKey = n => n.title.toLowerCase().replace(/\W+/g, '');
+  const newsMix = (s, c) => { let x = c * 2654435761; for (const ch of s) x = Math.imul(x ^ ch.charCodeAt(0), 16777619); return x >>> 0; };
   // Anzeige der Kachel: seitenweise (Standard, 3 Meldungen, alle 30 s) oder durchlaufend
   const newsView = () => ({ mode: settings().newsMode === 'roll' ? 'roll' : 'page', per: settings().newsPer || 3, every: settings().newsEvery || 30 });
   // Durchlauf: Inhalt doppelt, die Animation schiebt genau eine Hälfte weiter. Nur neu bauen, wenn sich etwas ändert.
@@ -2180,7 +2183,15 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     if (sig === newsSig) return;
     newsSig = sig;
     const one = n => `<span>${esc(n.title)}<small>${newsTime(n.date)}</small></span>`;
-    const track = $('#newsTrack'), list = items.slice(0, view.mode === 'page' ? 30 : 15);
+    let list = items.slice(0, view.mode === 'page' ? 30 : 15);
+    if (view.mode === 'page') {
+      if (list.length && list.every(n => newsSeen.has(newsKey(n)))) { newsSeen.clear(); newsCycle++; }
+      // Neue und noch nicht gezeigte zuerst (neueste oben); ab dem zweiten Durchlauf gemischt
+      const fresh = list.filter(n => !newsSeen.has(newsKey(n))), old = list.filter(n => newsSeen.has(newsKey(n)));
+      if (newsCycle) fresh.sort((a, b) => newsMix(a.title, newsCycle) - newsMix(b.title, newsCycle));
+      list = [...fresh, ...old]; newsPage = 0;
+    }
+    const track = $('#newsTrack');
     track.classList.remove('run', 'compact', 'tight');
     clearInterval(newsTimer);
     const empty = `<div class="news-empty">${newsSources().length ? 'Nachrichten werden geladen …' : 'Keine Anbieter gewählt. Oben auf „Auswahl“ tippen.'}</div>`;
@@ -2199,12 +2210,14 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         newsPage = pages.length ? newsPage % pages.length : 0;
         const part = pages[newsPage] || [];
         track.classList.remove('tight');
+        part.forEach(n => newsSeen.add(newsKey(n)));
         track.innerHTML = part.length ? html(part, pages.length > 1 ? `<div class="news-dots">${pages.map((_, i) => `<i class="${i === newsPage ? 'on' : ''}"></i>`).join('')}</div>` : '') : empty;
         if (!fits()) track.classList.add('tight');
         track.classList.remove('fade'); void track.offsetWidth; track.classList.add('fade');
         track.querySelectorAll('.news-item').forEach(b => b.onclick = () => openNews(list[+b.dataset.i]));
       };
-      const next = () => { newsPage++; show(); };
+      // Nach der letzten Seite neu aufbauen: nicht gezeigte zuerst, dann neue Reihenfolge
+      const next = () => { newsPage++; if (newsPage >= pages.length) { newsSig = ''; renderNews(); } else show(); };
       show();
       if (pages.length > 1) newsTimer = setInterval(next, view.every * 1000);
       // Antippen der Punkte blättert sofort weiter
