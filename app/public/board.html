@@ -216,6 +216,18 @@ main {
 .month-foot .sf-dot { background: var(--rain) !important; }
 main > .card.off { display: none; }
 .note.lob { background: color-mix(in srgb, #FF8FA3 18%, var(--bg)); border: 1px solid color-mix(in srgb, #FF8FA3 45%, transparent); }
+/* Lob-Pop-up: groß in der Mitte, mit kleinen Herzen */
+.lob-pop { position: absolute; inset: 0; z-index: 9; display: grid; place-items: center; background: rgba(0,0,0,.45); cursor: pointer; animation: lobfade .4s ease both; }
+.lob-pop .lp { position: relative; width: min(1000px, 80%); padding: 46px 56px 40px; border-radius: 32px; text-align: center; background: var(--surface); border: 3px solid #FF8FA3; box-shadow: 0 30px 80px rgba(0,0,0,.45), 0 0 0 10px color-mix(in srgb, #FF8FA3 18%, transparent); animation: lobpop .55s cubic-bezier(.2,1.5,.4,1) both; overflow: hidden; }
+.lob-pop .lp > svg { width: 84px; height: 84px; color: #FF8FA3; fill: #FF8FA3; animation: lobbeat 1.2s ease-in-out infinite; }
+.lob-pop .lp h2 { margin: 10px 0 14px; font-size: 30px; letter-spacing: 3px; text-transform: uppercase; color: #FF8FA3; }
+.lob-pop .lp p { margin: 0; font-size: 54px; font-weight: 700; line-height: 1.2; color: var(--text); overflow-wrap: anywhere; }
+.lob-pop .lp small { display: block; margin-top: 22px; font-size: 19px; color: var(--muted); }
+.lob-pop .fly { position: absolute; bottom: -30px; width: 30px; height: 30px; color: #FF8FA3; fill: #FF8FA3; opacity: 0; animation: lobfly 4s ease-in infinite; }
+@keyframes lobfade { from { opacity: 0; } }
+@keyframes lobpop { from { transform: scale(.6); opacity: 0; } }
+@keyframes lobbeat { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.18); } 30% { transform: scale(1); } 45% { transform: scale(1.12); } }
+@keyframes lobfly { 0% { transform: translateY(0) scale(.6); opacity: 0; } 15% { opacity: .9; } 100% { transform: translateY(-460px) scale(1.1) rotate(20deg); opacity: 0; } }
 .note.lob .lob-h { flex: none; width: 22px; height: 22px; color: #FF8FA3; fill: #FF8FA3; margin-top: 3px; }
 .notes h3 .mini-btn + .mini-btn { margin-left: 8px; }
 .bsi-line button.hint-k-lob .icon, .bsi-line button.hint-k-count .icon { color: var(--ok); }
@@ -1703,6 +1715,17 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     }
   }
   // Jemand klopft vom Handy aus an: Klopfgeräusch (wenn Ton an) und ein großer Hinweis
+  // Neues Lob: groß in der Mitte, 20 Sekunden oder bis jemand tippt
+  function lobPopup(text) {
+    $('#overlayHost .lob-pop')?.remove();
+    const flies = Array.from({ length: 9 }, (_, i) => `<svg class="fly" style="left:${6 + i * 11}%;animation-delay:${(i * .45) % 4}s"><use href="#i-heart"/></svg>`).join('');
+    const n = h(`<div class="lob-pop" role="alert"><div class="lp">${flies}<svg class="icon"><use href="#i-heart"/></svg>
+      <h2>Lob fürs Team</h2><p class="private">${esc(text)}</p><small>Steht bis heute Abend bei den Notizen · Antippen zum Schließen</small></div></div>`);
+    n.onclick = () => n.remove();
+    $('#overlayHost').append(n);
+    chime(); mascot && mascot.cheer();
+    setTimeout(() => n.remove(), 20000);
+  }
   function knock(i) {
     const snd = window.WBKnock && WBKnock.SOUNDS[i];
     if (!snd) return;
@@ -2279,7 +2302,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     const inp = scrim.querySelector('#lText');
     scrim.querySelectorAll('#lIdeas button').forEach(b => b.onclick = () => { inp.value = b.textContent; inp.focus(); });
     scrim.querySelector('#lCancel').onclick = () => scrim.remove();
-    scrim.querySelector('form').onsubmit = (e) => { e.preventDefault(); api('POST', '/api/notes', { text: inp.value, kind: 'lob' }).then(() => mascot && mascot.cheer(), () => {}); scrim.remove(); };
+    scrim.querySelector('form').onsubmit = (e) => { e.preventDefault(); api('POST', '/api/notes', { text: inp.value, kind: 'lob' }); scrim.remove(); };
     $('#overlayHost').append(scrim); inp.focus();
   }
   $('#addLob').onclick = openLobDialog;
@@ -3198,6 +3221,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     };
     es.addEventListener('restart', () => showUpdating('Neue Version wird gestartet …'));
     es.addEventListener('knock', e => { try { knock(JSON.parse(e.data).s); } catch {} });
+    es.addEventListener('lob', e => { try { lobPopup(JSON.parse(e.data).text); } catch {} });
     es.onerror = () => { connected = false; };
   }
 

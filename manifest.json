@@ -1,17 +1,14 @@
 {
-  "version": "1.34.0",
-  "notes": "Nachrichten: Titel werden komplett ausgeschrieben, ohne Anbieter-Namen davor. Passt nicht alles auf eine Seite, kommen weniger Meldungen drauf und der Rest auf die nächste Seite. Nachrichten: Nach dem Antippen der Seiten-Punkte blieb die Kachel manchmal leer. Behoben.",
+  "version": "1.35.0",
+  "notes": "Lob-Ecke: Ein neues Lob erscheint jetzt groß als Pop-up mitten auf dem Board, mit Herz, kurzem Ton und jubelndem Männchen. Es schließt sich nach 20 Sekunden oder beim Antippen und bleibt danach bis zum Abend bei den Notizen.",
   "changes": [
-    "Nachrichten: Titel werden komplett ausgeschrieben, ohne Anbieter-Namen davor. Passt nicht alles auf eine Seite, kommen weniger Meldungen drauf und der Rest auf die nächste Seite.",
-    "Nachrichten: Nach dem Antippen der Seiten-Punkte blieb die Kachel manchmal leer. Behoben.",
-    "Neue Kachel To-Do: Aufgaben ohne Uhrzeit, die stehen bleiben, bis sie abgehakt sind. Abgehakte verschwinden am Ende des Tages. Eintragen am Board oder am Handy unter „Aufgaben“.",
-    "Die To-Do-Kachel steht dort, wo bisher der Kalender war. Die Kalender-Kachel ist nur ausgeblendet und lässt sich unter „Kacheln anordnen“ wieder einblenden."
+    "Lob-Ecke: Ein neues Lob erscheint jetzt groß als Pop-up mitten auf dem Board, mit Herz, kurzem Ton und jubelndem Männchen. Es schließt sich nach 20 Sekunden oder beim Antippen und bleibt danach bis zum Abend bei den Notizen."
   ],
   "files": {
-    "changelog.json": "f1a621c3e4b12d67511625acdac66d105c3cabf0356502a212a29ba2f709cdc4",
+    "changelog.json": "dcd90b3af62508b5e61f3e1fb9ecd2678fe5f7f78653a6a8d9b7c3cf42dac067",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
     "extras.js": "5d47a979293bb19350e5a86fe2c784fb1df3bd984c2f5eb6b35fd53585a7d523",
-    "public/board.html": "11cf54ac9bef923fcf30657322218b9d03a835da6332d923be2b3e3f52a3639a",
+    "public/board.html": "ac01516d3381a8df259fc8df30994350f06e71ea868f4a7b25817ae71ad0c0d5",
     "public/icon-192.png": "c6b866b885e711fdb607de892d36300c9da80127f2d833cd672ce40af65f5637",
     "public/icon-512.png": "0330db0ae5d581a2bd979a907dbdcb1f3d626ebe2df8c3e4a9469771a2e2dec6",
     "public/knock.js": "422d5ca78ea4873c002673f42c0e7db747b70f86c8ec489a95638bb18ae9e667",
@@ -19,8 +16,8 @@
     "public/mascot.js": "a414057fb572b03b3321873c8d436b99567876adc288dc72d1a7bf48b5c97b5d",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
-    "server.js": "7495b04ef64e470b87b80359b1110fedc3427b21af0332bddf84db48afe0b48d",
+    "server.js": "7950d91c369117068cf4ed425bb1042752a3a1704e55ffbe00702a7df307e385",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "86e4328e9bc52ca33f03b072f1fb569ebb88c9b8a3072070ac57ded18fad64f2"
+    "version.json": "d260d4b5bcd6fd6661562f12a74ccc80c17a71b18a6e1e73c21608e68f13e3a7"
   }
 }

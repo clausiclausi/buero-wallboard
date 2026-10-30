@@ -719,6 +719,8 @@ const server = http.createServer(async (req, res) => {
         if (coll === 'todos' && db.todos.length >= 25) return send(res, 400, { error: 'Höchstens 25 To-Dos, bitte erst welche abhaken oder löschen' });
         item.id = newId(); item.created = Date.now();
         db[coll].push(item); save();
+        // Neues Lob groß auf dem Board zeigen
+        if (coll === 'notes' && item.kind === 'lob') for (const c of clients) if (!c.full) c.res.write(`event: lob\ndata: ${JSON.stringify({ text: item.text })}\n\n`);
         return send(res, 201, item);
       }
       const item = db[coll].find(x => x.id === id);
