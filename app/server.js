@@ -440,7 +440,14 @@ async function checkScanTool() {
     const file = /^[\w.-]+\.zip$/.test(j.datei) ? j.datei : 'Rueckscan.zip';
     const url = config.updateUrl ? `${config.updateUrl.replace(/\/$/, '')}/downloads/${file}`
       : `https://github.com/${config.updateRepo}/raw/${config.updateBranch}/downloads/${file}`;
-    scanTool = { version: j.version, date: /^\d{4}-\d{2}-\d{2}$/.test(j.datum) ? j.datum : '', url, file };
+    const isDate = d => /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : '';
+    // Patch-Notes: „aenderungen“ = [{version, datum, neu: [Text, …]}], neueste zuerst; nur Text, gekürzt
+    const notes = (Array.isArray(j.aenderungen) ? j.aenderungen : [])
+      .filter(a => a && /^\d+\.\d+\.\d+$/.test(a.version) && Array.isArray(a.neu))
+      .slice(0, 12)
+      .map(a => ({ version: a.version, date: isDate(a.datum), changes: a.neu.filter(t => typeof t === 'string' && t.trim()).slice(0, 15).map(t => t.trim().slice(0, 240)) }))
+      .filter(a => a.changes.length);
+    scanTool = { version: j.version, date: isDate(j.datum), url, file, notes };
   } catch { /* behält die letzte bekannte Version */ }
 }
 // Speichert das Scan-Tool direkt auf diesem PC: Desktop für alle Benutzer, sonst öffentliche Downloads
@@ -468,7 +475,7 @@ async function saveScanTool() {
 let lastCheckSent = 0;
 async function checkUpdate(auto = true) {
   if (!config.updateRepo && !config.updateUrl) return;
-  const before = `${update.available}|${update.error}|${scanTool?.version}`;
+  const before = `${update.available}|${update.error}|${scanTool?.version}|${JSON.stringify(scanTool?.notes || [])}`;
   await checkScanTool();
   try {
     const m = JSON.parse((await fetchRepoFile('manifest.json')).toString('utf8'));
@@ -482,7 +489,7 @@ async function checkUpdate(auto = true) {
   } catch (e) {
     update.error = e.message;
   }
-  const changed = before !== `${update.available}|${update.error}|${scanTool?.version}`;
+  const changed = before !== `${update.available}|${update.error}|${scanTool?.version}|${JSON.stringify(scanTool?.notes || [])}`;
   update.checked = Date.now();
   // Bei häufigem Prüfen nur melden, wenn sich etwas geändert hat
   if (changed || !auto || Date.now() - lastCheckSent > 30 * 60000) { lastCheckSent = Date.now(); broadcast(); }

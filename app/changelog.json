@@ -1,5 +1,14 @@
 [
  {
+  "version": "1.37.0",
+  "date": "2026-11-02",
+  "changes": [
+   "Scan-Tool: Die Taste unten rechts zeigt jetzt die Version (z. B. „Scan-Tool 1.5.1“), in der ersten Woche nach einem Update mit „neu“.",
+   "Scan-Tool-Fenster: zuletzt aktualisiert am … (vor … Tagen) und „Was ist neu“ mit den Patch-Notes, frühere Versionen zum Aufklappen.",
+   "Die Angaben kommen automatisch mit jeder neuen Rückscan-Version mit."
+  ]
+ },
+ {
   "version": "1.36.0",
   "date": "2026-10-30",
   "changes": [

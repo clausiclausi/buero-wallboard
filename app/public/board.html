@@ -437,6 +437,21 @@ footer .mini-btn { margin-left: 0; font-size: 17px; }
 .scan-save { display: flex; align-items: center; gap: 16px; font-size: 19px; }
 .scan-save .btn { display: inline-flex; align-items: center; gap: 8px; flex: none; }
 .scan-steps { margin: 0; padding-left: 24px; font-size: 19px; line-height: 1.5; }
+.scan-dlg { max-height: 1000px; }
+.scan-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 36px; min-height: 0; }
+.scan-cols > div { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.scan-cols .qr-box { flex-direction: column; align-items: flex-start; gap: 18px; }
+.scan-ver { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: baseline; font-size: 20px; }
+.scan-ver b { font-size: 30px; }
+.scan-ver span:not(.scan-new) { color: var(--muted); }
+.scan-ver .scan-new { align-self: center; }
+.scan-notes { overflow-y: auto; max-height: 600px; padding-right: 6px; display: flex; flex-direction: column; gap: 18px; }
+.scan-notes h3 { margin: 0 0 6px; font-size: 21px; display: flex; gap: 10px; align-items: baseline; }
+.scan-notes h3 small { font-weight: 400; color: var(--muted); font-size: 17px; }
+.scan-notes ul { margin: 0; padding-left: 24px; font-size: 18px; line-height: 1.45; }
+.scan-notes details summary { cursor: pointer; font-size: 19px; color: var(--muted); padding: 6px 0; }
+.scan-notes details > div { display: flex; flex-direction: column; gap: 16px; margin-top: 10px; }
+.scan-new { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 1px 8px; border-radius: 999px; background: var(--ok); color: #0E2A1F; }
 /* Nachrichten: Laufband unten und Kachel */
 /* Spur absolut positioniert: die lange Zeile darf die Seitenbreite nicht aufblähen */
 .ticker { flex: 1; min-width: 0; position: relative; height: 1.6em; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent); mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent); }
@@ -1940,8 +1955,13 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     showDialog(scrim, 60);
   }
   // Scan-Tool: QR-Code zur neuesten Version im Repository, das Board selbst scannt nichts
+  // Scan-Tool gilt 7 Tage nach einem Update als „neu“
+  const scanToolFresh = t => !!(t && t.date && Date.now() - parseD(t.date).getTime() < 7 * 864e5);
+  const daysAgo = k => { const n = Math.round((parseD(dkey(new Date())) - parseD(k)) / 864e5); return n <= 0 ? 'heute' : n === 1 ? 'gestern' : `vor ${n} Tagen`; };
   function renderScanTool() {
-    $('#btnScanTool').hidden = !S.scanTool;
+    const t = S.scanTool;
+    $('#btnScanTool').hidden = !t;
+    if (t) $('#btnScanTool').innerHTML = `<svg class="icon"><use href="#i-download"/></svg>Scan-Tool ${esc(t.version)}${scanToolFresh(t) ? ' <span class="scan-new">neu</span>' : ''}`;
     const g = settings();
     $('#btnGuides').hidden = !((g.guides || []).length || g.wifi);
     $('#btnGuides').innerHTML = `<svg class="icon"><use href="#i-qr"/></svg>${(g.guides || []).length ? 'Anleitungen' : 'Gäste-WLAN'}`;
@@ -2001,18 +2021,26 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   $('#btnScanTool').onclick = () => {
     const t = S.scanTool;
     if (!t || stage.querySelector('.arr')) return;
-    const scrim = h(`<div class="scrim center"><div class="panel dialog" role="dialog" aria-label="Scan-Tool herunterladen" style="width:860px">
+    const fullD = k => { const d = parseD(k); return `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`; };
+    const notes = t.notes || [];
+    const block = n => `<div><h3>Version ${esc(n.version)}${n.date ? `<small>vom ${esc(fullD(n.date))}</small>` : ''}</h3><ul>${n.changes.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>`;
+    const cur = notes.find(n => n.version === t.version) || notes[0];
+    const older = notes.filter(n => n !== cur);
+    const notesHtml = cur ? `<div><h4>Was ist neu</h4><div class="scan-notes">${block(cur)}${older.length ? `<details><summary>Frühere Versionen (${older.length})</summary><div>${older.map(block).join('')}</div></details>` : ''}</div></div>` : '';
+    const scrim = h(`<div class="scrim center"><div class="panel dialog scan-dlg" role="dialog" aria-label="Scan-Tool herunterladen" style="width:${notesHtml ? 1500 : 860}px">
       <h2>Scan-Tool herunterladen <button class="tool" data-close title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
+      <div class="scan-ver"><b>Rückscan ${esc(t.version)}</b>${t.date ? `<span>zuletzt aktualisiert am ${esc(fullD(t.date))} (${daysAgo(t.date)})</span>` : ''}${scanToolFresh(t) ? '<span class="scan-new">neu</span>' : ''}</div>
+      <div class="${notesHtml ? 'scan-cols' : ''}"><div>
       <div class="qr-box"><div class="qr">${qrSvg(t.url)}</div><div>
-        <p><b>Rückscan, Version ${esc(t.version)}</b>${t.date ? ` · vom ${esc(fmtD(t.date))}` : ''}</p>
         <p>QR-Code mit dem Handy scannen oder die Adresse am PC eingeben. Es ist immer die neueste Version.</p>
         <div class="dom">${esc(t.url.replace(/^https:\/\//, ''))}</div>
       </div></div>
       <div class="scan-save"><button type="button" class="btn primary" id="scanSave"><svg class="icon"><use href="#i-download"/></svg>Auf diesem PC speichern</button><span id="scanSaveMsg">Legt die ZIP-Datei auf den Desktop dieses PCs.</span></div>
       <ol class="scan-steps"><li>ZIP-Datei herunterladen (oder oben auf diesem PC speichern) und entpacken</li><li><b>Installieren.cmd</b> doppelklicken, Administrator-Rechte braucht es nicht</li><li>Rückscan über das Symbol auf dem Desktop starten</li></ol>
-      <p class="hint">Schließt sich nach zwei Minuten von selbst.</p>
+      </div>${notesHtml}</div>
+      <p class="hint">Schließt sich nach drei Minuten von selbst.</p>
     </div></div>`);
-    showDialog(scrim, 120);
+    showDialog(scrim, 180);
     const btn = scrim.querySelector('#scanSave'), msg = scrim.querySelector('#scanSaveMsg');
     btn.onclick = () => {
       btn.disabled = true; msg.textContent = 'Wird gespeichert …';

@@ -1,16 +1,16 @@
 {
-  "version": "1.36.0",
-  "notes": "Nachrichten: Dieselbe Meldung von mehreren Sendern (z. B. tagesschau und n-tv) erscheint nur noch einmal. Nachrichten: Sendungshinweise wie „tagesschau“, „tagesthemen“ oder „Wetter Deutschland“ werden nicht mehr angezeigt.",
+  "version": "1.37.0",
+  "notes": "Scan-Tool: Die Taste unten rechts zeigt jetzt die Version (z. B. „Scan-Tool 1.5.1“), in der ersten Woche nach einem Update mit „neu“. Scan-Tool-Fenster: zuletzt aktualisiert am … (vor … Tagen) und „Was ist neu“ mit den Patch-Notes, frühere Versionen zum Aufklappen.",
   "changes": [
-    "Nachrichten: Dieselbe Meldung von mehreren Sendern (z. B. tagesschau und n-tv) erscheint nur noch einmal.",
-    "Nachrichten: Sendungshinweise wie „tagesschau“, „tagesthemen“ oder „Wetter Deutschland“ werden nicht mehr angezeigt.",
-    "Nachrichten: Jede Meldung kommt pro Durchlauf nur einmal. Neue Meldungen zuerst, danach beginnt der nächste Durchlauf in anderer Reihenfolge."
+    "Scan-Tool: Die Taste unten rechts zeigt jetzt die Version (z. B. „Scan-Tool 1.5.1“), in der ersten Woche nach einem Update mit „neu“.",
+    "Scan-Tool-Fenster: zuletzt aktualisiert am … (vor … Tagen) und „Was ist neu“ mit den Patch-Notes, frühere Versionen zum Aufklappen.",
+    "Die Angaben kommen automatisch mit jeder neuen Rückscan-Version mit."
   ],
   "files": {
-    "changelog.json": "52711656e9d0d900d1acbbc3ac54ca3452645046d31f2c23afc58a936fe178c7",
+    "changelog.json": "fe5e00d581c5c005bc8a8dc93ecdb3226a7b05ebace3f83fa94c6b488781122c",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
     "extras.js": "b0a86a05ff18ace4e0d31985b3545fbc2e09114651bb408dd2dbd935f9f719eb",
-    "public/board.html": "8edc26f3ecea0db58382b2173a2980d751982bcc6d7daffc880a9dbcec4aab53",
+    "public/board.html": "669e4c48894172979ee7860db5b1d754bb41fcd6a366c8d07d7814a3eca415dc",
     "public/icon-192.png": "c6b866b885e711fdb607de892d36300c9da80127f2d833cd672ce40af65f5637",
     "public/icon-512.png": "0330db0ae5d581a2bd979a907dbdcb1f3d626ebe2df8c3e4a9469771a2e2dec6",
     "public/knock.js": "422d5ca78ea4873c002673f42c0e7db747b70f86c8ec489a95638bb18ae9e667",
@@ -18,8 +18,8 @@
     "public/mascot.js": "a414057fb572b03b3321873c8d436b99567876adc288dc72d1a7bf48b5c97b5d",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
-    "server.js": "7950d91c369117068cf4ed425bb1042752a3a1704e55ffbe00702a7df307e385",
+    "server.js": "925d9ea44bdf2f86582f02fd6bded42b83ac756c82b0ade676b98450f3378b64",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "ff3138d2b58e255ca8a3f961da65b1088d3d2535f7ebd9ad4d5e4b1ef5ab4c5e"
+    "version.json": "3237d2cd7f88ac98ffb14b9cdd948325e5312b6eb16200006c788c088d2ac0a4"
   }
 }
