@@ -1,1 +1,33 @@
-{"version": "1.6.0", "datei": "Rueckscan.zip", "datum": "2026-11-02", "aenderungen": [{"version": "1.6.0", "datum": "2026-11-02", "neu": ["Abschluss per Barcode für Abschnitt und ganzen Vorgang, zweimal scannen, Codes groß auf dem Bildschirm", "Abschluss-Fenster: weiter bearbeiten, speichern in festen Ordner, Speicherort neu wählen, nur archivieren", "Liste im Programm bearbeiten: ändern, nachtragen, löschen, von Hand zurück/offen mit Grund, Notizen", "Änderungsverlauf pro Vorgang", "Archiv mit Suche und „Wo war Gerät X?“", "Exportierte Excel-Dateien wieder einlesen", "Kürzel der Erfasser beim Anlegen und Abschließen, in Liste, Archiv und Export"]}]}
+{
+ "version": "1.6.0",
+ "datei": "Rueckscan.zip",
+ "datum": "2026-11-02",
+ "aenderungen": [
+  {
+   "version": "1.6.0",
+   "datum": "2026-11-02",
+   "neu": [
+    "Abschluss per Barcode: Abschnitt oder ganzen Vorgang abschließen, zum Schutz jeden Code zweimal scannen. Die Codes lassen sich groß auf dem Bildschirm zeigen.",
+    "Neues Abschluss-Fenster: weiter bearbeiten, abschließen und in einem festen Ordner speichern (z. B. Teamlaufwerk), Speicherort neu wählen oder nur archivieren.",
+    "Liste im Programm bearbeiten: Nummern und Namen ändern, Geräte nachtragen oder löschen, von Hand als zurück oder offen markieren (mit Grund), Notizen.",
+    "Jede Änderung steht im Verlauf des Vorgangs.",
+    "Neues Archiv mit Suche und „Wo war Gerät X?“ über alle Vorgänge.",
+    "Exportierte Excel-Dateien lassen sich wieder einlesen und weiterbearbeiten.",
+    "Kürzel der Erfasser beim Anlegen und Abschließen, steht in Liste, Archiv und Export (nur Kürzel, keine Namen)."
+   ]
+  },
+  {
+   "version": "1.6.0",
+   "datum": "2026-11-02",
+   "neu": [
+    "Abschluss per Barcode für Abschnitt und ganzen Vorgang, zweimal scannen, Codes groß auf dem Bildschirm",
+    "Abschluss-Fenster: weiter bearbeiten, speichern in festen Ordner, Speicherort neu wählen, nur archivieren",
+    "Liste im Programm bearbeiten: ändern, nachtragen, löschen, von Hand zurück/offen mit Grund, Notizen",
+    "Änderungsverlauf pro Vorgang",
+    "Archiv mit Suche und „Wo war Gerät X?“",
+    "Exportierte Excel-Dateien wieder einlesen",
+    "Kürzel der Erfasser beim Anlegen und Abschließen, in Liste, Archiv und Export"
+   ]
+  }
+ ]
+}
