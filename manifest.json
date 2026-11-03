@@ -10,7 +10,7 @@
   "files": {
     "changelog.json": "1c45bb6c5060d50d8f8b13e689563bc1a401419e602d25c5bbc15d7ad8ab7cc3",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
-    "election.js": "ab1f16e2628802c1aa19b247f2a3ff5ad5317c941275176de9d858c3f26f0b3e",
+    "election.js": "977e3fe073c468cc6e4a73d493817288294c0acb454d37c91523c1691863efc6",
     "extras.js": "b0a86a05ff18ace4e0d31985b3545fbc2e09114651bb408dd2dbd935f9f719eb",
     "public/board.html": "56a9f8c28c621f963b728a0d55e9d4cf14f60bca3f8ec21d76b779a60aae1702",
     "public/icon-192.png": "c6b866b885e711fdb607de892d36300c9da80127f2d833cd672ce40af65f5637",
