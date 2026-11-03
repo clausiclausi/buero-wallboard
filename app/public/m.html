@@ -173,6 +173,11 @@ nav button[aria-current="page"] { color: var(--text); }
       <div class="knock-grid" id="knockGrid"></div>
       <button class="btn primary" id="knockGo" style="margin-top:12px">Am Board anklopfen</button>
     </div>
+    <h2>Ansicht am Board</h2>
+    <div class="card">
+      <p class="hint" style="margin-top:0" id="viewHint">Presets legt ihr am Board unter „Kacheln bearbeiten“ → „Presets“ an.</p>
+      <div class="seg" id="viewSeg"></div>
+    </div>
     <h2>Anzeige am Notebook</h2>
     <div class="card">
       <div class="inc" id="dispNow"></div>
@@ -408,6 +413,19 @@ nav button[aria-current="page"] { color: var(--text); }
     el.textContent = { show: 'Wird angezeigt', minimize: `Minimiert${until ? ' (zurück spätestens ' + until + ')' : ''}`, pause: `Geschlossen bis ${until}`, off: 'Dauerhaft geschlossen' }[d.mode] || 'Unbekannt';
     $('#dShow').disabled = d.mode === 'show';
   }
+  // Ansicht: automatisch wechseln, ein Preset fest zeigen, Wahl-Modus
+  function renderView() {
+    const st = S.settings || {}, P = (st.presets || []).filter(p => p && p.layout), seg = $('#viewSeg');
+    const btn = (k, t, on) => `<button type="button" data-v="${k}" aria-pressed="${on}">${esc(t)}</button>`;
+    seg.innerHTML = (P.length ? btn('rot', 'Automatisch wechseln', !!st.rotate) + P.map((p, i) => btn(i, p.name, !st.rotate && JSON.stringify(st.layout) === JSON.stringify(p.layout) && !!st.election === !!p.election)).join('') : '')
+      + btn('wahl', st.election ? 'Wahl-Modus aus' : 'Wahl-Modus an', false);
+    seg.querySelectorAll('button').forEach(b => b.onclick = () => {
+      const v = b.dataset.v;
+      if (v === 'rot') return run(api('PUT', '/api/settings', { rotate: !st.rotate }), st.rotate ? 'Wechsel aus' : 'Ansichten wechseln jetzt automatisch');
+      if (v === 'wahl') return run(api('PUT', '/api/settings', { election: !st.election, rotate: false }), 'Wahl-Modus umgeschaltet');
+      const p = P[+v]; run(api('PUT', '/api/settings', { layout: p.layout, election: !!p.election, rotate: false }), `„${p.name}“ wird gezeigt`);
+    });
+  }
   const setDisplay = (mode, minutes, ok) => run(api('POST', '/api/display', { mode, minutes }), ok);
   $('#dShow').onclick = () => setDisplay('show', null, 'Board wird wieder angezeigt');
   $('#dMin').onclick = () => setDisplay('minimize', null, 'Board wird minimiert');
@@ -486,7 +504,7 @@ nav button[aria-current="page"] { color: var(--text); }
     });
   }
 
-  function renderAll() { renderTasks(); renderTodos(); renderNotes(); renderEvents(); renderIncident(); renderDisplay(); renderTunnel(); renderLoans(); renderAbsences(); }
+  function renderAll() { renderTasks(); renderTodos(); renderNotes(); renderEvents(); renderIncident(); renderDisplay(); renderView(); renderTunnel(); renderLoans(); renderAbsences(); }
   let es = null;
   function start() {
     $('#login').hidden = true; $('#app').hidden = false; $('#nav').hidden = false;

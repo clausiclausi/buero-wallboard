@@ -252,6 +252,18 @@ function sanitizeSettings(b) {
     const hit = (a, c) => a[0] < c[0] + c[2] && c[0] < a[0] + a[2] && a[1] < c[1] + c[3] && c[1] < a[1] + a[3];
     s.layout = keys.every(k => ok(L[k])) && shown.every((k, i) => shown.slice(i + 1).every(j => !hit(L[k], L[j]))) ? { ...Object.fromEntries(keys.map(k => [k, L[k]])), hidden } : null;
   }
+  if ('presets' in b) {
+    // Bis zu 5 gespeicherte Ansichten: Name, Anordnung, Wahl-Modus, Anzeigedauer in Sekunden (15 s bis 30 min)
+    s.presets = (Array.isArray(b.presets) ? b.presets : []).slice(0, 5).map((p, i) => {
+      if (!p || typeof p !== 'object') return null;
+      const lay = p.layout ? sanitizeSettings({ layout: p.layout }).layout : null;
+      if (!lay) return null;
+      const secs = Math.round(Number(p.secs));
+      return { name: String(p.name || `Ansicht ${i + 1}`).replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 24) || `Ansicht ${i + 1}`,
+        layout: lay, election: !!p.election, secs: Number.isFinite(secs) ? Math.max(15, Math.min(1800, secs)) : 60 };
+    });
+  }
+  if ('rotate' in b) s.rotate = !!b.rotate;
   if ('transit' in b) {
     const tr = b.transit;
     s.transit = tr && typeof tr === 'object' && /^[A-Za-z0-9:_.-]{1,30}$/.test(String(tr.id || '')) ? { id: String(tr.id), name: clean(tr.name, 60) } : null;

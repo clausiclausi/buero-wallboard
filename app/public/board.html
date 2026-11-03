@@ -50,7 +50,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .icon { width: 1em; height: 1em; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
 /* Kopfzeile */
-header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 28px; }
+header { display: grid; grid-template-columns: fit-content(620px) minmax(0, 1fr) auto; align-items: center; gap: 28px; }
 header .hl, header .hr { display: flex; align-items: center; gap: 36px; min-width: 0; }
 header .hr { justify-content: flex-end; gap: 24px; }
 header .hl { grid-column: 1; } header .update-pill { grid-column: 2; } header .hr { grid-column: 3; }
@@ -326,6 +326,28 @@ main > .card.off { display: none; }
 .arr-bar .arr-hid { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 0; min-width: 0; max-height: 140px; overflow-y: auto; align-items: center; }
 .arr-bar .arr-hid:empty { display: none; }
 .arr-bar > .btn { flex: none; white-space: nowrap; }
+/* Presets: gespeicherte Ansichten, die sich abwechseln */
+.pre-scrim { position: absolute; inset: 0; z-index: 20; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; }
+.pre-panel { width: min(1180px, 100%); max-height: 100%; overflow-y: auto; box-sizing: border-box; background: var(--surface); border: 2px solid var(--highlight); border-radius: 24px; padding: 26px 30px; display: flex; flex-direction: column; gap: 14px; }
+.pre-panel h2 { margin: 0; font-size: 30px; display: flex; align-items: center; gap: 12px; }
+.pre-row { display: grid; grid-template-columns: 36px minmax(0, 1fr) 150px auto auto auto auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 14px; background: var(--bg); font-size: 19px; }
+.pre-row.cur { outline: 2px solid var(--highlight); }
+.pre-row .nr { font-weight: 800; color: var(--muted); text-align: center; }
+.pre-row input[type=text], .pre-row input[type=number] { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 0; width: 100%; box-sizing: border-box; }
+.pre-row .secs { display: flex; align-items: center; gap: 6px; color: var(--muted); }
+.pre-row label.chk { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.pre-row .btn { font-size: 17px; padding: 8px 12px; white-space: nowrap; }
+.pre-row.empty input[type=text] { opacity: .6; }
+.pre-foot { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.pre-foot .sw { display: flex; align-items: center; gap: 10px; font-size: 21px; font-weight: 700; margin-right: auto; }
+.pre-foot .sw input { width: 26px; height: 26px; }
+footer .rot-info { display: flex; align-items: center; gap: 10px; font-size: 17px; white-space: nowrap; max-width: 260px; overflow: hidden; cursor: pointer; }
+footer .rot-info b { overflow: hidden; text-overflow: ellipsis; color: var(--text); font-weight: 600; }
+footer .rot-info i { flex: none; width: 70px; height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+footer .rot-info i s { display: block; height: 100%; width: 0; background: var(--muted); }
+footer .rot-info.paused s { background: var(--warn); }
+main.pre-fade { animation: prefade .6s ease; }
+@keyframes prefade { from { opacity: .15; } to { opacity: 1; } }
 .arr-bar .arr-hid button { border: 1px dashed var(--muted); background: transparent; border-radius: 12px; padding: 8px 12px; font-size: 18px; font-weight: 600; }
 
 /* Kacheln anordnen */
@@ -706,8 +728,10 @@ footer .mini-btn { margin-left: 0; font-size: 17px; }
 .radar-msg { position: absolute; left: 10px; right: 10px; top: 34%; display: grid; place-items: center; font-size: 18px; color: #24302b; background: rgba(255,255,255,.85); border-radius: 12px; text-align: center; padding: 12px; }
 .storm.warn .shape { width: 0; height: 0; border-radius: 0; background: none; border-left: 13px solid transparent; border-right: 13px solid transparent; border-bottom: 22px solid var(--warn); }
 .storm.warn { color: var(--text); font-weight: 600; }
-.update-pill { display: flex; align-items: center; gap: 16px; padding: 10px 28px 10px 18px; border-radius: 999px; border: 2px solid var(--ok); background: var(--surface); color: var(--text); text-align: left; box-shadow: 0 0 0 0 var(--ok); }
+.update-pill { justify-self: center; min-width: 0; max-width: 100%; overflow: hidden; display: flex; align-items: center; gap: 12px; padding: 8px 22px 8px 10px; border-radius: 999px; border: 2px solid var(--ok); background: var(--surface); color: var(--text); text-align: left; box-shadow: 0 0 0 0 var(--ok); }
 .update-pill .badge { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--ok); color: var(--bg); font-size: 26px; flex: none; }
+.update-pill > span:last-child { min-width: 0; }
+.update-pill b, .update-pill small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .update-pill b { display: block; font-size: 24px; line-height: 1.15; }
 .update-pill small { display: block; font-size: 17px; color: var(--muted); font-weight: 500; }
 .update-pill:hover { background: var(--surface-2); }
@@ -1159,6 +1183,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     <span id="stand">Stand --:--:--</span>
     <span id="audioHint"></span>
     <div class="ticker" id="ticker" hidden><div class="ticker-track" id="tickerTrack"></div></div>
+    <span class="rot-info" id="rotInfo" hidden title="Ansichten wechseln automatisch. Antippen: Presets"><b id="rotName"></b><i><s id="rotBar"></s></i></span>
     <span class="sp">Wetter: DWD · keine personenbezogenen Daten · <span id="ver"></span></span>
     <button type="button" class="mini-btn" id="btnGuides" hidden title="QR-Codes zu Anleitungen und zum Gäste-WLAN"><svg class="icon"><use href="#i-qr"/></svg>Anleitungen</button>
     <button type="button" class="mini-btn" id="btnScanTool" hidden title="Neueste Version des Scan-Tools herunterladen"><svg class="icon"><use href="#i-download"/></svg>Scan-Tool</button>
@@ -1299,7 +1324,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   }
   // Gespeicherte Anordnung ergänzen: neue Kacheln (z. B. Notizen) bekommen einen freien Platz, sonst bleiben sie ausgeblendet
   function layout() {
-    const saved = settings().layout;
+    const cp = curPreset(), saved = cp ? cp.layout : settings().layout;
     if (!saved || typeof saved !== 'object' || saved.scan || !saved.transit) return DEF_LAYOUT;
     const L = { hidden: Array.isArray(saved.hidden) ? saved.hidden.filter(k => TILE_KEYS.includes(k)) : [] };
     const missing = [];
@@ -1323,7 +1348,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   }
   function applyLayout(L = layout()) { tiles().forEach(el => { placeTile(el, L[el.dataset.k]); el.classList.toggle('off', (L.hidden || []).includes(el.dataset.k)); }); applyWahl(L); }
   // Wahl-Modus: Das Wahl-Feld nimmt den Platz von Nachrichten, To-Do und Kalender ein (größte freie Fläche daraus)
-  const wahlOn = () => !!settings().election;
+  const wahlOn = () => { const p = curPreset(); return p ? !!p.election : !!settings().election; };
   function wahlArea(L) {
     const KS = ['news', 'todo', 'cal'], src = KS.filter(k => !(L.hidden || []).includes(k) && fits(L[k])).map(k => L[k]);
     const others = shownKeys(L).filter(k => !KS.includes(k) && fits(L[k])).map(k => L[k]);
@@ -1362,6 +1387,97 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     return rest;
   }
   const tileName = k => tiles().find(e => e.dataset.k === k)?.dataset.name || k;
+
+  /* ---------- Presets: bis zu 5 Ansichten, die sich auf Wunsch abwechseln ---------- */
+  const presetList = () => (settings().presets || []).filter(p => p && p.layout).map(p => ({ ...p }));
+  let rotIdx = 0, rotStart = Date.now(), rotPause = 0;
+  function curPreset() {
+    if (!settings().rotate) return null;
+    const P = (settings().presets || []).filter(p => p && p.layout);
+    if (!P.length) return null;
+    if (settings().visitor) return P[0]; // Besuchermodus: immer die erste Ansicht
+    return P[rotIdx % P.length];
+  }
+  // Kalender-Ansicht als Vorschlag: Monat groß, To-Do und Notizen daneben, Wetter rechts
+  const CAL_LAYOUT = { ...DEF_LAYOUT, month: [1, 1, 6, 6], todo: [7, 1, 3, 3], notes: [7, 4, 3, 3], wx: [10, 1, 3, 4], news: [10, 5, 3, 2], hidden: ['cal', 'transit', 'loan', 'incident', 'sec'] };
+  function rotTick() {
+    const P = (settings().presets || []).filter(p => p && p.layout), info = $('#rotInfo');
+    const on = settings().rotate && P.length > 0;
+    info.hidden = !on;
+    if (!on) return;
+    const cp = curPreset(), now = Date.now(), busy = stage.classList.contains('arranging') || !!document.querySelector('.pre-scrim') || settings().visitor;
+    const paused = busy || now < rotPause;
+    const secs = (cp?.secs || 60) * 1000;
+    if (paused) rotStart += 1000;
+    if (!paused && P.length > 1 && now - rotStart >= secs) {
+      rotIdx = (rotIdx + 1) % P.length; rotStart = now;
+      const m = stage.querySelector('main'); m.classList.remove('pre-fade'); void m.offsetWidth; m.classList.add('pre-fade');
+      applyLayout(); newsSig = ''; renderNews(); renderWahl(true);
+    }
+    $('#rotName').textContent = (curPreset()?.name || '') + (paused && P.length > 1 ? ' · Pause' : '');
+    info.classList.toggle('paused', paused && P.length > 1);
+    $('#rotBar').style.width = P.length > 1 ? `${Math.min(100, (Date.now() - rotStart) / ((curPreset()?.secs || 60) * 10))}%` : '100%';
+  }
+  setInterval(rotTick, 1000);
+  // Wer am Board etwas antippt, hält den Wechsel 2 Minuten an
+  stage.addEventListener('pointerdown', e => { if (!e.target.closest('#rotInfo')) rotPause = Date.now() + 120000; }, true);
+  // Presets-Fenster: getL liefert die gerade bearbeitete Anordnung, setL lädt eine Anordnung ins Bearbeiten
+  function openPresets(getL = () => layout(), setL = null) {
+    if (document.querySelector('.pre-scrim')) return;
+    let P = presetList();
+    if (!P.length) {
+      const base = JSON.parse(JSON.stringify(getL()));
+      P = [{ name: 'Normal', layout: base, election: false, secs: 60 }, { name: 'US-Wahl', layout: base, election: true, secs: 60 }, { name: 'Kalender', layout: CAL_LAYOUT, election: false, secs: 60 }];
+    }
+    let rotate = !!settings().rotate;
+    const cur = curPreset();
+    const scrim = h('<div class="pre-scrim"><div class="pre-panel" role="dialog" aria-label="Presets"></div></div>');
+    const panel = scrim.querySelector('.pre-panel');
+    const draw = () => {
+      const rows = [0, 1, 2, 3, 4].map(i => {
+        const p = P[i];
+        return `<div class="pre-row ${p ? '' : 'empty'} ${p && cur && p.name === cur.name ? 'cur' : ''}" data-i="${i}">
+          <span class="nr">${i + 1}</span>
+          <input type="text" maxlength="24" placeholder="Freier Platz" value="${p ? esc(p.name) : ''}" data-f="name">
+          <span class="secs"><input type="number" min="15" max="1800" step="15" value="${p ? p.secs : 60}" data-f="secs" ${p ? '' : 'disabled'}>Sek.</span>
+          <label class="chk"><input type="checkbox" data-f="election" ${p?.election ? 'checked' : ''} ${p ? '' : 'disabled'}>US-Wahl</label>
+          <button type="button" class="btn" data-a="save">${p ? 'Mit jetziger Ansicht überschreiben' : 'Jetzige Ansicht speichern'}</button>
+          <button type="button" class="btn" data-a="show" ${p && setL ? '' : 'hidden'}>Bearbeiten</button>
+          <button type="button" class="btn" data-a="del" ${p ? '' : 'hidden'}>Löschen</button>
+        </div>`;
+      }).join('');
+      panel.innerHTML = `<h2>Presets <span class="hint" style="font-size:18px;font-weight:400">bis zu 5 Ansichten, die sich abwechseln</span></h2>${rows}
+        <p class="hint">„Jetzige Ansicht“ ist die Anordnung, die gerade im Bearbeiten-Fenster zu sehen ist. Zeit von 15 Sekunden bis 30 Minuten. Wer das Board antippt, hält den Wechsel 2 Minuten an. Im Besuchermodus bleibt Preset 1 stehen.</p>
+        <div class="pre-foot"><label class="sw"><input type="checkbox" id="preRot" ${rotate ? 'checked' : ''}>Automatisch wechseln</label>
+        <button type="button" class="btn" id="preNo">Abbrechen</button><button type="button" class="btn primary" id="preOk">Speichern</button></div>`;
+      panel.querySelector('#preRot').onchange = e => { rotate = e.target.checked; };
+      panel.querySelectorAll('.pre-row').forEach(row => {
+        const i = +row.dataset.i;
+        row.querySelectorAll('input[data-f]').forEach(inp => inp.oninput = () => {
+          if (!P[i]) return;
+          const f = inp.dataset.f;
+          P[i][f] = f === 'election' ? inp.checked : f === 'secs' ? Math.max(15, Math.min(1800, +inp.value || 60)) : inp.value;
+        });
+        row.querySelector('[data-a="save"]').onclick = () => {
+          const name = row.querySelector('[data-f="name"]').value.trim() || `Ansicht ${i + 1}`;
+          P[i] = { name, layout: JSON.parse(JSON.stringify(getL())), election: P[i] ? P[i].election : wahlOn(), secs: P[i]?.secs || 60 };
+          P = P.filter(Boolean); draw();
+        };
+        row.querySelector('[data-a="show"]').onclick = () => { if (P[i] && setL) { setL(P[i].layout); setSettings({ election: !!P[i].election }); applyLayout(); } };
+        row.querySelector('[data-a="del"]').onclick = () => { P.splice(i, 1); draw(); };
+      });
+      panel.querySelector('#preNo').onclick = () => scrim.remove();
+      panel.querySelector('#preOk').onclick = () => {
+        const list = P.filter(Boolean).slice(0, 5).map(p => ({ ...p, name: String(p.name || '').trim().slice(0, 24) || 'Ansicht' }));
+        rotIdx = 0; rotStart = Date.now(); rotPause = 0;
+        setSettings({ presets: list, rotate: rotate && list.length > 0 });
+        scrim.remove(); applyLayout(); newsSig = ''; renderNews(); renderWahl(true); rotTick();
+      };
+    };
+    draw();
+    stage.append(scrim);
+  }
+  $('#rotInfo').onclick = () => openPresets();
 
   function arrange() {
     if (stage.querySelector('.arr')) return;
@@ -1403,14 +1519,19 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     };
     let bar = null;
     bar = h(`<div class="arr-bar"><span><b>Ziehen</b> verschiebt, auf eine andere Kachel ziehen <b>tauscht</b>, jede der vier Ecken ändert die <b>Größe</b>.</span>
-      <div class="arr-hid"></div><button class="btn" id="arrDef">Standard</button><button class="btn" id="arrNo">Abbrechen</button><button class="btn primary" id="arrOk">Fertig</button></div>`);
+      <div class="arr-hid"></div><button class="btn" id="arrPre">Presets${curPreset() ? ` · ${esc(curPreset().name)}` : ''}</button><button class="btn" id="arrDef">Standard</button><button class="btn" id="arrNo">Abbrechen</button><button class="btn primary" id="arrOk">Fertig</button></div>`);
     stage.append(bar);
     main.append(ov); draw();
     stage.classList.add('arranging');
     const end = (save) => {
       ov.remove(); bar.remove(); stage.classList.remove('arranging');
-      if (save) setSettings({ layout: L }); else applyLayout();
+      if (save) {
+        // Läuft gerade ein Preset, wird dieses Preset geändert, sonst die normale Anordnung
+        const P = presetList(), cp = curPreset(), i = cp ? P.indexOf(cp) : -1;
+        if (i >= 0) { P[i] = { ...cp, layout: L }; setSettings({ presets: P }); applyLayout(); } else setSettings({ layout: L });
+      } else applyLayout();
     };
+    bar.querySelector('#arrPre').onclick = () => openPresets(() => L, nl => { L = JSON.parse(JSON.stringify(nl)); draw(); });
     bar.querySelector('#arrOk').onclick = () => end(true);
     bar.querySelector('#arrNo').onclick = () => end(false);
     bar.querySelector('#arrDef').onclick = () => { L = JSON.parse(JSON.stringify(DEF_LAYOUT)); draw(); };
@@ -2414,8 +2535,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   const WNAME = { D: 'Demokraten', R: 'Republikaner', I: 'Unabhängige', O: 'Andere' };
   const WVIEWS = ['senate', 'house', 'gov'];
   let wStep = 0, wTimer = 0, wPin = null, wSig = '';
-  $('#btnWahl').onclick = () => { const on = !wahlOn(); setSettings({ election: on }); applyLayout(); newsSig = ''; renderNews(); renderWahl(true); };
-  $('#wOff').onclick = () => { setSettings({ election: false }); applyLayout(); newsSig = ''; renderNews(); };
+  $('#btnWahl').onclick = () => { const on = !wahlOn(); setSettings(curPreset() ? { election: on, rotate: false } : { election: on }); applyLayout(); newsSig = ''; renderNews(); renderWahl(true); };
+  $('#wOff').onclick = () => { setSettings(curPreset() ? { election: false, rotate: false } : { election: false }); applyLayout(); newsSig = ''; renderNews(); };
   $('#wTabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; wPin = b.dataset.v; wStep = WVIEWS.indexOf(wPin) * 2; renderWahl(true); clearTimeout(wPinT); wPinT = setTimeout(() => { wPin = null; }, 120000); };
   let wPinT = 0;
   const wPct = v => v == null ? '' : `${String(v).replace('.', ',')} %`;
@@ -3385,8 +3506,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     btn.hidden = !avail && !lu;
     btn.classList.toggle('info', !avail);
     btn.querySelector('use').setAttribute('href', avail ? '#i-download' : '#i-sparkle');
-    $('#updText').textContent = avail ? `Neue Version ${u.available} verfügbar` : `Aktualisiert auf Version ${S.version}`;
-    $('#updSub').textContent = avail ? 'Antippen: Patch-Notes ansehen und aktualisieren' : 'Antippen: Was ist neu?';
+    $('#updText').textContent = avail ? `Update ${u.available}` : `Neu: ${S.version}`;
+    $('#updSub').textContent = avail ? 'Antippen' : 'Was ist neu?';
     // Platz in der Kopfzeile: Mini-Wetter weicht, solange der Hinweis da ist (Wetter steht rechts in der Kachel)
     $('.wx-mini').hidden = !btn.hidden;
     const ver = $('#ver');
