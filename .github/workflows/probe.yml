@@ -4,15 +4,21 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
       - run: |
-          UA="Buero-Wallboard/1.38 (Kiosk-Anzeige; github.com/clausiclausi/buero-wallboard)"
-          for p in 2026_United_States_Senate_elections 2026_United_States_House_of_Representatives_elections 2026_United_States_gubernatorial_elections; do
-            echo "=================== $p"
-            curl -sS -A "$UA" "https://en.wikipedia.org/w/api.php?action=parse&page=$p&prop=wikitext&format=json&formatversion=2" -o w.json -w "%{http_code}\n"
-            python3 -c "import json;t=json.load(open('w.json'))['parse']['wikitext'];print(len(t));i=t.find('{{Infobox election');print(t[i:i+5000]);
-          import re
-          for k in ['Candidates','Results']:
-            j=t.find('!'+k) if '!'+k in t else t.find(k+'\n')
-          j=t.find('Alabama',t.find('Candidates'));print('----TABLE');print(t[j-3000:j+5000])"
-          done
-          for u in "https://www.tagesschau.de/ausland/amerika/index~rss2.xml" "https://www.tagesschau.de/index~rss2.xml" "https://www.deutschlandfunk.de/nachrichten-100.rss" "https://www.n-tv.de/politik/rss" "https://www.tagesschau.de/api2u/news/?ressort=ausland"; do echo "== $u"; curl -sS -A "$UA" -o r.txt -w "%{http_code} %{size_download}\n" "$u"; head -c 1500 r.txt; echo; done
+          mkdir -p /tmp/d && node -e "
+          const E = require('./app/election.js')({ DATA: '/tmp/d', log: console.log, getSettings: () => ({ election: true }), broadcast() {} });
+          E.start();
+          setTimeout(() => { const s = E.view(); const sum = r => r && r.races ? r.races.map(x => x.label + ':' + (x.winner||'-') + '/' + (x.leader||'-') + ' ' + x.cands.map(c => c.name + '(' + c.party + ')' + (c.pct ?? '')).join(', ')).join(' | ') : '';
+            console.log('ERROR', s.error); console.log('UPDATED', s.updated);
+            console.log('SENATE', JSON.stringify({ total: s.senate?.total, won: s.senate?.won, lead: s.senate?.lead, decided: s.senate?.decided, n: s.senate?.races.length }));
+            console.log(sum(s.senate));
+            console.log('HOUSE', JSON.stringify({ total: s.house?.total, won: s.house?.won, lead: s.house?.lead, decided: s.house?.decided, n: s.house?.count, states: Object.keys(s.house?.states || {}).length }));
+            console.log('HOUSE close', (s.house?.close || []).length);
+            console.log('GOV', JSON.stringify({ won: s.gov?.won, decided: s.gov?.decided, n: s.gov?.races.length }));
+            console.log(sum(s.gov));
+            console.log('NEWS', JSON.stringify(s.news.map(n => n.src + ' ' + n.title)));
+            process.exit(0); }, 25000);
+          "
