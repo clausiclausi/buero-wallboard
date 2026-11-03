@@ -534,7 +534,10 @@ main.pre-fade { animation: prefade .6s ease; }
 
 footer { display: flex; align-items: center; gap: 18px; font-size: 18px; color: var(--muted); }
 footer .stale { color: var(--warn); }
-footer .sp { margin-left: auto; }
+footer { min-width: 0; }
+footer .sp { margin-left: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+footer #audioHint { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+footer .mini-btn, footer #stand { flex: none; }
 footer .mini-btn { margin-left: 0; font-size: 17px; }
 .scan-save { display: flex; align-items: center; gap: 16px; font-size: 19px; }
 .scan-save .btn { display: inline-flex; align-items: center; gap: 8px; flex: none; }
@@ -1399,6 +1402,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     return P[rotIdx % P.length];
   }
   // Kalender-Ansicht als Vorschlag: Monat groß, To-Do und Notizen daneben, Wetter rechts
+  // US-Wahl-Ansicht als Vorschlag: großes Wahl-Feld links (To-Do-Platz 6x6), Wahl-Nachrichten unter dem Wetter
+  const WAHL_LAYOUT = { ...DEF_LAYOUT, todo: [1, 1, 6, 6], notes: [7, 1, 3, 3], transit: [7, 4, 3, 3], wx: [10, 1, 3, 4], news: [10, 5, 3, 2], hidden: ['cal', 'loan', 'month', 'incident', 'sec'] };
   const CAL_LAYOUT = { ...DEF_LAYOUT, month: [1, 1, 6, 6], todo: [7, 1, 3, 3], notes: [7, 4, 3, 3], wx: [10, 1, 3, 4], news: [10, 5, 3, 2], hidden: ['cal', 'transit', 'loan', 'incident', 'sec'] };
   function rotTick() {
     const P = (settings().presets || []).filter(p => p && p.layout), info = $('#rotInfo');
@@ -1406,7 +1411,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     info.hidden = !on;
     if (!on) return;
     const cp = curPreset(), now = Date.now(), busy = stage.classList.contains('arranging') || !!document.querySelector('.pre-scrim') || settings().visitor;
-    const paused = busy || now < rotPause;
+    // Außerhalb der Bürozeit bleibt die Ansicht stehen
+    const paused = busy || now < rotPause || !inOffice();
     const secs = (cp?.secs || 60) * 1000;
     if (paused) rotStart += 1000;
     if (!paused && P.length > 1 && now - rotStart >= secs) {
@@ -1427,7 +1433,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     let P = presetList();
     if (!P.length) {
       const base = JSON.parse(JSON.stringify(getL()));
-      P = [{ name: 'Normal', layout: base, election: false, secs: 60 }, { name: 'US-Wahl', layout: base, election: true, secs: 60 }, { name: 'Kalender', layout: CAL_LAYOUT, election: false, secs: 60 }];
+      P = [{ name: 'Normal', layout: base, election: false, secs: 60 }, { name: 'US-Wahl', layout: WAHL_LAYOUT, election: true, secs: 60 }, { name: 'Kalender', layout: CAL_LAYOUT, election: false, secs: 60 }];
     }
     let rotate = !!settings().rotate;
     const cur = curPreset();

@@ -1,5 +1,14 @@
 [
  {
+  "version": "1.42.0",
+  "date": "2026-11-03",
+  "changes": [
+   "Presets: Der Vorschlag „US-Wahl“ zeigt das Wahl-Feld jetzt groß (halber Bildschirm) mit Karte und Rennen nebeneinander, Wahl-Nachrichten unter dem Wetter.",
+   "Automatischer Wechsel ruht außerhalb der Bürozeit.",
+   "Fußzeile: Texte kürzen sich bei Platzmangel, Knöpfe rechts bleiben immer sichtbar."
+  ]
+ },
+ {
   "version": "1.41.0",
   "date": "2026-11-03",
   "changes": [

@@ -1,18 +1,17 @@
 {
-  "version": "1.41.0",
-  "notes": "Presets: Unter „Kacheln bearbeiten“ → „Presets“ bis zu 5 Ansichten speichern (z. B. Normal, US-Wahl, Kalender), je mit Name, Anzeigedauer (15 Sekunden bis 30 Minuten) und Wahl-Modus an/aus.",
+  "version": "1.42.0",
+  "notes": "Presets: Der Vorschlag „US-Wahl“ zeigt das Wahl-Feld jetzt groß (halber Bildschirm) mit Karte und Rennen nebeneinander, Wahl-Nachrichten unter dem Wetter. Automatischer Wechsel ruht außerhalb der Bürozeit. Fußzeile: Texte kürzen sich bei Platzmangel, Knöpfe rechts bleiben immer sichtbar.",
   "changes": [
-    "Presets: Unter „Kacheln bearbeiten“ → „Presets“ bis zu 5 Ansichten speichern (z. B. Normal, US-Wahl, Kalender), je mit Name, Anzeigedauer (15 Sekunden bis 30 Minuten) und Wahl-Modus an/aus.",
-    "„Automatisch wechseln“ zeigt die Presets nacheinander, mit sanftem Überblenden. Unten in der Fußzeile steht, welches gerade läuft, mit Fortschrittsstrich. Antippen am Board hält den Wechsel 2 Minuten an. Im Besuchermodus bleibt Preset 1 stehen.",
-    "Handy-Seite: neuer Bereich „Ansicht am Board“ zum Starten/Anhalten des Wechsels, festes Zeigen eines Presets und Wahl-Modus.",
-    "Kopfzeile: Der Update-Hinweis ist kürzer und läuft nicht mehr über das Datum."
+    "Presets: Der Vorschlag „US-Wahl“ zeigt das Wahl-Feld jetzt groß (halber Bildschirm) mit Karte und Rennen nebeneinander, Wahl-Nachrichten unter dem Wetter.",
+    "Automatischer Wechsel ruht außerhalb der Bürozeit.",
+    "Fußzeile: Texte kürzen sich bei Platzmangel, Knöpfe rechts bleiben immer sichtbar."
   ],
   "files": {
-    "changelog.json": "772c4475e34e85b5f8b0038043928192428e1226f15963f08f4661bb64bd1feb",
+    "changelog.json": "840f623000170405025d6af3a63c0c539521111f92df01744fa039244bd0a501",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
     "election.js": "977e3fe073c468cc6e4a73d493817288294c0acb454d37c91523c1691863efc6",
     "extras.js": "b0a86a05ff18ace4e0d31985b3545fbc2e09114651bb408dd2dbd935f9f719eb",
-    "public/board.html": "1ee3a49c3c291e66f81fd7a6938e22ea26fee2b02129809b1e0d0a3463d4940d",
+    "public/board.html": "9bf2594f8c0e902ee5ebe2919eb079bbbd5ad23083bcf27fed2c46204ce0ebd6",
     "public/icon-192.png": "c6b866b885e711fdb607de892d36300c9da80127f2d833cd672ce40af65f5637",
     "public/icon-512.png": "0330db0ae5d581a2bd979a907dbdcb1f3d626ebe2df8c3e4a9469771a2e2dec6",
     "public/knock.js": "422d5ca78ea4873c002673f42c0e7db747b70f86c8ec489a95638bb18ae9e667",
@@ -22,6 +21,6 @@
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
     "server.js": "1dd3c324c9f23eff6cee401ab875b8f6b7fe86301e73036d0a2cc0be38126264",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "f9d07120abf51237806ecaccac665861453b4ce998a7448c44143bcaf1fcde0b"
+    "version.json": "87edb9834fa6b6205e77b0b22845f42544e3c67f15e12e54a64659253bc37093"
   }
 }
