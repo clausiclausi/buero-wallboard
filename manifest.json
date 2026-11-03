@@ -1,16 +1,15 @@
 {
-  "version": "1.39.0",
-  "notes": "Neue Taste oben rechts (vier Kästchen): Kacheln bearbeiten mit einem Druck. Verschieben, tauschen, Größe ändern, aus- und einblenden, dann „Fertig“. Bisher ging das nur über die Einstellungen.",
+  "version": "1.40.0",
+  "notes": "Kacheln bearbeiten: Die Leiste oben passt sich an. Viele ausgeblendete Kacheln brechen in eine zweite Zeile um, „Fertig“, „Abbrechen“ und „Standard“ bleiben immer sichtbar.",
   "changes": [
-    "Neue Taste oben rechts (vier Kästchen): Kacheln bearbeiten mit einem Druck. Verschieben, tauschen, Größe ändern, aus- und einblenden, dann „Fertig“. Bisher ging das nur über die Einstellungen.",
-    "Kacheln bearbeiten: Die Größe lässt sich jetzt an allen vier Ecken ziehen, nicht nur unten rechts. Nachbar-Kacheln auf der Seite machen Platz."
+    "Kacheln bearbeiten: Die Leiste oben passt sich an. Viele ausgeblendete Kacheln brechen in eine zweite Zeile um, „Fertig“, „Abbrechen“ und „Standard“ bleiben immer sichtbar."
   ],
   "files": {
-    "changelog.json": "dffcebfe7323088c42a23e25e045cabe6dca64e6fb400ecd17718c268bdd1453",
+    "changelog.json": "bd4ce53f40b9ed53f5d3ee5d483d349c5c3dedeb2727685e02f10d8652886b02",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
     "election.js": "977e3fe073c468cc6e4a73d493817288294c0acb454d37c91523c1691863efc6",
     "extras.js": "b0a86a05ff18ace4e0d31985b3545fbc2e09114651bb408dd2dbd935f9f719eb",
-    "public/board.html": "b742db9941891bc1780aaff47e5a4bc0df26e03f5f901120e3f0023fda606463",
+    "public/board.html": "091f56e58c439bacd4406a0db3629334c80ab0122c6147f041b975fb03b8dfad",
     "public/icon-192.png": "c6b866b885e711fdb607de892d36300c9da80127f2d833cd672ce40af65f5637",
     "public/icon-512.png": "0330db0ae5d581a2bd979a907dbdcb1f3d626ebe2df8c3e4a9469771a2e2dec6",
     "public/knock.js": "422d5ca78ea4873c002673f42c0e7db747b70f86c8ec489a95638bb18ae9e667",
@@ -20,6 +19,6 @@
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
     "server.js": "d91c581e020b4e4104df28e37098a48af20830aceb58303f3b82d13952054e58",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "2b3db71402372841bd93cd40095ac0672c43bc000ffa833c7c28b91eb67639e1"
+    "version.json": "c441d9dc5835dc9d7801adf5368805ca14c396121de80480d6b77062c01d107b"
   }
 }

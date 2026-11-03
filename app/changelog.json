@@ -1,5 +1,12 @@
 [
  {
+  "version": "1.40.0",
+  "date": "2026-11-03",
+  "changes": [
+   "Kacheln bearbeiten: Die Leiste oben passt sich an. Viele ausgeblendete Kacheln brechen in eine zweite Zeile um, „Fertig“, „Abbrechen“ und „Standard“ bleiben immer sichtbar."
+  ]
+ },
+ {
   "version": "1.39.0",
   "date": "2026-11-03",
   "changes": [
