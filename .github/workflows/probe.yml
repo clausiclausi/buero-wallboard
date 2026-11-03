@@ -1,0 +1,18 @@
+name: probe
+on: push
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          UA="Buero-Wallboard/1.38 (Kiosk-Anzeige; github.com/clausiclausi/buero-wallboard)"
+          for p in 2026_United_States_Senate_elections 2026_United_States_House_of_Representatives_elections 2026_United_States_gubernatorial_elections; do
+            echo "=================== $p"
+            curl -sS -A "$UA" "https://en.wikipedia.org/w/api.php?action=parse&page=$p&prop=wikitext&format=json&formatversion=2" -o w.json -w "%{http_code}\n"
+            python3 -c "import json;t=json.load(open('w.json'))['parse']['wikitext'];print(len(t));i=t.find('{{Infobox election');print(t[i:i+5000]);
+          import re
+          for k in ['Candidates','Results']:
+            j=t.find('!'+k) if '!'+k in t else t.find(k+'\n')
+          j=t.find('Alabama',t.find('Candidates'));print('----TABLE');print(t[j-3000:j+5000])"
+          done
+          for u in "https://www.tagesschau.de/ausland/amerika/index~rss2.xml" "https://www.tagesschau.de/index~rss2.xml" "https://www.deutschlandfunk.de/nachrichten-100.rss" "https://www.n-tv.de/politik/rss" "https://www.tagesschau.de/api2u/news/?ressort=ausland"; do echo "== $u"; curl -sS -A "$UA" -o r.txt -w "%{http_code} %{size_download}\n" "$u"; head -c 1500 r.txt; echo; done
