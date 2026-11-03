@@ -1,5 +1,15 @@
 [
  {
+  "version": "1.38.0",
+  "date": "2026-11-03",
+  "changes": [
+   "Neue Taste oben rechts (Wahlurne): Wahl-Modus für die US-Zwischenwahlen. Ein Wahl-Feld ersetzt vorübergehend To-Do und Kalender.",
+   "Wahl-Feld: Sitze im Senat und Repräsentantenhaus (Demokraten blau, Republikaner rot, Strich = Mehrheit), Karte der Bundesstaaten (wer gewonnen hat oder führt), knappe Rennen mit Prozenten, Gouverneurswahlen. Wechselt alle 10 Sekunden, Antippen von Senat/Haus/Gouv. springt hin.",
+   "Wahl-Nachrichten von tagesschau und Deutschlandfunk: im Wahl-Feld bzw. in der Nachrichten-Kachel und im Laufband. Ergebnisse sind vorläufig und kommen von Wikipedia, wo Freiwillige sie in der Wahlnacht eintragen.",
+   "Gleiche Taste oder das X im Wahl-Feld schaltet alles wieder zurück."
+  ]
+ },
+ {
   "version": "1.37.0",
   "date": "2026-11-02",
   "changes": [

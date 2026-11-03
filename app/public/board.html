@@ -215,6 +215,75 @@ main {
 .mgrid .d.bt { outline: 2px dashed color-mix(in srgb, var(--warn) 70%, transparent); outline-offset: -3px; }
 .month-foot .sf-dot { background: var(--rain) !important; }
 main > .card.off { display: none; }
+/* Wahl-Modus: Live-Stand US-Zwischenwahlen */
+.wahl { --dem: #3B7BE8; --rep: #E0483F; --ind: #9B6BD6; gap: calc(10px * var(--z, 1)); }
+.wahl h3 { flex-wrap: nowrap; letter-spacing: 1px; gap: 8px; }
+.wahl h3 > span:first-child { white-space: nowrap; }
+.wahl.compact .w-bar .sub { display: none; }
+.w-bar .lab .cnt { display: block; font-size: 12px; letter-spacing: 0; text-transform: none; }
+.wahl.compact h3 .w-off { display: none; }
+.wahl.compact .w-tabs button { padding: 3px 8px; font-size: 13px; }
+.wahl.compact .w-bar { grid-template-columns: 52px auto 1fr auto; gap: 8px; align-items: center; }
+.wahl.compact .w-bar .lab { grid-column: 1; grid-row: 1; text-align: left; font-size: 13px; }
+.wahl.compact .w-bar .lab .cnt { display: none; }
+.wahl.compact .w-bar .d { grid-column: 2; grid-row: 1; }
+.wahl.compact .w-bar .d small, .wahl.compact .w-bar .r small { display: none; }
+.wahl.compact .w-track { grid-column: 3; grid-row: 1; }
+.wahl.compact .w-bar .r { grid-column: 4; grid-row: 1; }
+.wahl.compact .w-cnt { display: block; }
+.wahl.compact .w-race { padding: 4px 8px; font-size: 14px; gap: 1px 8px; }
+.wahl.compact .w-race .nm, .wahl.compact .w-race .st { font-size: 12px; }
+.wahl.compact .w-race .pc { height: 6px; }
+.wahl.compact .w-list { gap: 4px; }
+.w-cnt { display: none; font-size: 12px; color: var(--muted); text-align: center; flex: none; margin-top: -4px; }
+.wahl.compact .w-bar .d, .wahl.compact .w-bar .r { font-size: 22px; }
+.wahl.compact .w-track { height: 10px; }
+.wahl.compact .w-bars { gap: 4px; }
+.wahl.compact .w-map .w-legend { font-size: 12px; gap: 8px; }
+.wahl .w-sum { font-size: 13px; color: var(--muted); text-align: center; flex: none; }
+.wahl h3 .w-live { display: inline-flex; align-items: center; gap: 6px; font-size: 16px; letter-spacing: 1px; color: var(--crit); }
+.wahl h3 .w-live::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--crit); animation: wlive 1.6s ease-in-out infinite; }
+@keyframes wlive { 50% { opacity: .25; } }
+.wahl .w-tabs { margin-left: auto; display: flex; gap: 4px; }
+.wahl .w-tabs button { font: inherit; font-size: 14px; letter-spacing: .5px; text-transform: none; padding: 4px 10px; border-radius: 999px; border: 0; background: var(--surface-2); color: var(--muted); cursor: pointer; }
+.wahl .w-tabs button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+.wahl .w-off { font: inherit; font-size: 14px; border: 0; background: none; color: var(--muted); cursor: pointer; padding: 2px; display: inline-flex; }
+.w-bars { display: flex; flex-direction: column; gap: 8px; flex: none; }
+.w-bar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: baseline; gap: 2px 10px; font-size: 18px; }
+.w-bar .lab { grid-column: 2; text-align: center; color: var(--muted); font-size: 15px; letter-spacing: 1px; text-transform: uppercase; }
+.w-bar .d { color: var(--dem); font-weight: 800; font-size: 26px; font-variant-numeric: tabular-nums; }
+.w-bar .r { color: var(--rep); font-weight: 800; font-size: 26px; text-align: right; font-variant-numeric: tabular-nums; }
+.w-bar .d small, .w-bar .r small { font-size: 14px; font-weight: 600; color: var(--muted); margin: 0 4px; }
+.w-track { grid-column: 1 / -1; position: relative; height: 14px; border-radius: 7px; background: var(--surface-2); overflow: hidden; }
+.w-track i { position: absolute; top: 0; bottom: 0; transition: width .8s ease; }
+.w-track .td { left: 0; background: var(--dem); } .w-track .ti { background: var(--ind); } .w-track .tr { right: 0; background: var(--rep); }
+.w-track .mid { left: 50%; width: 2px; margin-left: -1px; background: var(--text); opacity: .8; z-index: 2; }
+.w-bar .sub { grid-column: 1 / -1; font-size: 13px; color: var(--muted); text-align: center; margin-top: -2px; }
+.w-body { flex: 1; min-height: 0; display: flex; gap: 14px; position: relative; }
+.w-map, .w-list { flex: 1; min-width: 0; min-height: 0; }
+.w-body:not(.wide) .w-map.hide, .w-body:not(.wide) .w-list.hide { display: none; }
+.w-map { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.w-map svg { width: 100%; height: 100%; min-height: 0; flex: 1; }
+.w-map text { font: 700 11px system-ui, sans-serif; text-anchor: middle; dominant-baseline: central; fill: #fff; }
+.w-map text.dim { fill: var(--muted); }
+.w-legend { display: flex; gap: 12px; font-size: 13px; color: var(--muted); flex-wrap: wrap; justify-content: center; }
+.w-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+.w-list { display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+.w-race { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 6px 10px; border-radius: 10px; background: var(--bg); font-size: 16px; }
+.w-race b { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.w-race .st { font-size: 13px; color: var(--muted); align-self: center; }
+.w-race .won { color: var(--ok); }
+.w-race .pc { grid-column: 1 / -1; display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--surface-2); }
+.w-race .pc i { display: block; height: 100%; }
+.w-race .nm { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; }
+.w-race .nm span { overflow: hidden; text-overflow: ellipsis; }
+.w-empty { color: var(--muted); font-size: 16px; padding: 10px 4px; text-align: center; margin: auto; }
+.w-news[hidden], .w-sum[hidden] { display: none; }
+.w-news { flex: none; display: flex; flex-direction: column; gap: 5px; border-top: 1px solid var(--line); padding-top: 8px; }
+.w-news button { display: flex; gap: 8px; align-items: baseline; text-align: left; font: inherit; font-size: 16px; color: var(--text); background: none; border: 0; padding: 0; cursor: pointer; line-height: 1.25; }
+.w-news button small { flex: none; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.w-news button span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.w-src { flex: none; font-size: 11px; color: var(--muted); opacity: .8; }
 .note.lob { background: color-mix(in srgb, #FF8FA3 18%, var(--bg)); border: 1px solid color-mix(in srgb, #FF8FA3 45%, transparent); }
 /* Lob-Pop-up: groß in der Mitte, mit kleinen Herzen */
 .lob-pop { position: absolute; inset: 0; z-index: 9; display: grid; place-items: center; background: rgba(0,0,0,.45); cursor: pointer; animation: lobfade .4s ease both; }
@@ -962,6 +1031,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></symbol>
   <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-4M13 17V8M18 17v-7"/></symbol>
   <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+  <symbol id="i-vote" viewBox="0 0 24 24"><path d="M4 13h16v8H4zM8 13l2-2M9 9l4-6 5 3-4 6"/><path d="M8 17h8"/></symbol>
   <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></symbol>
 </svg>
 
@@ -979,6 +1049,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     <div class="tools">
       <button class="tool" id="btnMute" aria-pressed="false" title="Erinnerungston stumm schalten"><svg class="icon"><use href="#i-bell"/></svg></button>
       <button class="tool" id="btnVisitor" aria-pressed="false" title="Besuchermodus: Freitexte verbergen"><svg class="icon"><use href="#i-eye-off"/></svg></button>
+      <button class="tool" id="btnWahl" aria-pressed="false" title="Wahl-Modus: Live-Stand der US-Wahl statt Nachrichten und To-Do"><svg class="icon"><use href="#i-vote"/></svg></button>
       <button class="tool" id="btnYear" title="Jahreskalender mit Urlaub, Feiertagen und Urlaubs-Tipps"><svg class="icon"><use href="#i-calendar"/></svg></button>
       <button class="tool" id="btnStats" title="Auswertung der Aufgaben (nur Team-Zahlen)"><svg class="icon"><use href="#i-chart"/></svg></button>
       <button class="tool" id="btnSettings" title="Einstellungen"><svg class="icon"><use href="#i-gear"/></svg></button>
@@ -1053,6 +1124,14 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       <div class="news-list" id="newsList"><div class="news-track" id="newsTrack"></div></div>
     </section>
 
+    <section class="card wahl off" id="wahlCard" data-e="wahl" aria-label="US-Wahl live">
+      <h3><span>US-Wahl</span><span class="w-live">LIVE</span><span class="w-tabs" id="wTabs"><button type="button" data-v="senate">Senat</button><button type="button" data-v="house">Haus</button><button type="button" data-v="gov">Gouv.</button></span><button type="button" class="w-off" id="wOff" title="Wahl-Modus ausschalten"><svg class="icon"><use href="#i-x"/></svg></button></h3>
+      <div class="w-bars" id="wBars"></div>
+      <div class="w-cnt" id="wCnt"></div>
+      <div class="w-body" id="wBody"><div class="w-map" id="wMap"></div><div class="w-list" id="wList"></div></div>
+      <div class="w-news" id="wNews"></div>
+      <div class="w-src" id="wSrc"></div>
+    </section>
     <section class="card todo" data-k="todo" data-name="To-Do">
       <h3>To-Do <span class="badge" id="todoCount" hidden></span><button class="mini-btn" id="addTodo"><svg class="icon"><use href="#i-plus"/></svg>To-Do</button></h3>
       <div class="todo-list" id="todos"></div>
@@ -1229,7 +1308,39 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     const z = Math.max(.7, Math.min(1.35, Math.min(a[2] / b[0], a[3] / b[1]) ** .5));
     el.style.setProperty('--z', z.toFixed(3));
   }
-  function applyLayout(L = layout()) { tiles().forEach(el => { placeTile(el, L[el.dataset.k]); el.classList.toggle('off', (L.hidden || []).includes(el.dataset.k)); }); }
+  function applyLayout(L = layout()) { tiles().forEach(el => { placeTile(el, L[el.dataset.k]); el.classList.toggle('off', (L.hidden || []).includes(el.dataset.k)); }); applyWahl(L); }
+  // Wahl-Modus: Das Wahl-Feld nimmt den Platz von Nachrichten, To-Do und Kalender ein (größte freie Fläche daraus)
+  const wahlOn = () => !!settings().election;
+  function wahlArea(L) {
+    const KS = ['news', 'todo', 'cal'], src = KS.filter(k => !(L.hidden || []).includes(k) && fits(L[k])).map(k => L[k]);
+    const others = shownKeys(L).filter(k => !KS.includes(k) && fits(L[k])).map(k => L[k]);
+    const box = list => { const c = Math.min(...list.map(a => a[0])), r = Math.min(...list.map(a => a[1])); return [c, r, Math.max(...list.map(a => a[0] + a[2])) - c, Math.max(...list.map(a => a[1] + a[3])) - r]; };
+    const keys = KS.filter(k => !(L.hidden || []).includes(k) && fits(L[k]));
+    let best = null, used = [];
+    for (let m = 1; m < 1 << src.length; m++) {
+      const a = box(src.filter((_, i) => m >> i & 1));
+      if (others.some(o => overlap(a, o))) continue;
+      const u = keys.filter((_, i) => m >> i & 1);
+      // gleich groß: lieber ohne die Nachrichten-Kachel, die zeigt dann die Wahl-Nachrichten
+      if (!best || a[2] * a[3] > best[2] * best[3] || (a[2] * a[3] === best[2] * best[3] && used.includes('news') && !u.includes('news'))) { best = a; used = u; }
+    }
+    return best ? { a: best, used } : { a: freeSpot(L, '') || DEF_LAYOUT.todo, used: [] };
+  }
+  // true, wenn die Nachrichten-Kachel im Wahl-Modus sichtbar bleibt und Wahl-Nachrichten zeigt
+  let wahlNewsTile = false;
+  function applyWahl(L) {
+    const on = wahlOn(), el = $('#wahlCard');
+    $('#btnWahl')?.setAttribute('aria-pressed', on);
+    el.classList.toggle('off', !on);
+    if (!on) { wahlNewsTile = false; return; }
+    const { a, used } = wahlArea(L);
+    wahlNewsTile = !(L.hidden || []).includes('news') && !used.includes('news');
+    for (const k of ['news', 'todo', 'cal']) if (!(k === 'news' && wahlNewsTile)) stage.querySelector(`main > .card[data-k="${k}"]`)?.classList.add('off');
+    el.style.gridArea = `${a[1]} / ${a[0]} / span ${a[3]} / span ${a[2]}`;
+    el.style.setProperty('--z', Math.max(.75, Math.min(1.25, Math.min(a[2] / 3, a[3] / 3) ** .5)).toFixed(3));
+    el.dataset.w = a[2]; el.dataset.h = a[3];
+    el.classList.toggle('compact', a[3] <= 3 && a[2] <= 4);
+  }
 
   // Ausgeblendete Kachel wieder zeigen: alter Platz, sonst ein freier Platz, sonst null (kein Platz)
   function unhide(L, k) {
@@ -2204,10 +2315,12 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   const newsView = () => ({ mode: settings().newsMode === 'roll' ? 'roll' : 'page', per: settings().newsPer || 3, every: settings().newsEvery || 30 });
   // Durchlauf: Inhalt doppelt, die Animation schiebt genau eine Hälfte weiter. Nur neu bauen, wenn sich etwas ändert.
   function renderNews() {
-    const items = (S.extras?.news || []).filter(n => newsSources().includes(n.src) && !newsHide().includes(n.topic));
-    const tile = !layout().hidden?.includes('news'), tick = settings().newsTicker !== false && items.length > 0;
+    const items = wahlOn() && wahlNewsTile ? (S.election?.news || []) : (S.extras?.news || []).filter(n => newsSources().includes(n.src) && !newsHide().includes(n.topic));
+    $('#newsHead').firstChild.textContent = wahlOn() && wahlNewsTile ? 'Wahl-Nachrichten ' : 'Nachrichten ';
+    const wnews = wahlOn() ? (S.election?.news || []) : [];
+    const tile = !layout().hidden?.includes('news'), tick = settings().newsTicker !== false && (items.length > 0 || wnews.length > 0);
     const view = newsView();
-    const sig = JSON.stringify([items.map(n => n.title + n.date), tile, tick, view]);
+    const sig = JSON.stringify([items.map(n => n.title + n.date), tile, tick, view, wnews.map(n => n.title), wahlNewsTile]);
     if (sig === newsSig) return;
     newsSig = sig;
     const one = n => `<span>${esc(n.title)}<small>${newsTime(n.date)}</small></span>`;
@@ -2263,7 +2376,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     });
     }
     $('#ticker').hidden = !tick;
-    const tt = $('#tickerTrack'), tl = items.slice(0, 20);
+    const tt = $('#tickerTrack'), tl = wnews.length ? wnews.slice(0, 20) : items.slice(0, 20);
     tt.classList.remove('run');
     tt.innerHTML = tick ? [0, 1].map(() => tl.map((n, i) => `<button type="button" data-i="${i}"><b>${esc(NEWS_NAMES[n.src] || '')}</b>${esc(n.title)}</button>`).join('')).join('') : '';
     if (tick) requestAnimationFrame(() => {
@@ -2271,6 +2384,111 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       tt.classList.add('run');
       tt.querySelectorAll('button').forEach(b => b.onclick = () => openNews(tl[+b.dataset.i]));
     });
+  }
+
+  /* ---------- Wahl-Modus: US-Zwischenwahlen 2026 ---------- */
+  // Kachelkarte der USA: [Kürzel, Spalte, Zeile]
+  const WMAP = [['AK',0,0],['ME',11,0],['WI',6,1],['VT',10,1],['NH',11,1],['WA',0,2],['ID',1,2],['MT',2,2],['ND',3,2],['MN',4,2],['IL',5,2],['MI',7,2],['NY',9,2],['MA',10,2],
+    ['OR',0,3],['NV',1,3],['WY',2,3],['SD',3,3],['IA',4,3],['IN',5,3],['OH',6,3],['PA',7,3],['NJ',8,3],['CT',9,3],['RI',10,3],
+    ['CA',0,4],['UT',1,4],['CO',2,4],['NE',3,4],['MO',4,4],['KY',5,4],['WV',6,4],['VA',7,4],['MD',8,4],['DE',9,4],
+    ['AZ',1,5],['NM',2,5],['KS',3,5],['AR',4,5],['TN',5,5],['NC',6,5],['SC',7,5],['OK',3,6],['LA',4,6],['MS',5,6],['AL',6,6],['GA',7,6],['HI',0,7],['TX',3,7],['FL',8,7]];
+  const WCOL = { D: 'var(--dem)', R: 'var(--rep)', I: 'var(--ind)', O: 'var(--ind)' };
+  const WNAME = { D: 'Demokraten', R: 'Republikaner', I: 'Unabhängige', O: 'Andere' };
+  const WVIEWS = ['senate', 'house', 'gov'];
+  let wStep = 0, wTimer = 0, wPin = null, wSig = '';
+  $('#btnWahl').onclick = () => { const on = !wahlOn(); setSettings({ election: on }); applyLayout(); newsSig = ''; renderNews(); renderWahl(true); };
+  $('#wOff').onclick = () => { setSettings({ election: false }); applyLayout(); newsSig = ''; renderNews(); };
+  $('#wTabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; wPin = b.dataset.v; wStep = WVIEWS.indexOf(wPin) * 2; renderWahl(true); clearTimeout(wPinT); wPinT = setTimeout(() => { wPin = null; }, 120000); };
+  let wPinT = 0;
+  const wPct = v => v == null ? '' : `${String(v).replace('.', ',')} %`;
+  function wBar(label, d, set) {
+    if (!d) return `<div class="w-bar"><span class="lab">${label}</span><div class="w-track"><i class="mid"></i></div><div class="sub">wird geladen …</div></div>`;
+    const t = d.total || {}, D = t.D || 0, R = t.R || 0, I = t.I || 0, n = d.seats;
+    const lead = ['D', 'R'].find(k => (t[k] || 0) >= d.need);
+    const sub = lead ? `${WNAME[lead]} haben die Mehrheit (${d.need})` : `${d.need} Sitze für die Mehrheit`;
+    return `<div class="w-bar"><span class="d">${D}<small>Dem.</small></span><span class="lab">${label}${set ? `<small class="cnt">${set}</small>` : ''}</span><span class="r"><small>Rep.</small>${R}</span>
+      <div class="w-track"><i class="td" style="width:${D / n * 100}%"></i>${I ? `<i class="ti" style="left:${D / n * 100}%;width:${I / n * 100}%"></i>` : ''}<i class="tr" style="width:${R / n * 100}%"></i><i class="mid"></i></div>
+      <div class="sub">${sub}${I ? ` · ${I} Unabh.` : ''}</div></div>`;
+  }
+  function wMapSvg(view, E) {
+    const by = {};
+    if (view === 'house') for (const [st, s] of Object.entries(E.house?.states || {})) by[st] = { n: s.n, D: s.D, R: s.R, done: s.D + s.R + s.O };
+    else for (const r of (view === 'gov' ? E.gov?.races : E.senate?.races) || []) if (!by[r.st] || r.winner) by[r.st] = r;
+    const S2 = 36, G = 3;
+    const cells = WMAP.map(([st, c, r]) => {
+      const x = c * S2, y = r * S2, v = by[st];
+      let fill = 'var(--surface-2)', op = 1, label = st, dim = true;
+      if (view === 'house' && v) {
+        const k = v.D > v.R ? 'D' : v.R > v.D ? 'R' : null;
+        if (k) { fill = WCOL[k]; op = v.done >= v.n ? 1 : .55; dim = false; label = `${st}`; }
+      } else if (v) {
+        if (v.winner) { fill = WCOL[v.winner]; dim = false; }
+        else if (v.leader) { fill = WCOL[v.leader]; op = .45; dim = false; }
+        else { fill = 'color-mix(in srgb, var(--muted) 35%, var(--surface-2))'; }
+      } else op = .45;
+      return `<g><rect x="${x + G / 2}" y="${y + G / 2}" width="${S2 - G}" height="${S2 - G}" rx="6" fill="${fill}" opacity="${op}"/><text x="${x + S2 / 2}" y="${y + S2 / 2}" class="${dim ? 'dim' : ''}">${label}</text></g>`;
+    }).join('');
+    const leg = view === 'house'
+      ? '<span><i style="background:var(--dem)"></i>mehr Sitze Dem.</span><span><i style="background:var(--rep)"></i>mehr Sitze Rep.</span><span>blass = noch offen</span>'
+      : '<span><i style="background:var(--dem)"></i>Dem.</span><span><i style="background:var(--rep)"></i>Rep.</span><span>blass = führt</span><span><i style="background:color-mix(in srgb, var(--muted) 35%, var(--surface-2))"></i>offen</span>';
+    return `<svg viewBox="0 0 ${12 * S2} ${8 * S2}" preserveAspectRatio="xMidYMid meet" aria-label="Karte">${cells}</svg><div class="w-legend">${leg}</div>`;
+  }
+  // Rennen: knappe offene zuerst, dann entschiedene, dann noch ohne Zahlen
+  function wRaces(view, E) {
+    const list = view === 'house' ? (E.house?.close || []) : ((view === 'gov' ? E.gov?.races : E.senate?.races) || []);
+    const rank = r => r.winner ? 1 : r.cands.some(c => c.pct != null) ? 0 : 2;
+    const margin = r => { const p = r.cands.map(c => c.pct ?? 0); return Math.abs((p[0] || 0) - (p[1] || 0)); };
+    return [...list].sort((a, b) => rank(a) - rank(b) || margin(a) - margin(b));
+  }
+  function wRaceHtml(r) {
+    const [a, b] = r.cands, has = r.cands.some(c => c.pct != null);
+    const sur = c => c ? esc(c.name.split(' ').slice(-1)[0]) : '';
+    return `<div class="w-race"><b>${esc(r.label)}</b><span class="st ${r.winner ? 'won' : ''}">${r.winner ? `✓ ${WNAME[r.winner]}` : has ? 'Auszählung' : 'offen'}</span>
+      ${has ? `<div class="pc">${r.cands.filter(c => c.pct).map(c => `<i style="width:${c.pct}%;background:${WCOL[c.party]}"></i>`).join('')}</div>` : ''}
+      <div class="nm"><span>${a ? `${sur(a)} (${a.party}) ${wPct(a.pct)}` : ''}</span><span>${b ? `${sur(b)} (${b.party}) ${wPct(b.pct)}` : ''}</span></div></div>`;
+  }
+  let wOffset = 0, wShown = 1;
+  function renderWahl(force) {
+    const card = $('#wahlCard');
+    if (!wahlOn()) { clearInterval(wTimer); wTimer = 0; return; }
+    const E = S.election || {};
+    const view = wPin || WVIEWS[Math.floor(wStep / 2) % 3], sub = wStep % 2;
+    const wide = (+card.dataset.w || 3) >= 5;
+    const sig = JSON.stringify([E.updated, view, sub, wide, wOffset, card.dataset.w, card.dataset.h]);
+    if (!wTimer) wTimer = setInterval(() => { wStep++; if (+$('#wahlCard').dataset.w >= 5 || wStep % 2 === 0) wOffset += wShown; renderWahl(); }, 10000);
+    if (sig === wSig && !force) return;
+    wSig = sig;
+    $('#wTabs').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === view));
+    const se = E.senate, ho = E.house, compact = card.classList.contains('compact');
+    $('#wBars').innerHTML = wBar('Senat', se, se ? `${se.decided}/${se.races.length} entschieden` : '') + wBar(compact ? 'Haus' : 'Repräsentantenhaus', ho, ho ? `${ho.decided}/${ho.count} entschieden` : '');
+    $('#wCnt').textContent = se && ho ? `Mehrheit ab 51 bzw. 218 · entschieden: Senat ${se.decided}/${se.races.length}, Haus ${ho.decided}/${ho.count}` : '';
+    const body = $('#wBody'); body.classList.toggle('wide', wide);
+    const map = $('#wMap'), list = $('#wList');
+    map.innerHTML = wMapSvg(view, E);
+    map.classList.toggle('hide', !wide && sub === 1); list.classList.toggle('hide', !wide && sub === 0);
+    const races = wRaces(view, E);
+    list.innerHTML = '';
+    if (!races.length) list.innerHTML = `<div class="w-empty">${view === 'house' ? 'Noch keine knappen Wahlkreise mit Zahlen.' : 'Ergebnisse werden geladen …'}</div>`;
+    else {
+      const title = { senate: 'Senat: Rennen', house: 'Haus: offene Wahlkreise', gov: 'Gouverneure' }[view];
+      list.insertAdjacentHTML('beforeend', `<div class="w-legend" style="justify-content:flex-start">${title}</div>`);
+      // Seitenweise: so viele wie passen, beim nächsten Wechsel die nächsten
+      const start = races.length ? wOffset % races.length : 0;
+      wShown = 0;
+      for (let i = 0; i < races.length; i++) {
+        list.insertAdjacentHTML('beforeend', wRaceHtml(races[(start + i) % races.length]));
+        if (wShown && list.scrollHeight > list.clientHeight + 2) { list.lastElementChild.remove(); break; }
+        wShown++;
+      }
+      wShown = Math.max(1, wShown);
+    }
+    $('#wNews').hidden = wahlNewsTile;
+    const news = (E.news || []).slice(0, (+card.dataset.h || 3) >= 4 ? 4 : compact ? 1 : 2);
+    $('#wNews').innerHTML = news.length ? news.map((n, i) => `<button type="button" data-i="${i}"><small>${newsTime(n.date)}</small><span>${esc(n.title)}</span></button>`).join('') : '<div class="w-empty" style="margin:0">Wahl-Nachrichten werden geladen …</div>';
+    $('#wNews').querySelectorAll('button').forEach(b => b.onclick = () => openNews(news[+b.dataset.i]));
+    const t = E.updated ? new Date(E.updated).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+    $('#wSrc').textContent = compact ? `Stand ${t} · vorläufig · Quelle: Wikipedia (CC BY-SA)${E.error ? ' · teils nicht erreichbar' : ''}`
+      : `Stand ${t} · Ergebnisse vorläufig, Quelle: Wikipedia (CC BY-SA), dort von Freiwilligen eingetragen · Nachrichten: tagesschau, Deutschlandfunk${E.error ? ' · teilweise nicht erreichbar' : ''}`;
   }
 
   /* ---------- To-Do ---------- */
@@ -3241,7 +3459,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   });
 
   /* ---------- Verbindung zum Server ---------- */
-  function renderAll() { applyRadarCfg(); applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderTodos(); renderNotes(); renderTransit(); renderSec(); renderScanTool(); renderNews(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); checkYearMode(); }
+  function renderAll() { applyRadarCfg(); applyTheme(); applyToggles(); renderUpdate(); renderTasks(); renderCalendar(); renderMonth(); renderTodos(); renderNotes(); renderTransit(); renderSec(); renderScanTool(); renderNews(); renderWahl(); renderLoans(); renderIncident(); renderWeather(); checkSleep(); checkYearMode(); }
   function connect() {
     const es = new EventSource('/api/stream');
     es.onopen = () => { connected = true; };

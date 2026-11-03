@@ -269,6 +269,7 @@ function sanitizeSettings(b) {
   // Nachrichten: welche Quellen, Laufband unten an/aus
   if (Array.isArray(b.newsSources)) s.newsSources = ['tagesschau', 'dlf', 'ntv', 'zdf', 'welt'].filter(k => b.newsSources.includes(k));
   if ('newsTicker' in b) s.newsTicker = !!b.newsTicker;
+  if ('election' in b) s.election = !!b.election;
   // Nachrichten-Kachel: seitenweise (Anzahl, Sekunden) oder durchlaufend
   if ('newsMode' in b) s.newsMode = oneOf(b.newsMode, ['page', 'roll'], 'page');
   if ('newsPer' in b) s.newsPer = Math.max(1, Math.min(8, parseInt(b.newsPer, 10) || 3));
@@ -303,7 +304,7 @@ function boardView() {
     events: db.events.filter(e => e.date >= today),
     loans: db.loans, incident: db.incident, settings: publicSettings(), mobileUrl: mobileUrl(),
     backup: backupInfo, rueckscan: Object.values(db.rueckscan || {}),
-    people: db.people, absences: db.absences, notes: db.notes, todos: db.todos, extras: extras.view(),
+    people: db.people, absences: db.absences, notes: db.notes, todos: db.todos, extras: extras.view(), election: election.view(),
     version: VERSION, changelog: CHANGELOG, lastUpdate: readJson(path.join(DATA, 'last-update.json'), null), display: display.view(),
     update: { available: update.available, notes: update.notes, changes: update.changes, error: update.error, checked: update.checked, busy: update.busy },
     scanTool,
@@ -372,6 +373,7 @@ const display = require('./display')({ ROOT, DATA, config, log, broadcast: () =>
 const tunnel = require('./tunnel')({ ROOT, config, log, broadcast: () => broadcast() });
 const radar = require('./radar')({ DATA, config, log });
 const extras = require('./extras')({ DATA, config, log, getSettings: () => db.settings, broadcast: () => broadcast(), localDate });
+const election = require('./election')({ DATA, log, getSettings: () => db.settings, broadcast: () => broadcast() });
 
 /* ---------- Wetter vom DWD über Bright Sky ---------- */
 let weather = { ok: false, updated: 0 };
@@ -679,6 +681,7 @@ const server = http.createServer(async (req, res) => {
       Object.assign(db.settings, patch); save();
       if ('transit' in patch || 'route' in patch || 'routeOn' in patch) extras.refreshTransit();
       if ('newsSources' in patch) extras.refreshNews();
+      if (patch.election) election.refresh();
       if ('waste' in patch || 'wasteOn' in patch) extras.refreshWaste();
       if ('backupDir' in patch) backup();
       return send(res, 200, db.settings);
@@ -780,6 +783,7 @@ server.listen(config.port, () => {
   cleanup(); backup(); updateWeather(); radar.update();
   setInterval(updateWeather, 10 * 60000);
   extras.start();
+  election.start();
   setInterval(radar.update, 5 * 60000);
   setInterval(() => { cleanup(); }, 10 * 60000);
   setInterval(backup, 6 * 3600000);
