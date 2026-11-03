@@ -1,16 +1,18 @@
 {
-  "version": "1.37.0",
-  "notes": "Scan-Tool: Die Taste unten rechts zeigt jetzt die Version (z. B. „Scan-Tool 1.5.1“), in der ersten Woche nach einem Update mit „neu“. Scan-Tool-Fenster: zuletzt aktualisiert am … (vor … Tagen) und „Was ist neu“ mit den Patch-Notes, frühere Versionen zum Aufklappen.",
+  "version": "1.38.0",
+  "notes": "Neue Taste oben rechts (Wahlurne): Wahl-Modus für die US-Zwischenwahlen. Ein Wahl-Feld ersetzt vorübergehend To-Do und Kalender.",
   "changes": [
-    "Scan-Tool: Die Taste unten rechts zeigt jetzt die Version (z. B. „Scan-Tool 1.5.1“), in der ersten Woche nach einem Update mit „neu“.",
-    "Scan-Tool-Fenster: zuletzt aktualisiert am … (vor … Tagen) und „Was ist neu“ mit den Patch-Notes, frühere Versionen zum Aufklappen.",
-    "Die Angaben kommen automatisch mit jeder neuen Rückscan-Version mit."
+    "Neue Taste oben rechts (Wahlurne): Wahl-Modus für die US-Zwischenwahlen. Ein Wahl-Feld ersetzt vorübergehend To-Do und Kalender.",
+    "Wahl-Feld: Sitze im Senat und Repräsentantenhaus (Demokraten blau, Republikaner rot, Strich = Mehrheit), Karte der Bundesstaaten (wer gewonnen hat oder führt), knappe Rennen mit Prozenten, Gouverneurswahlen. Wechselt alle 10 Sekunden, Antippen von Senat/Haus/Gouv. springt hin.",
+    "Wahl-Nachrichten von tagesschau und Deutschlandfunk: im Wahl-Feld bzw. in der Nachrichten-Kachel und im Laufband. Ergebnisse sind vorläufig und kommen von Wikipedia, wo Freiwillige sie in der Wahlnacht eintragen.",
+    "Gleiche Taste oder das X im Wahl-Feld schaltet alles wieder zurück."
   ],
   "files": {
-    "changelog.json": "fe5e00d581c5c005bc8a8dc93ecdb3226a7b05ebace3f83fa94c6b488781122c",
+    "changelog.json": "1c45bb6c5060d50d8f8b13e689563bc1a401419e602d25c5bbc15d7ad8ab7cc3",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
+    "election.js": "ab1f16e2628802c1aa19b247f2a3ff5ad5317c941275176de9d858c3f26f0b3e",
     "extras.js": "b0a86a05ff18ace4e0d31985b3545fbc2e09114651bb408dd2dbd935f9f719eb",
-    "public/board.html": "669e4c48894172979ee7860db5b1d754bb41fcd6a366c8d07d7814a3eca415dc",
+    "public/board.html": "56a9f8c28c621f963b728a0d55e9d4cf14f60bca3f8ec21d76b779a60aae1702",
     "public/icon-192.png": "c6b866b885e711fdb607de892d36300c9da80127f2d833cd672ce40af65f5637",
     "public/icon-512.png": "0330db0ae5d581a2bd979a907dbdcb1f3d626ebe2df8c3e4a9469771a2e2dec6",
     "public/knock.js": "422d5ca78ea4873c002673f42c0e7db747b70f86c8ec489a95638bb18ae9e667",
@@ -18,8 +20,8 @@
     "public/mascot.js": "a414057fb572b03b3321873c8d436b99567876adc288dc72d1a7bf48b5c97b5d",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
-    "server.js": "925d9ea44bdf2f86582f02fd6bded42b83ac756c82b0ade676b98450f3378b64",
+    "server.js": "d91c581e020b4e4104df28e37098a48af20830aceb58303f3b82d13952054e58",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "3237d2cd7f88ac98ffb14b9cdd948325e5312b6eb16200006c788c088d2ac0a4"
+    "version.json": "f687722907bb1bf00262accd0c8faa88faf64ff5fbd58a7cf6880021304313c9"
   }
 }

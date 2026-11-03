@@ -126,7 +126,7 @@ module.exports = function createElection({ DATA, log, getSettings, broadcast }) 
     { src: 'tagesschau', url: 'https://www.tagesschau.de/index~rss2.xml', host: 'tagesschau.de' },
     { src: 'dlf', url: 'https://www.deutschlandfunk.de/nachrichten-100.rss', host: 'deutschlandfunk.de' },
   ];
-  const WAHL = /midterm|zwischenwahl|kongresswahl|us-wahl|wahl in den usa|wahlen in den usa|us-kongress|repräsentantenhaus|senat\b|senats|gouverneur|wahllokal|wahlnacht|hochrechnung|demokraten|republikaner|trump/i;
+  const WAHL = /midterm|zwischenwahl|kongresswahl|us-wahl|wahl in den usa|wahlen in den usa|us-kongress|repräsentantenhaus|senat\b|senats|gouverneur|wahllokal|wahlnacht|hochrechnung|demokraten|republikaner/i;
   const unxml = s => String(s || '').replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n));
   async function updateNews() {
     const all = [], seen = new Set();
