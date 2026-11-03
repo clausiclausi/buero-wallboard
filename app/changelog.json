@@ -1,5 +1,15 @@
 [
  {
+  "version": "1.41.0",
+  "date": "2026-11-03",
+  "changes": [
+   "Presets: Unter „Kacheln bearbeiten“ → „Presets“ bis zu 5 Ansichten speichern (z. B. Normal, US-Wahl, Kalender), je mit Name, Anzeigedauer (15 Sekunden bis 30 Minuten) und Wahl-Modus an/aus.",
+   "„Automatisch wechseln“ zeigt die Presets nacheinander, mit sanftem Überblenden. Unten in der Fußzeile steht, welches gerade läuft, mit Fortschrittsstrich. Antippen am Board hält den Wechsel 2 Minuten an. Im Besuchermodus bleibt Preset 1 stehen.",
+   "Handy-Seite: neuer Bereich „Ansicht am Board“ zum Starten/Anhalten des Wechsels, festes Zeigen eines Presets und Wahl-Modus.",
+   "Kopfzeile: Der Update-Hinweis ist kürzer und läuft nicht mehr über das Datum."
+  ]
+ },
+ {
   "version": "1.40.0",
   "date": "2026-11-03",
   "changes": [

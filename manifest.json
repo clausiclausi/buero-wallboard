@@ -1,24 +1,27 @@
 {
-  "version": "1.40.0",
-  "notes": "Kacheln bearbeiten: Die Leiste oben passt sich an. Viele ausgeblendete Kacheln brechen in eine zweite Zeile um, „Fertig“, „Abbrechen“ und „Standard“ bleiben immer sichtbar.",
+  "version": "1.41.0",
+  "notes": "Presets: Unter „Kacheln bearbeiten“ → „Presets“ bis zu 5 Ansichten speichern (z. B. Normal, US-Wahl, Kalender), je mit Name, Anzeigedauer (15 Sekunden bis 30 Minuten) und Wahl-Modus an/aus.",
   "changes": [
-    "Kacheln bearbeiten: Die Leiste oben passt sich an. Viele ausgeblendete Kacheln brechen in eine zweite Zeile um, „Fertig“, „Abbrechen“ und „Standard“ bleiben immer sichtbar."
+    "Presets: Unter „Kacheln bearbeiten“ → „Presets“ bis zu 5 Ansichten speichern (z. B. Normal, US-Wahl, Kalender), je mit Name, Anzeigedauer (15 Sekunden bis 30 Minuten) und Wahl-Modus an/aus.",
+    "„Automatisch wechseln“ zeigt die Presets nacheinander, mit sanftem Überblenden. Unten in der Fußzeile steht, welches gerade läuft, mit Fortschrittsstrich. Antippen am Board hält den Wechsel 2 Minuten an. Im Besuchermodus bleibt Preset 1 stehen.",
+    "Handy-Seite: neuer Bereich „Ansicht am Board“ zum Starten/Anhalten des Wechsels, festes Zeigen eines Presets und Wahl-Modus.",
+    "Kopfzeile: Der Update-Hinweis ist kürzer und läuft nicht mehr über das Datum."
   ],
   "files": {
-    "changelog.json": "bd4ce53f40b9ed53f5d3ee5d483d349c5c3dedeb2727685e02f10d8652886b02",
+    "changelog.json": "772c4475e34e85b5f8b0038043928192428e1226f15963f08f4661bb64bd1feb",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
     "election.js": "977e3fe073c468cc6e4a73d493817288294c0acb454d37c91523c1691863efc6",
     "extras.js": "b0a86a05ff18ace4e0d31985b3545fbc2e09114651bb408dd2dbd935f9f719eb",
-    "public/board.html": "091f56e58c439bacd4406a0db3629334c80ab0122c6147f041b975fb03b8dfad",
+    "public/board.html": "1ee3a49c3c291e66f81fd7a6938e22ea26fee2b02129809b1e0d0a3463d4940d",
     "public/icon-192.png": "c6b866b885e711fdb607de892d36300c9da80127f2d833cd672ce40af65f5637",
     "public/icon-512.png": "0330db0ae5d581a2bd979a907dbdcb1f3d626ebe2df8c3e4a9469771a2e2dec6",
     "public/knock.js": "422d5ca78ea4873c002673f42c0e7db747b70f86c8ec489a95638bb18ae9e667",
-    "public/m.html": "e51d4ff25bd7176fd2fcec5aad9dd13394355fcc4891ea371e37c7d1c64fa62b",
+    "public/m.html": "bbcc3a0ecb094fd7c78d587c48a101be07c0271604f5f05f336c43086ff4d3c3",
     "public/mascot.js": "a414057fb572b03b3321873c8d436b99567876adc288dc72d1a7bf48b5c97b5d",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
-    "server.js": "d91c581e020b4e4104df28e37098a48af20830aceb58303f3b82d13952054e58",
+    "server.js": "1dd3c324c9f23eff6cee401ab875b8f6b7fe86301e73036d0a2cc0be38126264",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "c441d9dc5835dc9d7801adf5368805ca14c396121de80480d6b77062c01d107b"
+    "version.json": "f9d07120abf51237806ecaccac665861453b4ce998a7448c44143bcaf1fcde0b"
   }
 }
