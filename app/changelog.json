@@ -1,5 +1,15 @@
 [
  {
+  "version": "1.43.0",
+  "date": "2026-11-03",
+  "changes": [
+   "Kacheln bearbeiten wie im Bento-Raster: An jeder Kante gibt es jetzt einen Griff. Damit verschiebt man die Linie zwischen zwei Kacheln, die eine wird größer, die Nachbarn kleiner.",
+   "Beim Verschieben einer Kachel rücken die anderen gleich sichtbar nach, statt dass das Verschieben blockiert.",
+   "Lücken füllen sich automatisch, z. B. nach dem Ausblenden einer Kachel. Beim Einblenden ohne freien Platz wird die größte Kachel geteilt.",
+   "Neuer Knopf „Rückgängig“ in der Bearbeiten-Leiste."
+  ]
+ },
+ {
   "version": "1.42.0",
   "date": "2026-11-03",
   "changes": [
