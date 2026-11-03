@@ -663,6 +663,45 @@ footer .mini-btn { margin-left: 0; font-size: 17px; }
 .unlocked-chip { position: absolute; left: 50%; bottom: 58px; transform: translateX(-50%); z-index: 6; display: flex; align-items: center; gap: 14px; padding: 12px 14px 12px 24px; border-radius: 999px; background: var(--surface-2); border: 2px solid var(--warn); font-size: 21px; font-weight: 600; }
 .unlocked-chip button { font-size: 19px; font-weight: 600; padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); }
 .pw-input { font: inherit; font-size: 40px; letter-spacing: 10px; text-align: center; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 12px; width: 100%; box-sizing: border-box; }
+/* Passwort-Karte: in Milchglas mit leuchtendem, umlaufendem Rand, Glas-Steinchen pro Zeichen und „Prüfe …“ */
+.pw-key, .pw-tiles, .pw-spin { display: none; }
+.keypad button.busy { pointer-events: none; opacity: .85; }
+@property --mg-ang { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+html[data-skin="milchglas"] .panel.dialog.pw { position: relative; overflow: visible; text-align: center; }
+html[data-skin="milchglas"] .panel.dialog.pw::before {
+  content: ""; position: absolute; inset: -3px; border-radius: 37px; padding: 3px; pointer-events: none;
+  background: conic-gradient(from var(--mg-ang), transparent 0 40%, #e9a12c 58%, #fff3d6 66%, #ff8a3d 76%, transparent 92%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: mg-ring 3.2s linear infinite; filter: drop-shadow(0 0 8px color-mix(in srgb, #ffb84d 60%, transparent));
+}
+@keyframes mg-ring { to { --mg-ang: 360deg; } }
+html[data-skin="milchglas"] .pw h2 { justify-content: center; }
+html[data-skin="milchglas"] .pw h2 button { position: absolute; right: 22px; top: 22px; }
+html[data-skin="milchglas"] .pw-key { display: grid; place-items: center; width: 68px; height: 68px; margin: 0 auto -6px; border-radius: 22px; font-size: 32px; color: #c98a1c;
+  background: color-mix(in srgb, var(--surface) 55%, transparent); border: 1px solid var(--mg-edge); box-shadow: inset 0 1px 0 var(--mg-edge), 0 0 26px color-mix(in srgb, #ffb84d 35%, transparent); animation: mg-key 2.8s ease-in-out infinite; }
+@keyframes mg-key { 50% { transform: translateY(-4px) rotate(-6deg); } }
+html[data-skin="milchglas"] .pw .pw-input { position: absolute; opacity: 0; pointer-events: none; height: 1px; width: 1px; padding: 0; }
+html[data-skin="milchglas"] .pw-tiles { display: flex; justify-content: center; align-items: center; gap: 16px; min-height: 104px; flex-wrap: wrap; }
+html[data-skin="milchglas"] .pw-tiles .ph { color: var(--muted); font-size: 22px; }
+html[data-skin="milchglas"] .pw-tiles i {
+  font-style: normal; width: 72px; height: 72px; border-radius: 20px; display: grid; place-items: center; font-size: 34px; font-weight: 700; color: var(--text);
+  background: linear-gradient(160deg, color-mix(in srgb, #fff 30%, var(--mg-glass)), var(--mg-glass)); border: 1px solid var(--mg-edge);
+  box-shadow: inset 0 1px 0 var(--mg-edge), 0 0 0 2px color-mix(in srgb, #ffb84d 45%, transparent), 0 10px 26px color-mix(in srgb, #ff8a3d 22%, transparent);
+  animation: mg-tile-in .6s var(--spring) both, mg-tile-float 3s ease-in-out .6s infinite; animation-delay: 0s, calc(var(--n, 0) * -.45s);
+}
+html[data-skin="milchglas"] .pw-tiles i:nth-child(odd) { --r: -8deg; } html[data-skin="milchglas"] .pw-tiles i:nth-child(even) { --r: 7deg; }
+@keyframes mg-tile-in { from { transform: scale(.2) rotate(-40deg); opacity: 0; } }
+@keyframes mg-tile-float { 0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-10px) rotate(calc(var(--r, 0deg) * -1)); } }
+html[data-skin="milchglas"] .pw-tiles.bad i { box-shadow: inset 0 1px 0 var(--mg-edge), 0 0 0 2px var(--crit), 0 10px 26px color-mix(in srgb, var(--crit) 30%, transparent); }
+html[data-skin="milchglas"] .pw-tiles.bad { animation: mg-shake .5s ease; }
+@keyframes mg-shake { 20%, 60% { transform: translateX(-14px); } 40%, 80% { transform: translateX(14px); } }
+html[data-skin="milchglas"] .pw-tiles.good i { box-shadow: inset 0 1px 0 var(--mg-edge), 0 0 0 2px var(--ok), 0 0 30px color-mix(in srgb, var(--ok) 45%, transparent); animation: mg-tile-good .5s var(--spring) both; }
+@keyframes mg-tile-good { 50% { transform: scale(1.15) rotate(0); } to { transform: scale(1); } }
+html[data-skin="milchglas"] .pw .keypad button { border-radius: 999px; background: color-mix(in srgb, var(--surface) 45%, transparent); border-color: var(--mg-edge); }
+html[data-skin="milchglas"] .pw .keypad button[data-k="ok"] { background: linear-gradient(180deg, #e9b949, #c98a1c) !important; color: #2a1a06 !important; border: 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 24px; }
+html[data-skin="milchglas"] .pw .keypad button.busy .pw-spin { display: inline-block; width: 22px; height: 22px; border-radius: 50%; border: 3px solid rgba(42, 26, 6, .3); border-top-color: #2a1a06; animation: mg-spin .8s linear infinite; }
+@keyframes mg-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { html[data-skin="milchglas"] .pw :is(.pw-tiles i, .pw-key), html[data-skin="milchglas"] .panel.dialog.pw::before { animation: none !important; } }
 .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .keypad button { font-size: 30px; font-weight: 600; padding: 14px 0; border-radius: 14px; border: 1px solid var(--line); background: var(--bg); }
 .keypad button:hover { background: var(--surface-2); }
@@ -826,6 +865,98 @@ html[data-skin="glas"] #stage.intro :is(header, .task, .add-task, .tasks-label, 
 @keyframes glas-in { from { opacity: 0; transform: translateY(26px) scale(.985); filter: blur(14px); } }
 html[data-skin="glas"] .clock.tick { animation: glas-tick .7s var(--ease); }
 @keyframes glas-tick { from { opacity: .15; filter: blur(10px); transform: translateY(10px); } }
+
+/* --- Milchglas (Grunddesign ab 1.43): warmer, weich verschwommener Raum hinter mattem Glas.
+   Kacheln heben sich beim Drüberfahren oder Antippen an. Der Hintergrund ist gezeichnet und steht still,
+   deshalb kostet die Unschärfe auf dem Notebook wenig. Mit html.lowfx (Spar-Schalter) gibt es gar keine Unschärfe. --- */
+html[data-skin="milchglas"] {
+  --font-body: -apple-system, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --mg-glass: color-mix(in srgb, var(--surface) 46%, transparent);
+  --mg-glass-2: color-mix(in srgb, var(--surface) 62%, transparent);
+  --mg-pane: color-mix(in srgb, var(--surface) 20%, transparent);
+  --mg-edge: color-mix(in srgb, #fff 42%, transparent);
+  --mg-shadow: 0 10px 30px color-mix(in srgb, #3a2414 14%, transparent), 0 1px 2px color-mix(in srgb, #3a2414 10%, transparent);
+  --mg-lift: 0 26px 50px color-mix(in srgb, #3a2414 22%, transparent), 0 4px 10px color-mix(in srgb, #3a2414 10%, transparent);
+  --mg-blur: blur(26px) saturate(1.35);
+  --mg-wood: color-mix(in srgb, var(--bg) 32%, #6b4a30);
+  --mg-wall: color-mix(in srgb, var(--bg) 82%, #fff 18%);
+  --mg-light: color-mix(in srgb, var(--bg) 35%, #fff6e8);
+}
+html[data-skin="milchglas"].mg-dark {
+  --mg-glass: color-mix(in srgb, var(--surface) 55%, transparent);
+  --mg-glass-2: color-mix(in srgb, var(--surface) 72%, transparent);
+  --mg-edge: color-mix(in srgb, #fff 12%, transparent);
+  --mg-shadow: 0 10px 30px rgba(0, 0, 0, .28);
+  --mg-lift: 0 26px 50px rgba(0, 0, 0, .42);
+  --mg-wood: color-mix(in srgb, var(--bg) 60%, #000);
+  --mg-wall: color-mix(in srgb, var(--bg) 88%, #fff 12%);
+  --mg-light: color-mix(in srgb, var(--bg) 55%, #ffb066);
+}
+/* Der gezeichnete Raum: Holzbalken oben, Fensterlicht links, Regal rechts, Lampenschein, Boden unten */
+html[data-skin="milchglas"] #stage {
+  background:
+    radial-gradient(520px 380px at 6% 34%, var(--mg-light), transparent 70%),
+    radial-gradient(420px 320px at 74% 92%, color-mix(in srgb, var(--mg-light) 70%, transparent), transparent 70%),
+    radial-gradient(260px 900px at 98% 55%, color-mix(in srgb, var(--mg-wood) 75%, transparent), transparent 72%),
+    radial-gradient(200px 700px at 1% 92%, color-mix(in srgb, var(--mg-wood) 55%, transparent), transparent 70%),
+    linear-gradient(180deg, var(--mg-wood) 0, color-mix(in srgb, var(--mg-wood) 60%, var(--mg-wall)) 70px, var(--mg-wall) 190px, var(--mg-wall) 68%, color-mix(in srgb, var(--mg-wall) 70%, var(--mg-wood)) 100%);
+}
+/* Große Glasscheibe hinter den Kacheln, wie im Vorbild */
+html[data-skin="milchglas"] main::before {
+  content: ""; position: absolute; inset: -8px -14px -12px; z-index: -1; border-radius: 40px; pointer-events: none;
+  background: linear-gradient(160deg, color-mix(in srgb, #fff 22%, transparent), var(--mg-pane) 40%);
+  border: 1px solid var(--mg-edge);
+  box-shadow: inset 0 1px 0 var(--mg-edge), 0 30px 80px color-mix(in srgb, #3a2414 12%, transparent);
+}
+html[data-skin="milchglas"] main { z-index: 0; }
+html[data-skin="milchglas"] :is(.card, .task:not(.empty), .overall, .update-pill, .tools, .add-task) {
+  background: linear-gradient(165deg, color-mix(in srgb, #fff 16%, var(--mg-glass)), var(--mg-glass));
+  -webkit-backdrop-filter: var(--mg-blur); backdrop-filter: var(--mg-blur);
+  border: 1px solid var(--mg-edge);
+  box-shadow: inset 0 1px 0 var(--mg-edge), var(--mg-shadow);
+}
+html[data-skin="milchglas"] .card { border-radius: 28px; transition: transform .55s var(--spring), box-shadow .45s var(--ease), background-color .3s ease; }
+html[data-skin="milchglas"] .task { border-radius: 24px; }
+html[data-skin="milchglas"] .task.next { background: linear-gradient(165deg, color-mix(in srgb, #fff 22%, var(--mg-glass-2)), var(--mg-glass-2)); border-color: color-mix(in srgb, var(--text) 30%, transparent); }
+html[data-skin="milchglas"] .task.empty { border: 1px dashed color-mix(in srgb, var(--text) 18%, transparent); background: color-mix(in srgb, var(--surface) 14%, transparent); }
+html[data-skin="milchglas"] .add-task { border-radius: 24px; color: var(--text); }
+/* Werkzeuge oben als eine gemeinsame Glasleiste */
+html[data-skin="milchglas"] .tools { padding: 6px; border-radius: 999px; gap: 4px; }
+html[data-skin="milchglas"] .tools .tool { background: transparent; border-color: transparent; border-radius: 50%; width: 56px; height: 56px; color: var(--text); }
+html[data-skin="milchglas"] .tools .tool:hover { background: color-mix(in srgb, #fff 40%, transparent); }
+html[data-skin="milchglas"].mg-dark .tools .tool:hover { background: color-mix(in srgb, #fff 12%, transparent); }
+html[data-skin="milchglas"] .tool { border-radius: 50%; }
+html[data-skin="milchglas"] .clock { font-weight: 300; font-size: 90px; letter-spacing: -3px; }
+html[data-skin="milchglas"] .tasks-label h2 { font-weight: 700; letter-spacing: -.8px; }
+html[data-skin="milchglas"] .card h3 { text-transform: none; letter-spacing: -.2px; font-size: 25px; font-weight: 600; color: var(--text); }
+html[data-skin="milchglas"] .card h3 .badge { background: color-mix(in srgb, #fff 45%, transparent); }
+html[data-skin="milchglas"].mg-dark .card h3 .badge { background: color-mix(in srgb, #fff 10%, transparent); }
+html[data-skin="milchglas"] :is(.scan-row, .loan-row, .rain-alert) { background: color-mix(in srgb, var(--surface) 38%, transparent); border-radius: 18px; }
+html[data-skin="milchglas"] :is(.btn, .inc-btn, .mini-btn, .scan-btn, .seg button, .choice > button) { border-radius: 999px; }
+html[data-skin="milchglas"] .mgrid .d.today { border-radius: 999px; }
+html[data-skin="milchglas"] :is(.skin-opt, .preset) { background: color-mix(in srgb, var(--surface) 55%, transparent); }
+/* Anheben: Maus drüber oder Finger drauf */
+@media (hover: hover) {
+  html[data-skin="milchglas"] main > .card:hover { transform: translateY(-6px); box-shadow: inset 0 1px 0 var(--mg-edge), var(--mg-lift); }
+  html[data-skin="milchglas"] :is(.task, .add-task, .overall, .update-pill):hover { transform: translateY(-4px); box-shadow: inset 0 1px 0 var(--mg-edge), var(--mg-lift); }
+  html[data-skin="milchglas"] .tools .tool:hover { transform: translateY(-2px); }
+}
+html[data-skin="milchglas"] main > .card.is-pressed { transform: translateY(-6px) scale(1.012); box-shadow: inset 0 1px 0 var(--mg-edge), var(--mg-lift); }
+html[data-skin="milchglas"] :is(button, .task).is-pressed, html[data-skin="milchglas"] :is(button, .task).is-pressed:hover { transform: scale(.95); }
+html[data-skin="milchglas"] #stage.arranging main > .card { transform: none !important; }
+/* Dialoge: Glasblatt, das weich hereinfedert */
+html[data-skin="milchglas"] .scrim { background: color-mix(in srgb, #2a1a0e 22%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+html[data-skin="milchglas"] .panel { background: color-mix(in srgb, var(--surface) 80%, transparent); -webkit-backdrop-filter: blur(36px) saturate(1.4); backdrop-filter: blur(36px) saturate(1.4); border-left: 1px solid var(--mg-edge); animation: glas-sheet .6s var(--spring) both; }
+html[data-skin="milchglas"] .panel.dialog { border-radius: 34px; border: 1px solid var(--mg-edge); animation: glas-pop .55s var(--spring) both; }
+html[data-skin="milchglas"] #stage.intro :is(header, .task, .add-task, .tasks-label, .card) { animation: mg-in 1.1s var(--ease) both; animation-delay: calc(var(--i, 0) * 60ms); }
+@keyframes mg-in { from { opacity: 0; transform: translateY(34px) scale(.98); } }
+html[data-skin="milchglas"] #stage.intro main::before { animation: mg-pane 1.2s var(--ease) both; }
+@keyframes mg-pane { from { opacity: 0; transform: scale(.985); } }
+html[data-skin="milchglas"] .clock.tick { animation: glas-tick .7s var(--ease); }
+/* Spar-Schalter: keine Unschärfe, dafür etwas deckendere Flächen */
+html.lowfx[data-skin="milchglas"] *, html.lowfx[data-skin="glas"] * { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html.lowfx[data-skin="milchglas"] { --mg-glass: color-mix(in srgb, var(--surface) 78%, transparent); --mg-glass-2: color-mix(in srgb, var(--surface) 88%, transparent); }
+html.lowfx[data-skin="milchglas"] .panel { background: var(--surface); }
 
 /* --- Neon: futuristisch. Leuchtlinien, Raster, Scanner, Tasten mit Lichtimpuls --- */
 html[data-skin="neon"] { --font-body: "Bahnschrift", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; --glow: color-mix(in srgb, var(--highlight) 55%, transparent); --edge: color-mix(in srgb, var(--highlight) 30%, transparent); }
@@ -1043,6 +1174,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 <body>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2"/></symbol>
   <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
   <symbol id="i-bell-off" viewBox="0 0 24 24"><path d="M8.7 3A6 6 0 0 1 18 8a21.3 21.3 0 0 0 .6 5"/><path d="M17 17H3s3-2 3-9a4.67 4.67 0 0 1 .3-1.7"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="m2 2 20 20"/></symbol>
   <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
@@ -1225,7 +1357,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 
   /* ---------- Zustand vom Server ---------- */
   let S = { tasks: [], events: [], loans: [], incident: null, mobileUrl: '',
-    settings: { theme: { preset: 'wald', colors: null }, muted: false, lead: 15, volume: 0.6, rainHours: [10, 12, 17], visitor: false, officeStart: '06:00', officeEnd: '20:00' } };
+    settings: { skin: 'milchglas', theme: { preset: 'sand', colors: null }, muted: false, lead: 15, volume: 0.6, rainHours: [10, 12, 17], visitor: false, officeStart: '06:00', officeEnd: '20:00' } };
   let W = { ok: false }, R = { ok: false };
   let lastData = 0, connected = false;
   const settings = () => S.settings;
@@ -1277,6 +1409,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   /* ---------- Farb-Setups ---------- */
   const KEYS = [['bg', 'Hintergrund'], ['surface', 'Kacheln'], ['surface-2', 'Hervorhebung'], ['text', 'Schrift'], ['muted', 'Grau-Akzent'], ['highlight', 'Rahmen aktiv']];
   const PRESETS = {
+    sand:    { name: 'Milchglas',   bg: '#D9C9B6', surface: '#FBF6F0', 'surface-2': '#EFE3D5', text: '#2A2019', muted: '#6E5E50', highlight: '#2A2019' },
+    mokka:   { name: 'Milchglas dunkel', bg: '#2B221B', surface: '#3A2F26', 'surface-2': '#4A3C30', text: '#F6EEE5', muted: '#C4B3A2', highlight: '#F6EEE5' },
     wald:    { name: 'Waldgrün',    bg: '#0E2A1F', surface: '#143627', 'surface-2': '#1C4533', text: '#F3F7F4', muted: '#A7BAB0', highlight: '#FFFFFF' },
     nacht:   { name: 'Nachtblau',   bg: '#0C1826', surface: '#132337', 'surface-2': '#1B3049', text: '#F2F5FA', muted: '#9FB0C4', highlight: '#FFFFFF' },
     graphit: { name: 'Graphit',     bg: '#141617', surface: '#1D2022', 'surface-2': '#272B2E', text: '#F4F4F2', muted: '#A3A8A6', highlight: '#FFFFFF' },
@@ -1289,13 +1423,19 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     papier:  { name: 'Papier',      bg: '#F3EEE3', surface: '#FBF8F1', 'surface-2': '#E8E0CF', text: '#1F1B16', muted: '#5F574B', highlight: '#B23A2B' },
     pop:     { name: 'Bonbon',      bg: '#FFF6E0', surface: '#FFFFFF', 'surface-2': '#FFEFC2', text: '#1A1A1A', muted: '#444444', highlight: '#E0457F' }
   };
-  const themeColors = () => { const t = settings().theme || {}; return Object.assign({}, PRESETS.wald, PRESETS[t.preset] || {}, t.colors || {}); };
+  // Milchglas mit seinen eigenen Farben wird abends (18 bis 7 Uhr) automatisch dunkler, abschaltbar
+  const mgEvening = () => { const st = settings(), hr = new Date().getHours(); return st.skin === 'milchglas' && (st.theme || {}).preset === 'sand' && st.mgEvening !== false && (hr >= 18 || hr < 7); };
+  let mgEveningShown = null;
+  const themeColors = () => { const t = settings().theme || {}; return Object.assign({}, PRESETS.wald, PRESETS[mgEvening() ? 'mokka' : t.preset] || {}, t.colors || {}); };
   function luminance(hex) { const n = parseInt(hex.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; }
   function applyTheme() {
     const c = themeColors(), st = document.documentElement.style;
     for (const [k] of KEYS) st.setProperty('--' + k, c[k]);
     applySkin();
     const light = luminance(c.bg) > .5;
+    mgEveningShown = mgEvening();
+    document.documentElement.classList.toggle('mg-dark', !light);
+    document.documentElement.classList.toggle('lowfx', settings().lowFx === true || autoLowFx);
     st.colorScheme = light ? 'light' : 'dark';
     st.setProperty('--line', light ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.10)');
     st.setProperty('--ok', light ? '#1E8F57' : '#7FE0AE');
@@ -1704,8 +1844,9 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 
   /* ---------- Designs (Skins) und Bewegung ---------- */
   const SKINS = {
-    standard: { name: 'Standard', desc: 'Das bisherige Board, ruhig und ohne Effekte.' },
-    glas:     { name: 'Glas', desc: 'Im Stil von Apple: Milchglas, weiche Tiefe, federnde Tasten.', colors: 'weiss' },
+    milchglas: { name: 'Milchglas', desc: 'Grunddesign: mattes Glas vor einem warmen, weichen Raum. Kacheln heben sich beim Antippen an, abends wird es dunkler.', colors: 'sand' },
+    standard: { name: 'Klassisch', desc: 'Das bisherige Board, ruhig und ohne Effekte.' },
+    glas:     { name: 'Glas klassisch', desc: 'Das erste Glas-Design: hell, kühl, federnde Tasten.', colors: 'weiss' },
     neon:     { name: 'Neon', desc: 'Futuristisch: Leuchtlinien, Raster und Lichtimpuls beim Antippen.', colors: 'schwarz' },
     klar:     { name: 'Klar', desc: 'Modern und ruhig: Linien statt Kacheln, große Schrift, präzise Bewegungen.', colors: 'graphit' },
     fluid:    { name: 'Fluid', desc: 'Weiche, langsam fließende Farbflächen, runde Formen, Gummi-Effekt.', colors: 'nacht' },
@@ -1716,9 +1857,27 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     pop:      { name: 'Pop', desc: 'Kräftige Farben, dicke Ränder, versetzte Schatten. Alles hüpft ein bisschen.', colors: 'pop' }
   };
   const skin = () => SKINS[settings().skin] ? settings().skin : 'standard';
+  // Ruckelt das Board in den ersten Sekunden deutlich, wird die Unschärfe bis zum Neustart abgeschaltet
+  let autoLowFx = false;
+  (function watchFps() {
+    let n = 0, t0 = 0, slow = 0;
+    const step = (t) => {
+      if (!t0) t0 = t;
+      n++;
+      if (t - t0 >= 2000) {
+        const fps = n * 1000 / (t - t0);
+        if (skin() === 'milchglas' && fps < 20 && !document.hidden) slow++; else slow = 0;
+        if (slow >= 2) { autoLowFx = true; document.documentElement.classList.add('lowfx'); return; }
+        n = 0; t0 = t;
+        if (performance.now() > 60000) return;
+      }
+      requestAnimationFrame(step);
+    };
+    setTimeout(() => requestAnimationFrame(step), 4000);
+  })();
   const moving = () => skin() !== 'standard' && !matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Zuletzt gewähltes Design sofort zeigen, bis der Server antwortet (kein Aufblitzen des Standard-Designs)
-  let shownSkin = local.get('skin', 'standard'), booted = false;
+  let shownSkin = local.get('skin', 'milchglas'), booted = false;
   document.documentElement.dataset.skin = SKINS[shownSkin] ? shownSkin : 'standard';
   function applySkin() {
     if (!booted) return;
@@ -1738,10 +1897,12 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   }
   // Rückmeldung beim Antippen
   const PRESSABLE = 'button, .task:not(.empty), .month';
+  const pressable = () => skin() === 'milchglas' ? PRESSABLE + ', main > .card' : PRESSABLE;
   let pressed = null;
   document.addEventListener('pointerdown', (e) => {
     if (!moving()) return;
-    pressed = e.target.closest(PRESSABLE);
+    pressed = e.target.closest(pressable());
+    if (pressed && pressed.matches('main > .card') && stage.classList.contains('arranging')) pressed = null;
     pressed?.classList.add('is-pressed');
     if (pressed && (skin() === 'neon' || skin() === 'fluid')) {
       const r = stage.getBoundingClientRect(), k = r.width / 1920;
@@ -2013,7 +2174,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     showDialog(scrim, 180);
     load();
   }
-  $('#btnStats').onclick = () => withPw(() => openStats());
+  $('#btnStats').onclick = () => withPw(() => openStats(), 'Auswertung öffnen');
 
   function openTaskDialog() {
     const scrim = h(`<div class="scrim center"><form class="panel dialog" autocomplete="off">
@@ -3095,9 +3256,9 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   /* Passwort für Änderungen 2 Minuten merken (nur im Speicher) */
   let editPw = '', editPwUntil = 0;
   function rememberPw(pw) { editPw = pw; editPwUntil = Date.now() + UNLOCK_MS; }
-  function withPw(fn) {
+  function withPw(fn, title = 'Kalender bearbeiten') {
     if (editPw && Date.now() < editPwUntil) return fn(editPw);
-    askPassword('Kalender bearbeiten', (pw) => { rememberPw(pw); fn(pw); });
+    askPassword(title, (pw) => { rememberPw(pw); fn(pw); });
   }
   const pwApi = (method, url, body) => new Promise((res, rej) => withPw(pw => api(method, url, body, { 'X-Wallboard-Passwort': encodeURIComponent(pw) }).then(res, rej)));
 
@@ -3264,21 +3425,54 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   }
   // Fragt das Passwort ab und ruft bei Erfolg ok() auf
   function askPassword(title, ok) {
-    const scrim = h(`<div class="scrim center"><div class="panel dialog" role="dialog" aria-label="${esc(title)}" style="width:520px">
+    const scrim = h(`<div class="scrim center"><div class="panel dialog pw" role="dialog" aria-label="${esc(title)}" style="width:520px">
+      <div class="pw-key" aria-hidden="true"><svg class="icon"><use href="#i-key"/></svg></div>
       <h2>${esc(title)} <button class="tool" id="pClose" title="Abbrechen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
       <input class="pw-input" id="pIn" type="password" autocomplete="off" maxlength="64" aria-label="Passwort">
-      <div class="keypad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button data-k="${n}">${n}</button>`).join('')}<button data-k="del" title="Löschen">⌫</button><button data-k="0">0</button><button data-k="ok" class="primary" style="background:var(--text);color:var(--bg)">OK</button></div>
+      <div class="pw-tiles" id="pTiles" aria-hidden="true"></div>
+      <div class="keypad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button data-k="${n}">${n}</button>`).join('')}<button data-k="del" title="Löschen">⌫</button><button data-k="0">0</button><button data-k="ok" class="primary" style="background:var(--text);color:var(--bg)"><span class="pw-spin"></span><span class="pw-ok">OK</span></button></div>
       <p class="hint" id="pErr" style="color:var(--crit);min-height:1.4em"></p>
     </div></div>`);
     const inp = scrim.querySelector('#pIn'), close = () => scrim.remove();
+    const tiles = scrim.querySelector('#pTiles'), okBtn = scrim.querySelector('[data-k="ok"]');
+    // Glas-Steinchen: jedes Zeichen kurz sichtbar, dann als Punkt (Besucher sollen nichts mitlesen)
+    let shown = 0, peek = 0;
+    const drawTiles = () => {
+      const n = inp.value.length;
+      tiles.classList.remove('bad', 'good');
+      if (!n) { tiles.innerHTML = '<span class="ph">Passwort eingeben</span>'; shown = 0; return; }
+      if (n < shown || !tiles.querySelector('i')) { tiles.innerHTML = ''; shown = 0; }
+      [...tiles.querySelectorAll('i')].forEach(t => t.textContent = '•');
+      while (shown < Math.min(n, 8)) {
+        const t = document.createElement('i'); t.style.setProperty('--n', shown);
+        t.textContent = shown === n - 1 ? inp.value[n - 1] : '•'; tiles.append(t); shown++;
+      }
+      clearTimeout(peek); peek = setTimeout(() => tiles.querySelectorAll('i').forEach(t => t.textContent = '•'), 600);
+    };
+    drawTiles();
+    inp.addEventListener('input', drawTiles);
+    let busy = false;
     const submit = async () => {
-      try { await api('POST', '/api/unlock', { password: inp.value }); close(); ok(inp.value); }
-      catch (e) { scrim.querySelector('#pErr').textContent = e.message; inp.value = ''; inp.focus(); }
+      if (busy) return;
+      busy = true; okBtn.classList.add('busy'); scrim.querySelector('.pw-ok').textContent = skin() === 'milchglas' ? 'Prüfe …' : 'OK';
+      const wait = skin() === 'milchglas' ? new Promise(r => setTimeout(r, 700)) : null;
+      try {
+        const r = await api('POST', '/api/unlock', { password: inp.value }).then(() => null, e => e);
+        await wait;
+        if (r) throw r;
+        if (skin() === 'milchglas') { tiles.classList.add('good'); await new Promise(r => setTimeout(r, 450)); }
+        close(); ok(inp.value);
+      } catch (e) {
+        scrim.querySelector('#pErr').textContent = e.message;
+        tiles.classList.add('bad');
+        setTimeout(() => { inp.value = ''; drawTiles(); }, 550);
+        inp.focus();
+      } finally { busy = false; okBtn.classList.remove('busy'); scrim.querySelector('.pw-ok').textContent = 'OK'; }
     };
     scrim.querySelectorAll('.keypad button').forEach(b => b.onclick = () => {
       const k = b.dataset.k;
       if (k === 'ok') return submit();
-      inp.value = k === 'del' ? inp.value.slice(0, -1) : inp.value + k; inp.focus();
+      inp.value = k === 'del' ? inp.value.slice(0, -1) : inp.value + k; drawTiles(); inp.focus();
     });
     inp.onkeydown = (e) => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') close(); };
     scrim.onclick = (e) => { if (e.target === scrim) close(); };
@@ -3316,7 +3510,10 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     const scrim = h(`<div class="scrim"><div class="panel" role="dialog" aria-label="Einstellungen">
       <h2>Einstellungen <button class="tool" id="sClose" title="Schließen"><svg class="icon"><use href="#i-x"/></svg></button></h2>
       <div><h4>Handy-Zugang</h4><div class="mobile-url">${esc(S.mobileUrl)}</div><p class="hint" style="margin-top:8px">Im Büro-WLAN am Handy öffnen. Die PIN steht in der Datei PIN.txt im Ordner C:\\Wallboard.</p></div>
-      <div><h4>Design</h4><div class="skins" id="sSkins"></div></div>
+      <div><h4>Design</h4><div class="skins" id="sSkins"></div>
+        <div class="field" style="margin-top:12px">Milchglas abends automatisch dunkler (18 bis 7 Uhr) <button class="switch" id="sMgEve" role="switch" aria-checked="${st.mgEvening !== false}"></button></div>
+        <div class="field">Spar-Modus: keine Unschärfe (falls das Board ruckelt) <button class="switch" id="sLowFx" role="switch" aria-checked="${st.lowFx === true}"></button></div>
+        ${st.prevLook && st.prevLook.skin && st.prevLook.skin !== 'milchglas' && SKINS[st.prevLook.skin] ? `<div class="row" style="margin-top:10px"><button class="btn" id="sPrevLook">Zurück zum vorherigen Aussehen (${esc(SKINS[st.prevLook.skin].name)})</button></div>` : ''}</div>
       <div><h4>Kacheln</h4><p class="hint" style="margin-bottom:10px">Kacheln verschieben, tauschen und größer oder kleiner ziehen. Die Schrift passt sich an.</p>
         <div class="row"><button class="btn" id="sArrange">Kacheln anordnen</button></div>
         <p class="hint" id="sHidHint" style="margin:12px 0 8px"></p><div class="chips" id="sHidden"></div></div>
@@ -3384,7 +3581,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <label class="field" id="sAutoWhen" ${(st.autoUpdate || 'sofort') === 'aus' ? 'hidden' : ''}>Wann installieren <select id="sAuto">${[['sofort', 'sofort'], ['nachts', 'außerhalb der Bürozeiten']].map(([v, l]) => `<option value="${v}" ${(st.autoUpdate || 'sofort') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <div class="row" style="margin-top:10px"><button class="btn" id="sCheck">Jetzt nach Updates suchen</button><button class="btn" id="sNotes">Alle Patch-Notes</button></div>
       </div>
-      <div class="row"><button class="btn" id="sReset">Auf Waldgrün zurücksetzen</button></div>
+      <div class="row"><button class="btn" id="sReset">Auf Grunddesign Milchglas zurücksetzen</button></div>
     </div></div>`);
     const renderSkins = () => {
       const el = scrim.querySelector('#sSkins'); el.innerHTML = '';
@@ -3485,6 +3682,12 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     showHidden();
     const sw = scrim.querySelector('#sSound');
     sw.onclick = () => { setSettings({ muted: !settings().muted }); sw.setAttribute('aria-checked', !settings().muted); };
+    const pl = scrim.querySelector('#sPrevLook');
+    if (pl) pl.onclick = () => { const p = settings().prevLook; setSettings({ skin: p.skin, theme: p.theme || { preset: 'wald', colors: null } }); renderSkins(); renderPresets(); renderColors(); };
+    const me = scrim.querySelector('#sMgEve');
+    me.onclick = () => { setSettings({ mgEvening: settings().mgEvening === false }); me.setAttribute('aria-checked', settings().mgEvening !== false); };
+    const lf = scrim.querySelector('#sLowFx');
+    lf.onclick = () => { setSettings({ lowFx: settings().lowFx !== true }); lf.setAttribute('aria-checked', settings().lowFx === true); };
     const rp = scrim.querySelector('#sRadarPlay');
     rp.onclick = () => { setRadar({ play: !radarCfg().play }); rp.setAttribute('aria-checked', radarCfg().play); };
     const vs = scrim.querySelector('#sVisitor');
@@ -3582,7 +3785,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       ao.setAttribute('aria-checked', on); scrim.querySelector('#sAutoWhen').hidden = !on;
     };
     scrim.querySelector('#sNotes').onclick = () => { close(); openChangelog(); };
-    scrim.querySelector('#sReset').onclick = () => { setSettings({ theme: { preset: 'wald', colors: null } }); renderPresets(); renderColors(); };
+    scrim.querySelector('#sReset').onclick = () => { setSettings({ skin: 'milchglas', theme: { preset: 'sand', colors: null } }); renderSkins(); renderPresets(); renderColors(); };
     $('#overlayHost').append(scrim);
   }
 
@@ -3721,7 +3924,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 
   tickClock(); renderMonth(); renderAll(); tickStand(); drawRadar();
   connect(); loadWeather(); loadRadar();
-  setInterval(() => { tickClock(); tickStand(); }, 1000);
+  setInterval(() => { tickClock(); tickStand(); if (mgEveningShown !== null && mgEvening() !== mgEveningShown) applyTheme(); }, 1000);
   setInterval(() => { renderTasks(); renderCalendar(); renderIncident(); renderMonth(); renderTransit(); renderSec(); checkReminders(); checkSleep(); }, 15000);
   setInterval(loadWeather, 5 * 60000);
   setInterval(loadRadar, 5 * 60000);

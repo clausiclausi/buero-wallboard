@@ -1,27 +1,29 @@
 {
-  "version": "1.43.0",
-  "notes": "Kacheln bearbeiten wie im Bento-Raster: An jeder Kante gibt es jetzt einen Griff. Damit verschiebt man die Linie zwischen zwei Kacheln, die eine wird größer, die Nachbarn kleiner. Beim Verschieben einer Kachel rücken die anderen gleich sichtbar nach, statt dass das Verschieben blockiert.",
+  "version": "1.44.0",
+  "notes": "Neues Grunddesign „Milchglas“: mattes Glas vor einem warmen, weichen Raum, Kacheln heben sich beim Drüberfahren oder Antippen leicht an.",
   "changes": [
-    "Kacheln bearbeiten wie im Bento-Raster: An jeder Kante gibt es jetzt einen Griff. Damit verschiebt man die Linie zwischen zwei Kacheln, die eine wird größer, die Nachbarn kleiner.",
-    "Beim Verschieben einer Kachel rücken die anderen gleich sichtbar nach, statt dass das Verschieben blockiert.",
-    "Lücken füllen sich automatisch, z. B. nach dem Ausblenden einer Kachel. Beim Einblenden ohne freien Platz wird die größte Kachel geteilt.",
-    "Neuer Knopf „Rückgängig“ in der Bearbeiten-Leiste."
+    "Neues Grunddesign „Milchglas“: mattes Glas vor einem warmen, weichen Raum, Kacheln heben sich beim Drüberfahren oder Antippen leicht an.",
+    "Passwort-Eingabe im Milchglas-Look: leuchtender Rand, jedes Zeichen als schwebendes Glas-Steinchen (nur kurz lesbar, dann Punkt), Knopf „Prüfe …“, bei falschem Passwort wackeln die Steinchen rot.",
+    "Abends (18 bis 7 Uhr) wird Milchglas automatisch dunkler, abschaltbar unter Einstellungen → Design.",
+    "Alle bisherigen Designs bleiben wählbar, „Standard“ heißt jetzt „Klassisch“, das alte Glas „Glas klassisch“. Knopf „Zurück zum vorherigen Aussehen“.",
+    "Spar-Modus ohne Unschärfe, schaltet sich auch selbst ein, wenn das Board ruckelt.",
+    "Handy-Seite im passenden Milchglas-Look."
   ],
   "files": {
-    "changelog.json": "c20e01092d19bb2b585b8a9e7ce5b756ca4c620b32c351206122540539798ffa",
+    "changelog.json": "f88b679c1f2e7dff829a45d49d3d728e2f1f5170981bca4fa7b5c20389c32366",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
     "election.js": "977e3fe073c468cc6e4a73d493817288294c0acb454d37c91523c1691863efc6",
     "extras.js": "b0a86a05ff18ace4e0d31985b3545fbc2e09114651bb408dd2dbd935f9f719eb",
-    "public/board.html": "5508d946e50e2de33a57128d2d0d58e94da21dc97814aa9ea319c5ae5c145d1d",
+    "public/board.html": "780eb4303bf20ec8d5fbd0198e283839d11500a905d59b78e18309a09825ff4d",
     "public/icon-192.png": "c6b866b885e711fdb607de892d36300c9da80127f2d833cd672ce40af65f5637",
     "public/icon-512.png": "0330db0ae5d581a2bd979a907dbdcb1f3d626ebe2df8c3e4a9469771a2e2dec6",
     "public/knock.js": "422d5ca78ea4873c002673f42c0e7db747b70f86c8ec489a95638bb18ae9e667",
-    "public/m.html": "bbcc3a0ecb094fd7c78d587c48a101be07c0271604f5f05f336c43086ff4d3c3",
+    "public/m.html": "1b76b3a368ab321f108309936fe58a2e687ee9298199bdf21f78957a878da7c8",
     "public/mascot.js": "a414057fb572b03b3321873c8d436b99567876adc288dc72d1a7bf48b5c97b5d",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
-    "server.js": "1dd3c324c9f23eff6cee401ab875b8f6b7fe86301e73036d0a2cc0be38126264",
+    "server.js": "3ad32b3ef326c365abec6a3aa843492dd574b5c1c7774dd5f87c002405412147",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "3153b1ad0c44a32e9c835c729265da1bf7e541ed00886abd08eb4a9d91ff9dac"
+    "version.json": "1214dac1a8c68eb90617ed473f0ad6c7f83222113b1ee8b49583a7c101faebab"
   }
 }
