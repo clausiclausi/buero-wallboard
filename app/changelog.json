@@ -1,5 +1,17 @@
 [
  {
+  "version": "1.44.0",
+  "date": "2026-11-03",
+  "changes": [
+   "Neues Grunddesign „Milchglas“: mattes Glas vor einem warmen, weichen Raum, Kacheln heben sich beim Drüberfahren oder Antippen leicht an.",
+   "Passwort-Eingabe im Milchglas-Look: leuchtender Rand, jedes Zeichen als schwebendes Glas-Steinchen (nur kurz lesbar, dann Punkt), Knopf „Prüfe …“, bei falschem Passwort wackeln die Steinchen rot.",
+   "Abends (18 bis 7 Uhr) wird Milchglas automatisch dunkler, abschaltbar unter Einstellungen → Design.",
+   "Alle bisherigen Designs bleiben wählbar, „Standard“ heißt jetzt „Klassisch“, das alte Glas „Glas klassisch“. Knopf „Zurück zum vorherigen Aussehen“.",
+   "Spar-Modus ohne Unschärfe, schaltet sich auch selbst ein, wenn das Board ruckelt.",
+   "Handy-Seite im passenden Milchglas-Look."
+  ]
+ },
+ {
   "version": "1.43.0",
   "date": "2026-11-03",
   "changes": [

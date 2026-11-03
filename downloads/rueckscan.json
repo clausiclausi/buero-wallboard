@@ -1,8 +1,17 @@
 {
- "version": "1.7.0",
+ "version": "1.8.0",
  "datei": "Rueckscan.zip",
  "datum": "2026-11-03",
  "aenderungen": [
+  {
+   "version": "1.8.0",
+   "datum": "2026-11-03",
+   "neu": [
+    "Neues Aussehen „Milchglas“: mattes Glas vor einem warmen Hintergrund, weiche Bewegungen",
+    "Ampel, Meldungen und Zahlen bleiben kräftig und gut lesbar",
+    "Unter Einstellungen → Design wählbar: Milchglas, Milchglas ohne Unschärfe (für langsame PCs) oder Klassisch"
+   ]
+  },
   {
    "version": "1.7.0",
    "datum": "2026-11-03",

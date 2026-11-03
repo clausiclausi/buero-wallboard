@@ -35,9 +35,9 @@ function log(...a) { console.log(new Date().toISOString(), ...a); }
 
 /* ---------- Datenhaltung ---------- */
 const DEFAULT_SETTINGS = {
-  theme: { preset: 'wald', colors: null },
+  theme: { preset: 'sand', colors: null },
   muted: false, lead: 15, volume: 0.6, rainHours: [10, 12, 17],
-  visitor: false, officeStart: '06:00', officeEnd: '20:00', autoUpdate: 'sofort', updateEvery: 30, skin: 'standard',
+  visitor: false, officeStart: '06:00', officeEnd: '20:00', autoUpdate: 'sofort', updateEvery: 30, skin: 'milchglas',
   mascot: { fig: 'strich', color: '#7FE0AE', text: '', font: 'strich', every: 'zufall', size: 'mittel', mood: 'lieb', alerts: true, walk: '09:55', deco: true },
 };
 const DEFAULT_LOANS = [
@@ -50,6 +50,13 @@ let db = Object.assign({ tasks: [], events: [], scans: [], loans: DEFAULT_LOANS,
 db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings);
 // Ab 1.21.0 kommen Haltestellen aus der offenen EFA-Auskunft (andere Kennungen): alte Auswahl einmalig zurücksetzen
 if ((db.transitDefault || 0) < 2) { db.settings.transit = null; db.settings.route = null; db.transitDefault = 2; }
+// 1.43: Neues Grunddesign Milchglas. Einmalig umstellen, das bisherige Aussehen merken (prevLook),
+// alle alten Designs und Farben bleiben unter Einstellungen → Design wählbar.
+if ((db.lookV2 || 0) < 1) {
+  if (!db.settings.prevLook) db.settings.prevLook = { skin: db.settings.skin, theme: db.settings.theme };
+  db.settings.skin = 'milchglas'; db.settings.theme = { preset: 'sand', colors: null };
+  db.lookV2 = 1;
+}
 // 1.24: BSI-Warnungen stehen jetzt oben unter dem Datum. Die Sicherheits-Kachel einmalig ausblenden,
 // das Wetter bekommt ihren Platz, wenn sie direkt darunter lag.
 if ((db.secMoved || 0) < 1) {
@@ -233,7 +240,9 @@ function sanitizeSettings(b) {
   if (Array.isArray(b.rainHours)) s.rainHours = [...new Set(b.rainHours.map(Number).filter(h => h >= 0 && h <= 23.5 && Number.isInteger(h * 2)))].slice(0, 12); // auch halbe Stunden, z. B. 16.5
   if (isTime(b.officeStart)) s.officeStart = b.officeStart;
   if (isTime(b.officeEnd)) s.officeEnd = b.officeEnd;
-  if ('skin' in b) s.skin = oneOf(b.skin, ['standard', 'glas', 'neon', 'klar', 'fluid', 'aurora', 'ozean', 'sonne', 'papier', 'pop'], 'standard');
+  if ('mgEvening' in b) s.mgEvening = !!b.mgEvening;
+  if ('lowFx' in b) s.lowFx = !!b.lowFx;
+  if ('skin' in b) s.skin = oneOf(b.skin, ['milchglas', 'standard', 'glas', 'neon', 'klar', 'fluid', 'aurora', 'ozean', 'sonne', 'papier', 'pop'], 'standard');
   if (b.mascot && typeof b.mascot === 'object') {
     const m = b.mascot, hex = v => /^#[0-9a-fA-F]{6}$/.test(v || '') ? v : '';
     s.mascot = {
