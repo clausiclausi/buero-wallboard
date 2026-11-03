@@ -1,5 +1,13 @@
 [
  {
+  "version": "1.39.0",
+  "date": "2026-11-03",
+  "changes": [
+   "Neue Taste oben rechts (vier Kästchen): Kacheln bearbeiten mit einem Druck. Verschieben, tauschen, Größe ändern, aus- und einblenden, dann „Fertig“. Bisher ging das nur über die Einstellungen.",
+   "Kacheln bearbeiten: Die Größe lässt sich jetzt an allen vier Ecken ziehen, nicht nur unten rechts. Nachbar-Kacheln auf der Seite machen Platz."
+  ]
+ },
+ {
   "version": "1.38.0",
   "date": "2026-11-03",
   "changes": [
