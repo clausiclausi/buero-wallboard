@@ -1,88 +1,30 @@
 {
- "version": "1.6.0",
+ "version": "1.7.0",
  "datei": "Rueckscan.zip",
- "datum": "2026-11-02",
+ "datum": "2026-11-03",
  "aenderungen": [
+  {
+   "version": "1.7.0",
+   "datum": "2026-11-03",
+   "neu": [
+    "Zweitprüfung: nach roter Seriennummer einfach die Inventarnummer scannen, Rückscan fragt kurz nach",
+    "Auch per Knopf in der roten Meldung, Taste F8 oder Steuer-Code „Zweitnummer prüfen“",
+    "Abweichende Seriennummer wird beim Gerät vermerkt und verschwindet aus „Nicht erwartet“",
+    "Neue Export-Liste „Seriennummer weicht ab“ in Excel, PDF und Word",
+    "Automatik und Nachfrage in den Einstellungen abschaltbar"
+   ]
+  },
   {
    "version": "1.6.0",
    "datum": "2026-11-02",
    "neu": [
-    "Abschluss per Barcode: Abschnitt oder ganzen Vorgang abschließen, zum Schutz jeden Code zweimal scannen. Die Codes lassen sich groß auf dem Bildschirm zeigen.",
-    "Neues Abschluss-Fenster: weiter bearbeiten, abschließen und in einem festen Ordner speichern (z. B. Teamlaufwerk), Speicherort neu wählen oder nur archivieren.",
-    "Liste im Programm bearbeiten: Nummern und Namen ändern, Geräte nachtragen oder löschen, von Hand als zurück oder offen markieren (mit Grund), Notizen.",
-    "Jede Änderung steht im Verlauf des Vorgangs.",
-    "Neues Archiv mit Suche und „Wo war Gerät X?“ über alle Vorgänge.",
-    "Exportierte Excel-Dateien lassen sich wieder einlesen und weiterbearbeiten.",
-    "Kürzel der Erfasser beim Anlegen und Abschließen, steht in Liste, Archiv und Export (nur Kürzel, keine Namen)."
-   ]
-  },
-  {
-   "version": "1.5.1",
-   "datum": "2026-10-29",
-   "neu": [
-    "Die Adresse des Wallboards ist nicht mehr vorausgefüllt. Sie wird einmal unter Einstellungen eingetragen.",
-    "Hinweis, wo die Adresse steht: am Board unter Einstellungen → Handy-Zugang."
-   ]
-  },
-  {
-   "version": "1.5.0",
-   "datum": "2026-10-29",
-   "neu": [
-    "Restanzahl ansagen: Windows sagt z. B. „noch 88“ (einstellbar: aus, alle 1, 5, 10 oder 25).",
-    "Kamera als Scanner: Die Webcam liest Barcodes, wenn der Handscanner leer ist.",
-    "Großer Fortschritt: riesige Anzeige „412 von 500“ im Vollbild.",
-    "Spickzettel mit allen Tasten als PDF.",
-    "Barcode-Etiketten drucken (Avery Zweckform 3474, 3475 und 3666).",
-    "Leere Excel-Vorlage für die Ausgabe-Liste.",
-    "Zwei Vorgänge vergleichen: was fehlt, was ist neu (auch als Excel).",
-    "Sammel-Export: alle Vorgänge eines Monats in einer Excel-Datei.",
-    "Hinweis im Programm, wenn es eine neue Version gibt.",
-    "Der aktuelle Stand erscheint auf dem Wallboard, nur als Zahl („Wagen 1: 412 von 500“)."
-   ]
-  },
-  {
-   "version": "1.4.0",
-   "datum": "2026-10-29",
-   "neu": [
-    "Englische und deutsche Tastatur: Kommt Z statt Y oder ß statt - an, wird das Gerät trotzdem richtig zugeordnet.",
-    "Tastatur-Abgleich auf der Startseite: prüft alte Vorgänge und ordnet nach Bestätigung richtig zu.",
-    "Scanner-Test: Test-Barcode scannen, Rückscan sagt, ob die Tastatur passt."
-   ]
-  },
-  {
-   "version": "1.3.0",
-   "datum": "2026-10-28",
-   "neu": [
-    "Beim Abschließen einen Namen vergeben (z. B. „Wagen 1“), er steht danach im Dateinamen jedes Exports.",
-    "Umbenennen jederzeit über „Exportieren“ → „Umbenennen“."
-   ]
-  },
-  {
-   "version": "1.2.0",
-   "datum": "2026-10-28",
-   "neu": [
-    "In der Vorgangsliste direkt abschließen, wieder öffnen und exportieren (Excel, Fehlliste, PDF, Word).",
-    "Zustand jetzt mit Alt+1, Alt+2 und Alt+3 (F2 bis F4 sind am Notebook Lautstärketasten)."
-   ]
-  },
-  {
-   "version": "1.1.0",
-   "datum": "2026-10-28",
-   "neu": [
-    "Abschnitte (z. B. Wagen 3) abschließen, benennen und gruppiert exportieren.",
-    "Zustand nach dem Scan: in Ordnung, beschädigt oder unvollständig.",
-    "Steuer-Barcodes zum Ausdrucken, auch für eure Wagen oder Räume.",
-    "Hersteller-Zusätze wie „S“ oder „SN:“ werden automatisch erkannt.",
-    "Bei Rot schlägt Rückscan ähnliche Nummern vor („Meintest du …“).",
-    "Neue Modi „Ausgabe“ und „Inventur“, Fortschritt je Gerätetyp."
-   ]
-  },
-  {
-   "version": "1.0.0",
-   "datum": "2026-10-28",
-   "neu": [
-    "Erste Version: Excel- oder CSV-Liste laden und Geräte mit dem Handscanner zurückscannen.",
-    "Ampel grün oder rot mit Tönen, Ergebnis als Excel exportieren, Statistik."
+    "Abschluss per Barcode für Abschnitt und ganzen Vorgang, zweimal scannen, Codes groß auf dem Bildschirm",
+    "Abschluss-Fenster: weiter bearbeiten, speichern in festen Ordner, Speicherort neu wählen, nur archivieren",
+    "Liste im Programm bearbeiten: ändern, nachtragen, löschen, von Hand zurück/offen mit Grund, Notizen",
+    "Änderungsverlauf pro Vorgang",
+    "Archiv mit Suche und „Wo war Gerät X?“",
+    "Exportierte Excel-Dateien wieder einlesen",
+    "Kürzel der Erfasser beim Anlegen und Abschließen, in Liste, Archiv und Export"
    ]
   }
  ]
