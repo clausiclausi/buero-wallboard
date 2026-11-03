@@ -40,7 +40,7 @@ module.exports = function createElection({ DATA, log, getSettings, broadcast }) 
       let abbr = "", label = "";
       if (kind === 'house') {
         const m = head.match(/\{\{\s*ushr\s*\|\s*([A-Z]{2})\s*\|\s*([^|}]+?)\s*(\|[^}]*)?\}\}/i);
-        if (!m || /\|\s*X\b/i.test(m[3] || '')) continue; // frühere Nachwahlen (X) zählen nicht
+        if (!m || !STATES[m[1].toUpperCase()]) continue; // ohne Washington D.C. und Außengebiete (keine Stimme)
         abbr = m[1].toUpperCase(); label = `${abbr}-${/^\d+$/.test(m[2]) ? m[2] : 'AL'}`;
       } else {
         const m = head.match(/\[\[([^\]|]*)\|([^\]]+)\]\]/) || head.match(/\[\[([^\]]+)\]\]/);
@@ -50,10 +50,8 @@ module.exports = function createElection({ DATA, log, getSettings, broadcast }) 
       }
       if (seen.has(label)) continue;
       const cands = [];
-      for (const line of row.split('\n')) {
-        const m = line.match(/^\s*\*\s*\{\{\s*Party stripe\s*\|([^}]*)\}\}(.*)$/i);
-        if (!m) continue;
-        const rest = m[2], won = /\{\{\s*(Aye|Y|Yes|Check mark|Tick|Won)\b/i.test(rest);
+      for (const m of row.matchAll(/\*\s*\{\{\s*Party stripe\s*\|([^}]*)\}\}([^\n]*)/gi)) {
+        const rest = m[2], won = /\{\{\s*(Aye|Y|Yes|Check mark|Tick|Won)\b/i.test(rest) || /^'''/.test(rest.replace(/\{\{[^}]*\}\}/g, '').trim()); // Haken oder fett = gewählt
         const txt = plain(rest), pm = txt.match(/^(.*?)\s*\(([^)]*)\)\s*([\d.,]+)\s*%/) || txt.match(/^(.*?)\s*\(([^)]*)\)/);
         if (!pm) continue;
         const pct = pm[3] ? parseFloat(pm[3].replace(',', '.')) : null;
@@ -103,7 +101,9 @@ module.exports = function createElection({ DATA, log, getSettings, broadcast }) 
     // Repräsentantenhaus: alle 435 Sitze zur Wahl
     try {
       const t = await wiki('2026_United_States_House_of_Representatives_elections');
-      const list = races(t, 'house'), box = infobox(t), won = count(list, 'winner'), lead = count(list, 'leader'), total = {};
+      // Erst ab den Bundesstaaten: oben stehen frühere Nachwahlen, die schon entschieden sind
+      const from = t.search(/\n==\s*Alabama\s*==/);
+      const list = races(from > 0 ? t.slice(from) : t, 'house'), box = infobox(t), won = count(list, 'winner'), lead = count(list, 'leader'), total = {};
       for (const k of ['D', 'R', 'I']) total[k] = box[k]?.after ?? (won[k] || 0);
       // Pro Bundesstaat: gewonnene Wahlkreise je Partei
       const states = {};

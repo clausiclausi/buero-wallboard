@@ -4,16 +4,21 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
       - run: |
-          UA="Buero-Wallboard/1.38 (Kiosk-Anzeige; github.com/clausiclausi/buero-wallboard)"
-          curl -sS -A "$UA" "https://en.wikipedia.org/w/api.php?action=parse&page=2026_United_States_House_of_Representatives_elections&prop=wikitext&format=json&formatversion=2" -o w.json
-          python3 -c "
-          import json,re;t=json.load(open('w.json'))['parse']['wikitext']
-          i=t.find('==Alabama==');print(t[i:i+3500])
-          print('USHR', len(re.findall(r'\{\{ushr',t)), re.findall(r'\{\{ushr[^}]*\}\}',t)[:15])
-          j=t.find('Georgia', t.find('==Georgia=='));print(t[j:j+200])
+          mkdir -p /tmp/d && node -e "
+          const E = require('./app/election.js')({ DATA: '/tmp/d', log: console.log, getSettings: () => ({ election: true }), broadcast() {} });
+          E.start();
+          setTimeout(() => { const s = E.view(); const sum = r => r && r.races ? r.races.map(x => x.label + ':' + (x.winner||'-') + '/' + (x.leader||'-') + ' ' + x.cands.map(c => c.name + '(' + c.party + ')' + (c.pct ?? '')).join(', ')).join(' | ') : '';
+            console.log('ERROR', s.error); console.log('UPDATED', s.updated);
+            console.log('SENATE', JSON.stringify({ total: s.senate?.total, won: s.senate?.won, lead: s.senate?.lead, decided: s.senate?.decided, n: s.senate?.races.length }));
+            console.log(sum(s.senate));
+            console.log('HOUSE', JSON.stringify({ total: s.house?.total, won: s.house?.won, lead: s.house?.lead, decided: s.house?.decided, n: s.house?.count, states: Object.keys(s.house?.states || {}).length }));
+            console.log('HOUSE close', (s.house?.close || []).length);
+            console.log('GOV', JSON.stringify({ won: s.gov?.won, decided: s.gov?.decided, n: s.gov?.races.length }));
+            console.log(sum(s.gov)); console.log('HOUSESAMPLE', JSON.stringify(s.house?.states?.CA), JSON.stringify(Object.values(s.house?.states||{}).reduce((a,x)=>a+x.n,0)));
+            console.log('NEWS', JSON.stringify(s.news.map(n => n.src + ' ' + n.title)));
+            process.exit(0); }, 25000);
           "
-          curl -sS -A "$UA" "https://en.wikipedia.org/w/api.php?action=parse&page=2026_United_States_Senate_elections&prop=wikitext&format=json&formatversion=2" -o s.json
-          python3 -c "
-          import json;t=json.load(open('s.json'))['parse']['wikitext']
-          i=t.find('[[2026 United States Senate election in Georgia|Georgia]]', t.find('Elections leading'));print(t[i:i+1800])"
