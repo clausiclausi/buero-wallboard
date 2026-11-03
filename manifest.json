@@ -1,17 +1,18 @@
 {
-  "version": "1.42.0",
-  "notes": "Presets: Der Vorschlag „US-Wahl“ zeigt das Wahl-Feld jetzt groß (halber Bildschirm) mit Karte und Rennen nebeneinander, Wahl-Nachrichten unter dem Wetter. Automatischer Wechsel ruht außerhalb der Bürozeit. Fußzeile: Texte kürzen sich bei Platzmangel, Knöpfe rechts bleiben immer sichtbar.",
+  "version": "1.43.0",
+  "notes": "Kacheln bearbeiten wie im Bento-Raster: An jeder Kante gibt es jetzt einen Griff. Damit verschiebt man die Linie zwischen zwei Kacheln, die eine wird größer, die Nachbarn kleiner. Beim Verschieben einer Kachel rücken die anderen gleich sichtbar nach, statt dass das Verschieben blockiert.",
   "changes": [
-    "Presets: Der Vorschlag „US-Wahl“ zeigt das Wahl-Feld jetzt groß (halber Bildschirm) mit Karte und Rennen nebeneinander, Wahl-Nachrichten unter dem Wetter.",
-    "Automatischer Wechsel ruht außerhalb der Bürozeit.",
-    "Fußzeile: Texte kürzen sich bei Platzmangel, Knöpfe rechts bleiben immer sichtbar."
+    "Kacheln bearbeiten wie im Bento-Raster: An jeder Kante gibt es jetzt einen Griff. Damit verschiebt man die Linie zwischen zwei Kacheln, die eine wird größer, die Nachbarn kleiner.",
+    "Beim Verschieben einer Kachel rücken die anderen gleich sichtbar nach, statt dass das Verschieben blockiert.",
+    "Lücken füllen sich automatisch, z. B. nach dem Ausblenden einer Kachel. Beim Einblenden ohne freien Platz wird die größte Kachel geteilt.",
+    "Neuer Knopf „Rückgängig“ in der Bearbeiten-Leiste."
   ],
   "files": {
-    "changelog.json": "840f623000170405025d6af3a63c0c539521111f92df01744fa039244bd0a501",
+    "changelog.json": "c20e01092d19bb2b585b8a9e7ce5b756ca4c620b32c351206122540539798ffa",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
     "election.js": "977e3fe073c468cc6e4a73d493817288294c0acb454d37c91523c1691863efc6",
     "extras.js": "b0a86a05ff18ace4e0d31985b3545fbc2e09114651bb408dd2dbd935f9f719eb",
-    "public/board.html": "9bf2594f8c0e902ee5ebe2919eb079bbbd5ad23083bcf27fed2c46204ce0ebd6",
+    "public/board.html": "5508d946e50e2de33a57128d2d0d58e94da21dc97814aa9ea319c5ae5c145d1d",
     "public/icon-192.png": "c6b866b885e711fdb607de892d36300c9da80127f2d833cd672ce40af65f5637",
     "public/icon-512.png": "0330db0ae5d581a2bd979a907dbdcb1f3d626ebe2df8c3e4a9469771a2e2dec6",
     "public/knock.js": "422d5ca78ea4873c002673f42c0e7db747b70f86c8ec489a95638bb18ae9e667",
@@ -21,6 +22,6 @@
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
     "server.js": "1dd3c324c9f23eff6cee401ab875b8f6b7fe86301e73036d0a2cc0be38126264",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "87edb9834fa6b6205e77b0b22845f42544e3c67f15e12e54a64659253bc37093"
+    "version.json": "3153b1ad0c44a32e9c835c729265da1bf7e541ed00886abd08eb4a9d91ff9dac"
   }
 }

@@ -322,7 +322,7 @@ main > .card.off { display: none; }
 .note { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--bg); font-size: 21px; line-height: 1.3; font-weight: 500; }
 .note span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .note button { flex: none; width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); display: grid; place-items: center; font-size: 18px; }
-.arr-off { position: absolute; top: 12px; right: 74px; border: 0; border-radius: 12px; padding: 8px 14px; font-size: 18px; font-weight: 700; background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 8px; }
+.arr-off { position: absolute; top: 30px; right: 74px; border: 0; border-radius: 12px; padding: 8px 14px; font-size: 18px; font-weight: 700; background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 8px; }
 .arr-bar .arr-hid { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 0; min-width: 0; max-height: 140px; overflow-y: auto; align-items: center; }
 .arr-bar .arr-hid:empty { display: none; }
 .arr-bar > .btn { flex: none; white-space: nowrap; }
@@ -373,6 +373,12 @@ main.pre-fade { animation: prefade .6s ease; }
 .arr-grip.ne::before { border-right-width: 5px; border-top-width: 5px; border-radius: 0 6px 0 0; }
 .arr-grip.sw { left: -3px; bottom: -3px; border-radius: 0 24px 0 24px; cursor: nesw-resize; }
 .arr-grip.sw::before { border-left-width: 5px; border-bottom-width: 5px; border-radius: 0 0 0 6px; }
+/* Kanten: die Linie zur Nachbarkachel verschieben, beide passen sich an */
+.arr-grip.n, .arr-grip.s { left: 50%; width: 96px; height: 26px; margin-left: -48px; border-radius: 13px; cursor: ns-resize; }
+.arr-grip.e, .arr-grip.w { top: 50%; width: 26px; height: 96px; margin-top: -48px; border-radius: 13px; cursor: ew-resize; }
+.arr-grip.n { top: -3px; } .arr-grip.s { bottom: -3px; } .arr-grip.e { right: -3px; } .arr-grip.w { left: -3px; }
+.arr-grip.n::before, .arr-grip.s::before { width: 40px; height: 0; border-top-width: 4px; border-radius: 2px; }
+.arr-grip.e::before, .arr-grip.w::before { width: 0; height: 40px; border-left-width: 4px; border-radius: 2px; }
 .arr-bar { position: absolute; left: 24px; right: 24px; top: 22px; max-width: calc(100% - 48px); box-sizing: border-box; z-index: 9; display: flex; align-items: center; gap: 14px; padding: 14px 16px 14px 26px;
   border-radius: 20px; background: var(--surface); border: 2px solid var(--highlight); box-shadow: 0 16px 50px rgba(0,0,0,.45); font-size: 21px; white-space: normal; }
 .arr-bar > span { color: var(--muted); margin-right: 8px; flex: 0 1 560px; min-width: 300px; }
@@ -1386,8 +1392,31 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   // Ausgeblendete Kachel wieder zeigen: alter Platz, sonst ein freier Platz, sonst null (kein Platz)
   function unhide(L, k) {
     const rest = { ...L, hidden: L.hidden.filter(j => j !== k) };
-    if (shownKeys(rest).some(j => j !== k && overlap(rest[k], rest[j]))) { const spot = freeSpot(rest, k); if (!spot) return null; rest[k] = spot; }
-    return rest;
+    if (shownKeys(rest).some(j => j !== k && overlap(rest[k], rest[j]))) {
+      let spot = freeSpot(rest, k);
+      if (!spot) {
+        // Kein freier Platz: die größte Kachel wird geteilt, die eingeblendete bekommt eine Hälfte
+        const big = shownKeys(rest).filter(j => j !== k).sort((a, b) => rest[b][2] * rest[b][3] - rest[a][2] * rest[a][3])[0];
+        const a = big && rest[big];
+        if (!a || (a[2] < 2 * MIN && a[3] < 2 * MIN)) return null;
+        if (a[2] >= a[3] * 1.5 || a[3] < 2 * MIN) { const w = Math.floor(a[2] / 2); rest[big] = [a[0], a[1], a[2] - w, a[3]]; spot = [a[0] + a[2] - w, a[1], w, a[3]]; }
+        else { const hh = Math.floor(a[3] / 2); rest[big] = [a[0], a[1], a[2], a[3] - hh]; spot = [a[0], a[1] + a[3] - hh, a[2], hh]; }
+      }
+      rest[k] = spot;
+    }
+    return validLayout(rest) ? rest : null;
+  }
+  // Lücken schließen: Kacheln wachsen in angrenzende freie Streifen, bis nichts mehr frei ist
+  function fillGaps(L) {
+    const N = JSON.parse(JSON.stringify(L)), ks = shownKeys(N);
+    for (let guard = 0, grew = true; grew && guard < 60; guard++) {
+      grew = false;
+      for (const k of ks) for (const g of [[0, 0, 1, 0], [0, 0, 0, 1], [-1, 0, 1, 0], [0, -1, 0, 1]]) {
+        const a = N[k].map((v, i) => v + g[i]);
+        if (fits(a) && !ks.some(j => j !== k && overlap(a, N[j]))) { N[k] = a; grew = true; }
+      }
+    }
+    return validLayout(N) ? N : L;
   }
   const tileName = k => tiles().find(e => e.dataset.k === k)?.dataset.name || k;
 
@@ -1495,14 +1524,13 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     const px = a => ({ left: (a[0] - 1) * (cw + gap), top: (a[1] - 1) * (ch + gap), width: a[2] * cw + (a[2] - 1) * gap, height: a[3] * ch + (a[3] - 1) * gap });
     const put = (el, a) => Object.assign(el.style, Object.fromEntries(Object.entries(px(a)).map(([k, v]) => [k, v + 'px'])));
     const scale = () => stage.getBoundingClientRect().width / 1920;
-    const cellAt = (x, y) => [Math.max(1, Math.min(COLS, Math.floor(x / (cw + gap)) + 1)), Math.max(1, Math.min(ROWS, Math.floor(y / (ch + gap)) + 1))];
 
     const ov = h('<div class="arr"></div>');
     for (let r = 1; r <= ROWS; r++) for (let c = 1; c <= COLS; c++) { const d = h('<div class="arr-cell"></div>'); put(d, [c, r, 1, 1]); ov.append(d); }
     const boxes = {};
     for (const el of tiles()) {
       const k = el.dataset.k;
-      const b = h(`<div class="arr-box" data-k="${k}"><b>${esc(el.dataset.name || k)}<small></small></b><button class="arr-off" type="button"><svg class="icon"><use href="#i-eye-off"/></svg>Ausblenden</button>${['nw', 'ne', 'sw', 'se'].map(c => `<div class="arr-grip ${c}" data-c="${c}" title="Größe ändern"></div>`).join('')}</div>`);
+      const b = h(`<div class="arr-box" data-k="${k}"><b>${esc(el.dataset.name || k)}<small></small></b><button class="arr-off" type="button"><svg class="icon"><use href="#i-eye-off"/></svg>Ausblenden</button>${['n', 's', 'e', 'w', 'nw', 'ne', 'sw', 'se'].map(c => `<div class="arr-grip ${c}" data-c="${c}" title="${c.length > 1 ? 'Größe ändern' : 'Linie verschieben, Nachbarn passen sich an'}"></div>`).join('')}</div>`);
       boxes[k] = b; ov.append(b);
     }
     const draw = () => {
@@ -1516,16 +1544,21 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
           btn.onclick = () => {
             const rest = unhide(L, k);
             if (!rest) { bar.querySelector('span').innerHTML = '<b>Kein Platz frei.</b> Bitte erst eine Kachel kleiner ziehen.'; return; }
-            L = rest; draw();
+            change(rest);
           };
           hid.append(btn);
         }
       }
+      const u = bar?.querySelector('#arrUndo'); if (u) u.disabled = !hist.length;
       applyLayout(L);
     };
+    // Rückgängig: frühere Stände merken
+    const hist = [];
+    const snap = () => { hist.push(JSON.stringify(L)); if (hist.length > 40) hist.shift(); };
+    const change = nl => { snap(); L = nl; draw(); };
     let bar = null;
-    bar = h(`<div class="arr-bar"><span><b>Ziehen</b> verschiebt, auf eine andere Kachel ziehen <b>tauscht</b>, jede der vier Ecken ändert die <b>Größe</b>.</span>
-      <div class="arr-hid"></div><button class="btn" id="arrPre">Presets${curPreset() ? ` · ${esc(curPreset().name)}` : ''}</button><button class="btn" id="arrDef">Standard</button><button class="btn" id="arrNo">Abbrechen</button><button class="btn primary" id="arrOk">Fertig</button></div>`);
+    bar = h(`<div class="arr-bar"><span><b>Ziehen</b> verschiebt, die anderen rücken nach. <b>Kanten</b> verschieben die Linie zur Nachbarkachel, <b>Ecken</b> ändern die Größe.</span>
+      <div class="arr-hid"></div><button class="btn" id="arrUndo" disabled>Rückgängig</button><button class="btn" id="arrPre">Presets${curPreset() ? ` · ${esc(curPreset().name)}` : ''}</button><button class="btn" id="arrDef">Standard</button><button class="btn" id="arrNo">Abbrechen</button><button class="btn primary" id="arrOk">Fertig</button></div>`);
     stage.append(bar);
     main.append(ov); draw();
     stage.classList.add('arranging');
@@ -1537,77 +1570,133 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         if (i >= 0) { P[i] = { ...cp, layout: L }; setSettings({ presets: P }); applyLayout(); } else setSettings({ layout: L });
       } else applyLayout();
     };
-    bar.querySelector('#arrPre').onclick = () => openPresets(() => L, nl => { L = JSON.parse(JSON.stringify(nl)); draw(); });
+    bar.querySelector('#arrPre').onclick = () => openPresets(() => L, nl => change(JSON.parse(JSON.stringify(nl))));
+    bar.querySelector('#arrUndo').onclick = () => { if (hist.length) { L = JSON.parse(hist.pop()); draw(); } };
     bar.querySelector('#arrOk').onclick = () => end(true);
     bar.querySelector('#arrNo').onclick = () => end(false);
-    bar.querySelector('#arrDef').onclick = () => { L = JSON.parse(JSON.stringify(DEF_LAYOUT)); draw(); };
+    bar.querySelector('#arrDef').onclick = () => change(JSON.parse(JSON.stringify(DEF_LAYOUT)));
+
+    // Eine Linie verschieben (Bento): Kacheln, die an der Linie enden, wachsen/schrumpfen, die dahinter beginnen, gegengleich.
+    // chain: die ganze zusammenhängende Linie (auch Kacheln über/unter der gezogenen), sonst nur direkte Nachbarn.
+    const ax = side => 'ew'.includes(side) ? [0, 2, 1, 3] : [1, 3, 0, 2];
+    function shiftLine(B, k, side, d, chain) {
+      if (!d) return B;
+      const [p, s, q, t] = ax(side), N = JSON.parse(JSON.stringify(B)), a = N[k];
+      const P = 'es'.includes(side) ? a[p] + a[s] : a[p];
+      const ks = shownKeys(N), cross = (x, y) => x[q] < y[q] + y[t] && y[q] < x[q] + x[t];
+      const before = new Set(), after = new Set();
+      ('es'.includes(side) ? before : after).add(k);
+      for (let grew = true, n = 0; grew && n < 20; n++) {
+        grew = false;
+        for (const j of ks) {
+          if (before.has(j) || after.has(j)) continue;
+          const o = N[j];
+          if (o[p] === P && [...before].some(x => (chain || x === k) && cross(o, N[x]))) { after.add(j); grew = true; }
+          else if (o[p] + o[s] === P && [...after].some(x => (chain || x === k) && cross(o, N[x]))) { before.add(j); grew = true; }
+        }
+        if (!chain) break;
+      }
+      for (const j of before) N[j][s] += d;
+      for (const j of after) { N[j][p] += d; N[j][s] -= d; }
+      return validLayout(N) ? N : null;
+    }
+    // Ältere Variante: nur die gezogene Kachel ändert sich, Kacheln im Weg werden gekürzt (z. B. über eine Lücke hinweg)
+    function cutResize(B, k, side, d) {
+      const [p, s] = ax(side), o0 = B[k], c = o0.slice();
+      if ('es'.includes(side)) c[s] += d; else { c[p] += d; c[s] -= d; }
+      if (!fits(c)) return null;
+      const N = { ...B, [k]: c };
+      for (const j of shownKeys(B)) {
+        if (j === k || !overlap(c, B[j])) continue;
+        const o = B[j].slice();
+        if (o[p] >= o0[p] + o0[s]) { const cut = c[p] + c[s] - o[p]; o[p] += cut; o[s] -= cut; }
+        else if (o[p] + o[s] <= o0[p]) o[s] = c[p] - o[p];
+        else return null;
+        if (o[s] < MIN) return null;
+        N[j] = o;
+      }
+      return validLayout(N) ? N : null;
+    }
+    // So weit wie möglich in Zugrichtung, aber nie über Mindestgröße oder Rand hinaus
+    function resizeSide(B, k, side, d, chain) {
+      for (let x = d; x !== 0; x -= Math.sign(x)) {
+        const r = shiftLine(B, k, side, x, chain) || cutResize(B, k, side, x);
+        if (r) return r;
+      }
+      return B;
+    }
+    // Verschieben: die Kachel kommt an die neue Stelle, verdrängte Kacheln rücken auf den frei gewordenen Platz
+    // oder den nächsten freien Platz (notfalls etwas kleiner)
+    function moveTo(B, k, cand) {
+      const N = JSON.parse(JSON.stringify(B)), orig = B[k];
+      N[k] = cand;
+      const hit = shownKeys(N).filter(j => j !== k && overlap(cand, N[j]));
+      hit.sort((a, b) => N[b][2] * N[b][3] - N[a][2] * N[a][3]);
+      const done = new Set();
+      for (const j of hit) {
+        const o = N[j], used = shownKeys(N).filter(x => x !== j && (!hit.includes(x) || done.has(x))).map(x => N[x]);
+        const free = a => fits(a) && !used.some(u => overlap(a, u));
+        let best = null, bd = 1e9;
+        for (let area = o[2] * o[3]; area >= MIN * MIN && !best; area--)
+          for (let w = Math.min(o[2], COLS); w >= MIN; w--) {
+            const hh = area / w; if (!Number.isInteger(hh) || hh < MIN || hh > o[3]) continue;
+            for (let r = 1; r + hh - 1 <= ROWS; r++) for (let c = 1; c + w - 1 <= COLS; c++) {
+              const a = [c, r, w, hh]; if (!free(a)) continue;
+              // nah am alten Platz der gezogenen Kachel, sonst nah am eigenen Platz
+              const dd = Math.min(Math.abs(c - orig[0]) + Math.abs(r - orig[1]), Math.abs(c - o[0]) + Math.abs(r - o[1]) + 0.5);
+              if (dd < bd) { bd = dd; best = a; }
+            }
+          }
+        if (!best) return null;
+        N[j] = best; done.add(j);
+      }
+      return validLayout(N) ? { L: N, moved: hit } : null;
+    }
 
     let drag = null;
     ov.addEventListener('pointerdown', (e) => {
       const box = e.target.closest('.arr-box'); if (!box) return;
       e.preventDefault();
-      if (e.target.closest('.arr-off')) { L = { ...L, hidden: [...L.hidden, box.dataset.k] }; return draw(); }
-      const k = box.dataset.k, mr = main.getBoundingClientRect(), sc = scale();
-      drag = { k, box, resize: e.target.closest('.arr-grip')?.dataset.c || '', orig: L[k].slice(), base: JSON.parse(JSON.stringify(L)), x0: e.clientX, y0: e.clientY, mr, sc, cand: null, swap: null };
+      if (e.target.closest('.arr-off')) { const k = box.dataset.k; return change(fillGaps({ ...L, hidden: [...L.hidden, k] })); }
+      const k = box.dataset.k, sc = scale();
+      drag = { k, box, resize: e.target.closest('.arr-grip')?.dataset.c || '', orig: L[k].slice(), base: JSON.parse(JSON.stringify(L)), x0: e.clientX, y0: e.clientY, sc, res: null };
       box.classList.add('drag'); ov.setPointerCapture(e.pointerId);
     });
     ov.addEventListener('pointermove', (e) => {
       if (!drag) return;
-      const { k, box, orig, sc, mr } = drag;
+      const { k, box, orig, sc, base } = drag;
       const dx = (e.clientX - drag.x0) / sc, dy = (e.clientY - drag.y0) / sc;
-      const others = shownKeys(L).filter(j => j !== k);
+      const mx = Math.round(dx / (cw + gap)), my = Math.round(dy / (ch + gap));
       Object.values(boxes).forEach(b => b.classList.remove('swap'));
-      let cand, bad = false, swap = null;
       if (drag.resize) {
-        // An jeder Ecke ziehbar: die Gegenecke bleibt stehen
-        const c = drag.resize, mx = Math.round(dx / (cw + gap)), my = Math.round(dy / (ch + gap));
-        let l = orig[0], t = orig[1], r = orig[0] + orig[2] - 1, btm = orig[1] + orig[3] - 1;
-        if (c.includes('w')) l = Math.max(1, Math.min(r - MIN + 1, l + mx)); else r = Math.min(COLS, Math.max(l + MIN - 1, r + mx));
-        if (c.includes('n')) t = Math.max(1, Math.min(btm - MIN + 1, t + my)); else btm = Math.min(ROWS, Math.max(t + MIN - 1, btm + my));
-        cand = [l, t, r - l + 1, btm - t + 1];
-        // Nachbarn auf der Seite, in die gezogen wird, machen Platz, solange sie mindestens 2x2 bleiben (immer vom Stand bei Ziehbeginn aus)
-        const base = drag.base, next = { ...base, [k]: cand };
-        for (const j of others) {
-          const o = base[j].slice();
-          if (!overlap(cand, o)) continue;
-          if (o[0] >= orig[0] + orig[2]) { const cut = cand[0] + cand[2] - o[0]; o[0] += cut; o[2] -= cut; }
-          else if (o[0] + o[2] <= orig[0]) o[2] = cand[0] - o[0];
-          else if (o[1] >= orig[1] + orig[3]) { const cut = cand[1] + cand[3] - o[1]; o[1] += cut; o[3] -= cut; }
-          else if (o[1] + o[3] <= orig[1]) o[3] = cand[1] - o[1];
-          if (o[2] < MIN || o[3] < MIN || overlap(cand, o)) { bad = true; break; }
-          next[j] = o;
-        }
-        if (!bad && !validLayout(next)) bad = true;
-        if (!bad) L = next;
+        // Kante: die ganze Linie wandert, Nachbarn passen sich an. Ecke: beide Richtungen, direkte Nachbarn passen sich an.
+        const c = drag.resize, chain = c.length === 1;
+        const sx = c.includes('e') ? 'e' : c.includes('w') ? 'w' : '', sy = c.includes('s') ? 's' : c.includes('n') ? 'n' : '';
+        let N = base;
+        if (sx) N = resizeSide(N, k, sx, mx, chain);
+        if (sy) N = resizeSide(N, k, sy, my, chain);
+        L = N; draw();
       } else {
-        // Zeiger über einer anderen Kachel: Plätze tauschen
-        const [pc, pr] = cellAt(e.clientX / sc - mr.left / sc, e.clientY / sc - mr.top / sc);
-        swap = others.find(j => overlap([pc, pr, 1, 1], L[j]));
-        const nc = Math.max(1, Math.min(COLS - orig[2] + 1, orig[0] + Math.round(dx / (cw + gap))));
-        const nr = Math.max(1, Math.min(ROWS - orig[3] + 1, orig[1] + Math.round(dy / (ch + gap))));
-        cand = [nc, nr, orig[2], orig[3]];
-        if (swap) boxes[swap].classList.add('swap');
-        else bad = others.some(j => overlap(cand, L[j]));
-      }
-      drag.cand = bad ? null : cand; drag.swap = swap;
-      box.classList.toggle('bad', bad && !swap);
-      if (drag.resize) draw();
-      else {
-        // Kasten folgt dem Finger, die Kachel springt nur auf freie Plätze
+        const nc = Math.max(1, Math.min(COLS - orig[2] + 1, orig[0] + mx));
+        const nr = Math.max(1, Math.min(ROWS - orig[3] + 1, orig[1] + my));
+        const res = (nc === orig[0] && nr === orig[1]) ? { L: base, moved: [] } : moveTo(base, k, [nc, nr, orig[2], orig[3]]);
+        drag.res = res;
+        box.classList.toggle('bad', !res);
+        // Vorschau: die anderen Kacheln rücken schon, der gezogene Kasten folgt dem Finger
+        for (const [j, b] of Object.entries(boxes)) if (j !== k) put(b, (res ? res.L : base)[j]);
+        (res ? res.moved : []).forEach(j => boxes[j].classList.add('swap'));
         put(box, orig); box.style.transform = `translate(${dx}px, ${dy}px)`;
       }
     });
     const drop = () => {
       if (!drag) return;
-      const { k, box, orig, swap, cand, resize } = drag;
+      const { box, resize, base, res } = drag;
       box.classList.remove('drag', 'bad'); box.style.transform = '';
       Object.values(boxes).forEach(b => b.classList.remove('swap'));
-      if (!resize) {
-        if (swap) { const t = L[swap]; L = { ...L, [swap]: orig, [k]: t }; }
-        else if (cand) L = { ...L, [k]: cand };
-        if (!validLayout(L)) L[k] = orig;
-      }
-      drag = null; draw();
+      drag = null;
+      const nl = resize ? L : (res ? fillGaps(res.L) : base);
+      L = base;
+      if (JSON.stringify(nl) !== JSON.stringify(base)) change(nl); else draw();
     };
     ov.addEventListener('pointerup', drop);
     ov.addEventListener('pointercancel', drop);
