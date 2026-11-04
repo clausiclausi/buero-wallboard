@@ -7,7 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 
-module.exports = function createElection({ DATA, log, getSettings, broadcast }) {
+module.exports = function createElection({ DATA, log, getSettings, broadcast, active = () => !!getSettings().election }) {
   const FILE = path.join(DATA, 'wahl.json');
   let st = { senate: null, house: null, gov: null, news: [], updated: 0, error: '' };
   try { st = Object.assign(st, JSON.parse(fs.readFileSync(FILE, 'utf8'))); } catch {}
@@ -157,11 +157,11 @@ module.exports = function createElection({ DATA, log, getSettings, broadcast }) 
     finally { busy = false; last = Date.now(); }
   }
   // Alle 2 Minuten, solange der Wahl-Modus an ist (schont Wikipedia, reicht für die Wahlnacht)
-  function tick() { if (getSettings().election && Date.now() - last > 120000) update(); }
+  function tick() { if (active() && Date.now() - last > 120000) update(); }
   return {
     start() { clearInterval(timer); timer = setInterval(tick, 15000); tick(); },
     refresh() { last = 0; tick(); },
-    view: () => getSettings().election ? st : null,
+    view: () => active() ? st : null,
     _races: races, _infobox: infobox,
   };
 };
