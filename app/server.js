@@ -254,10 +254,11 @@ function sanitizeSettings(b) {
   }
   if ('layout' in b) {
     // Kachel-Anordnung im 12x6-Raster: [Spalte, Zeile, Breite, Höhe], nur vollständig und ohne Überlappung
-    const keys = ['cal', 'wx', 'loan', 'month', 'incident', 'notes', 'transit', 'sec', 'news', 'todo'], L = b.layout || {};
+    // US-Wahl-Kachel (wahl) ist freiwillig: fehlt sie, gilt sie als ausgeblendet
+    const L = b.layout || {}, ok = a => Array.isArray(a) && a.length === 4 && a.every(Number.isInteger) && a[0] >= 1 && a[1] >= 1 && a[2] >= 2 && a[3] >= 2 && a[0] + a[2] <= 13 && a[1] + a[3] <= 7;
+    const keys = ['cal', 'wx', 'loan', 'month', 'incident', 'notes', 'transit', 'sec', 'news', 'todo', ...(ok(L.wahl) ? ['wahl'] : [])];
     const hidden = Array.isArray(L.hidden) ? keys.filter(k => L.hidden.includes(k)) : [];
     const shown = keys.filter(k => !hidden.includes(k));
-    const ok = a => Array.isArray(a) && a.length === 4 && a.every(Number.isInteger) && a[0] >= 1 && a[1] >= 1 && a[2] >= 2 && a[3] >= 2 && a[0] + a[2] <= 13 && a[1] + a[3] <= 7;
     const hit = (a, c) => a[0] < c[0] + c[2] && c[0] < a[0] + a[2] && a[1] < c[1] + c[3] && c[1] < a[1] + a[3];
     s.layout = keys.every(k => ok(L[k])) && shown.every((k, i) => shown.slice(i + 1).every(j => !hit(L[k], L[j]))) ? { ...Object.fromEntries(keys.map(k => [k, L[k]])), hidden } : null;
   }
@@ -394,7 +395,10 @@ const display = require('./display')({ ROOT, DATA, config, log, broadcast: () =>
 const tunnel = require('./tunnel')({ ROOT, config, log, broadcast: () => broadcast() });
 const radar = require('./radar')({ DATA, config, log });
 const extras = require('./extras')({ DATA, config, log, getSettings: () => db.settings, broadcast: () => broadcast(), localDate });
-const election = require('./election')({ DATA, log, getSettings: () => db.settings, broadcast: () => broadcast() });
+// Wahl-Daten werden gebraucht, wenn der Wahl-Modus an ist oder eine Anordnung (auch ein wechselndes Preset) die US-Wahl-Kachel zeigt
+const wahlTile = L => !!(L && Array.isArray(L.wahl) && !(L.hidden || []).includes('wahl'));
+const wahlNeeded = () => { const s = db.settings; return !!s.election || wahlTile(s.layout) || (!!s.rotate && (s.presets || []).some(p => p && (p.election || wahlTile(p.layout)))); };
+const election = require('./election')({ DATA, log, getSettings: () => db.settings, active: wahlNeeded, broadcast: () => broadcast() });
 
 /* ---------- Wetter vom DWD über Bright Sky ---------- */
 let weather = { ok: false, updated: 0 };
@@ -702,7 +706,7 @@ const server = http.createServer(async (req, res) => {
       Object.assign(db.settings, patch); save();
       if ('transit' in patch || 'route' in patch || 'routeOn' in patch) extras.refreshTransit();
       if ('newsSources' in patch) extras.refreshNews();
-      if (patch.election) election.refresh();
+      if (('election' in patch || 'layout' in patch || 'presets' in patch || 'rotate' in patch) && wahlNeeded()) election.refresh();
       if ('waste' in patch || 'wasteOn' in patch) extras.refreshWaste();
       if ('backupDir' in patch) backup();
       return send(res, 200, db.settings);

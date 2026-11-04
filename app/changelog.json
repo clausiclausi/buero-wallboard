@@ -1,5 +1,14 @@
 [
  {
+  "version": "1.45.0",
+  "date": "2026-11-04",
+  "changes": [
+   "Presets: Jede Zeile hat jetzt „Jetzt zeigen“. Damit schaltet das Board sofort auf diese Ansicht, bei automatischem Wechsel geht es von dort weiter. Die laufende Ansicht ist markiert („Läuft gerade“).",
+   "US-Wahl als eigene Kachel: Unter „Kacheln bearbeiten“ → „+ US-Wahl“ lässt sich das Wahl-Feld in jede Anordnung einbauen, auch ins Preset „Normal“, und wie jede Kachel verschieben und vergrößern.",
+   "Presets-Fenster bricht bei wenig Platz um, nichts läuft aus dem Bild."
+  ]
+ },
+ {
   "version": "1.44.0",
   "date": "2026-11-03",
   "changes": [

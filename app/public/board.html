@@ -330,9 +330,12 @@ main > .card.off { display: none; }
 .pre-scrim { position: absolute; inset: 0; z-index: 20; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; }
 .pre-panel { width: min(1180px, 100%); max-height: 100%; overflow-y: auto; box-sizing: border-box; background: var(--surface); border: 2px solid var(--highlight); border-radius: 24px; padding: 26px 30px; display: flex; flex-direction: column; gap: 14px; }
 .pre-panel h2 { margin: 0; font-size: 30px; display: flex; align-items: center; gap: 12px; }
-.pre-row { display: grid; grid-template-columns: 36px minmax(0, 1fr) 150px auto auto auto auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 14px; background: var(--bg); font-size: 19px; }
+.pre-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 14px; background: var(--bg); font-size: 19px; }
 .pre-row.cur { outline: 2px solid var(--highlight); }
-.pre-row .nr { font-weight: 800; color: var(--muted); text-align: center; }
+.pre-row .nr { flex: none; width: 36px; font-weight: 800; color: var(--muted); text-align: center; }
+.pre-row > input[type=text] { flex: 1 1 200px; }
+.pre-row .secs { flex: none; } .pre-row .secs input { width: 100px; }
+.pre-row .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
 .pre-row input[type=text], .pre-row input[type=number] { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 0; width: 100%; box-sizing: border-box; }
 .pre-row .secs { display: flex; align-items: center; gap: 6px; color: var(--muted); }
 .pre-row label.chk { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
@@ -1302,7 +1305,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       <div class="news-list" id="newsList"><div class="news-track" id="newsTrack"></div></div>
     </section>
 
-    <section class="card wahl off" id="wahlCard" data-e="wahl" aria-label="US-Wahl live">
+    <section class="card wahl off" id="wahlCard" data-e="wahl" data-k="wahl" data-name="US-Wahl" aria-label="US-Wahl live">
       <h3><span>US-Wahl</span><span class="w-live">LIVE</span><span class="w-tabs" id="wTabs"><button type="button" data-v="senate">Senat</button><button type="button" data-v="house">Haus</button><button type="button" data-v="gov">Gouv.</button></span><button type="button" class="w-off" id="wOff" title="Wahl-Modus ausschalten"><svg class="icon"><use href="#i-x"/></svg></button></h3>
       <div class="w-bars" id="wBars"></div>
       <div class="w-cnt" id="wCnt"></div>
@@ -1449,9 +1452,9 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 
   /* ---------- Kacheln anordnen: 12x6-Raster, Lage und Größe je Kachel [Spalte, Zeile, Breite, Höhe] ---------- */
   const COLS = 12, ROWS = 6, MIN = 2;
-  const DEF_LAYOUT = { todo: [1, 1, 3, 3], cal: [1, 1, 3, 3], transit: [4, 1, 3, 3], notes: [7, 1, 3, 3], wx: [10, 1, 3, 4], loan: [1, 4, 3, 3], month: [4, 4, 3, 3], incident: [7, 4, 3, 3], sec: [10, 4, 3, 3], news: [10, 5, 3, 2], hidden: ['sec', 'cal'] };
+  const DEF_LAYOUT = { todo: [1, 1, 3, 3], cal: [1, 1, 3, 3], transit: [4, 1, 3, 3], notes: [7, 1, 3, 3], wx: [10, 1, 3, 4], loan: [1, 4, 3, 3], month: [4, 4, 3, 3], incident: [7, 4, 3, 3], sec: [10, 4, 3, 3], news: [10, 5, 3, 2], wahl: [1, 1, 4, 3], hidden: ['sec', 'cal', 'wahl'] };
   // Größe, für die der Inhalt gestaltet ist; größere Kacheln zeigen größere Schrift, kleinere kleinere
-  const BASE = { todo: [3, 3], cal: [3, 3], transit: [3, 3], sec: [3, 3], wx: [3, 4], loan: [3, 3], month: [3, 3], incident: [3, 3], notes: [3, 3], news: [3, 2] };
+  const BASE = { todo: [3, 3], cal: [3, 3], transit: [3, 3], sec: [3, 3], wx: [3, 4], loan: [3, 3], month: [3, 3], incident: [3, 3], notes: [3, 3], news: [3, 2], wahl: [4, 3] };
   const TILE_KEYS = Object.keys(BASE);
   const tiles = () => [...stage.querySelectorAll('main > .card[data-k]')];
   const fits = a => Array.isArray(a) && a.length === 4 && a.every(Number.isInteger) && a[0] >= 1 && a[1] >= 1 && a[2] >= MIN && a[3] >= MIN && a[0] + a[2] - 1 <= COLS && a[1] + a[3] - 1 <= ROWS;
@@ -1472,14 +1475,16 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     return null;
   }
   // Gespeicherte Anordnung ergänzen: neue Kacheln (z. B. Notizen) bekommen einen freien Platz, sonst bleiben sie ausgeblendet
-  function layout() {
-    const cp = curPreset(), saved = cp ? cp.layout : settings().layout;
+  function layout() { const cp = curPreset(); return normLayout(cp ? cp.layout : settings().layout); }
+  function normLayout(saved) {
     if (!saved || typeof saved !== 'object' || saved.scan || !saved.transit) return DEF_LAYOUT;
     const L = { hidden: Array.isArray(saved.hidden) ? saved.hidden.filter(k => TILE_KEYS.includes(k)) : [] };
     const missing = [];
     for (const k of TILE_KEYS) fits(saved[k]) ? L[k] = saved[k].slice() : missing.push(k);
     // Neue To-Do-Kachel übernimmt den Platz der Kalender-Kachel, der Kalender wird nur ausgeblendet
     if (missing.includes('todo') && L.cal && !L.hidden.includes('cal')) { L.todo = L.cal.slice(); L.hidden.push('cal'); missing.splice(missing.indexOf('todo'), 1); }
+    // Die US-Wahl-Kachel ist neu und bleibt in älteren Anordnungen erst mal ausgeblendet
+    if (missing.includes('wahl')) { L.wahl = DEF_LAYOUT.wahl.slice(); L.hidden.push('wahl'); missing.splice(missing.indexOf('wahl'), 1); }
     for (const k of missing) {
       L[k] = DEF_LAYOUT[k].slice();
       if (shownKeys(L).some(j => j !== k && fits(L[j]) && overlap(L[k], L[j]))) {
@@ -1487,7 +1492,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         if (spot) L[k] = spot; else L.hidden.push(k);
       }
     }
-    return validLayout(L) ? L : DEF_LAYOUT;
+    return validLayout(L) ? L : JSON.parse(JSON.stringify(DEF_LAYOUT));
   }
   function placeTile(el, a) {
     el.style.gridArea = `${a[1]} / ${a[0]} / span ${a[3]} / span ${a[2]}`;
@@ -1498,6 +1503,9 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   function applyLayout(L = layout()) { tiles().forEach(el => { placeTile(el, L[el.dataset.k]); el.classList.toggle('off', (L.hidden || []).includes(el.dataset.k)); }); applyWahl(L); }
   // Wahl-Modus: Das Wahl-Feld nimmt den Platz von Nachrichten, To-Do und Kalender ein (größte freie Fläche daraus)
   const wahlOn = () => { const p = curPreset(); return p ? !!p.election : !!settings().election; };
+  // US-Wahl als eigene Kachel in der Anordnung (eingeblendet wie jede andere Kachel)
+  const wahlTile = (L = layout()) => !(L.hidden || []).includes('wahl') && fits(L.wahl);
+  const wahlShown = () => wahlOn() || wahlTile();
   function wahlArea(L) {
     const KS = ['news', 'todo', 'cal'], src = KS.filter(k => !(L.hidden || []).includes(k) && fits(L[k])).map(k => L[k]);
     const others = shownKeys(L).filter(k => !KS.includes(k) && fits(L[k])).map(k => L[k]);
@@ -1516,13 +1524,17 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   // true, wenn die Nachrichten-Kachel im Wahl-Modus sichtbar bleibt und Wahl-Nachrichten zeigt
   let wahlNewsTile = false;
   function applyWahl(L) {
-    const on = wahlOn(), el = $('#wahlCard');
+    const tile = wahlTile(L), on = tile || wahlOn(), el = $('#wahlCard');
     $('#btnWahl')?.setAttribute('aria-pressed', on);
     el.classList.toggle('off', !on);
     if (!on) { wahlNewsTile = false; return; }
-    const { a, used } = wahlArea(L);
-    wahlNewsTile = !(L.hidden || []).includes('news') && !used.includes('news');
-    for (const k of ['news', 'todo', 'cal']) if (!(k === 'news' && wahlNewsTile)) stage.querySelector(`main > .card[data-k="${k}"]`)?.classList.add('off');
+    let a;
+    if (tile) { a = L.wahl; wahlNewsTile = false; }
+    else {
+      const w = wahlArea(L); a = w.a;
+      wahlNewsTile = !(L.hidden || []).includes('news') && !w.used.includes('news');
+      for (const k of ['news', 'todo', 'cal']) if (!(k === 'news' && wahlNewsTile)) stage.querySelector(`main > .card[data-k="${k}"]`)?.classList.add('off');
+    }
     el.style.gridArea = `${a[1]} / ${a[0]} / span ${a[3]} / span ${a[2]}`;
     el.style.setProperty('--z', Math.max(.75, Math.min(1.25, Math.min(a[2] / 3, a[3] / 3) ** .5)).toFixed(3));
     el.dataset.w = a[2]; el.dataset.h = a[3];
@@ -1572,8 +1584,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   }
   // Kalender-Ansicht als Vorschlag: Monat groß, To-Do und Notizen daneben, Wetter rechts
   // US-Wahl-Ansicht als Vorschlag: großes Wahl-Feld links (To-Do-Platz 6x6), Wahl-Nachrichten unter dem Wetter
-  const WAHL_LAYOUT = { ...DEF_LAYOUT, todo: [1, 1, 6, 6], notes: [7, 1, 3, 3], transit: [7, 4, 3, 3], wx: [10, 1, 3, 4], news: [10, 5, 3, 2], hidden: ['cal', 'loan', 'month', 'incident', 'sec'] };
-  const CAL_LAYOUT = { ...DEF_LAYOUT, month: [1, 1, 6, 6], todo: [7, 1, 3, 3], notes: [7, 4, 3, 3], wx: [10, 1, 3, 4], news: [10, 5, 3, 2], hidden: ['cal', 'transit', 'loan', 'incident', 'sec'] };
+  const WAHL_LAYOUT = { ...DEF_LAYOUT, todo: [1, 1, 6, 6], notes: [7, 1, 3, 3], transit: [7, 4, 3, 3], wx: [10, 1, 3, 4], news: [10, 5, 3, 2], hidden: ['cal', 'loan', 'month', 'incident', 'sec', 'wahl'] };
+  const CAL_LAYOUT = { ...DEF_LAYOUT, month: [1, 1, 6, 6], todo: [7, 1, 3, 3], notes: [7, 4, 3, 3], wx: [10, 1, 3, 4], news: [10, 5, 3, 2], hidden: ['cal', 'transit', 'loan', 'incident', 'sec', 'wahl'] };
   function rotTick() {
     const P = (settings().presets || []).filter(p => p && p.layout), info = $('#rotInfo');
     const on = settings().rotate && P.length > 0;
@@ -1605,24 +1617,27 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       P = [{ name: 'Normal', layout: base, election: false, secs: 60 }, { name: 'US-Wahl', layout: WAHL_LAYOUT, election: true, secs: 60 }, { name: 'Kalender', layout: CAL_LAYOUT, election: false, secs: 60 }];
     }
     let rotate = !!settings().rotate;
-    const cur = curPreset();
+    // Aktiv: das laufende Preset, oder (ohne Wechsel) das Preset, das gerade fest angezeigt wird
+    const same = p => JSON.stringify(normLayout(p.layout)) === JSON.stringify(normLayout(settings().layout)) && !!p.election === !!settings().election;
+    let curI = settings().rotate ? P.indexOf(P.find(p => curPreset() && p.name === curPreset().name)) : P.findIndex(p => p && same(p));
     const scrim = h('<div class="pre-scrim"><div class="pre-panel" role="dialog" aria-label="Presets"></div></div>');
     const panel = scrim.querySelector('.pre-panel');
     const draw = () => {
       const rows = [0, 1, 2, 3, 4].map(i => {
         const p = P[i];
-        return `<div class="pre-row ${p ? '' : 'empty'} ${p && cur && p.name === cur.name ? 'cur' : ''}" data-i="${i}">
+        return `<div class="pre-row ${p ? '' : 'empty'} ${p && i === curI ? 'cur' : ''}" data-i="${i}">
           <span class="nr">${i + 1}</span>
           <input type="text" maxlength="24" placeholder="Freier Platz" value="${p ? esc(p.name) : ''}" data-f="name">
           <span class="secs"><input type="number" min="15" max="1800" step="15" value="${p ? p.secs : 60}" data-f="secs" ${p ? '' : 'disabled'}>Sek.</span>
           <label class="chk"><input type="checkbox" data-f="election" ${p?.election ? 'checked' : ''} ${p ? '' : 'disabled'}>US-Wahl</label>
-          <button type="button" class="btn" data-a="save">${p ? 'Mit jetziger Ansicht überschreiben' : 'Jetzige Ansicht speichern'}</button>
+          <span class="acts"><button type="button" class="btn primary" data-a="go" ${p ? '' : 'hidden'}>${p && i === curI ? 'Läuft gerade' : 'Jetzt zeigen'}</button>
+          <button type="button" class="btn" data-a="save">${p ? 'Überschreiben' : 'Jetzige Ansicht speichern'}</button>
           <button type="button" class="btn" data-a="show" ${p && setL ? '' : 'hidden'}>Bearbeiten</button>
-          <button type="button" class="btn" data-a="del" ${p ? '' : 'hidden'}>Löschen</button>
+          <button type="button" class="btn" data-a="del" ${p ? '' : 'hidden'}>Löschen</button></span>
         </div>`;
       }).join('');
       panel.innerHTML = `<h2>Presets <span class="hint" style="font-size:18px;font-weight:400">bis zu 5 Ansichten, die sich abwechseln</span></h2>${rows}
-        <p class="hint">„Jetzige Ansicht“ ist die Anordnung, die gerade im Bearbeiten-Fenster zu sehen ist. Zeit von 15 Sekunden bis 30 Minuten. Wer das Board antippt, hält den Wechsel 2 Minuten an. Im Besuchermodus bleibt Preset 1 stehen.</p>
+        <p class="hint">„Jetzt zeigen“ schaltet sofort auf diese Ansicht (bei automatischem Wechsel geht es von dort weiter). „Überschreiben“ speichert die Anordnung, die gerade im Bearbeiten-Fenster zu sehen ist. Zeit von 15 Sekunden bis 30 Minuten. Wer das Board antippt, hält den Wechsel 2 Minuten an. Im Besuchermodus bleibt Preset 1 stehen.</p>
         <div class="pre-foot"><label class="sw"><input type="checkbox" id="preRot" ${rotate ? 'checked' : ''}>Automatisch wechseln</label>
         <button type="button" class="btn" id="preNo">Abbrechen</button><button type="button" class="btn primary" id="preOk">Speichern</button></div>`;
       panel.querySelector('#preRot').onchange = e => { rotate = e.target.checked; };
@@ -1638,8 +1653,17 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
           P[i] = { name, layout: JSON.parse(JSON.stringify(getL())), election: P[i] ? P[i].election : wahlOn(), secs: P[i]?.secs || 60 };
           P = P.filter(Boolean); draw();
         };
-        row.querySelector('[data-a="show"]').onclick = () => { if (P[i] && setL) { setL(P[i].layout); setSettings({ election: !!P[i].election }); applyLayout(); } };
-        row.querySelector('[data-a="del"]').onclick = () => { P.splice(i, 1); draw(); };
+        row.querySelector('[data-a="show"]').onclick = () => { if (P[i] && setL) { setL(normLayout(P[i].layout)); setSettings({ election: !!P[i].election }); applyLayout(); } };
+        row.querySelector('[data-a="del"]').onclick = () => { P.splice(i, 1); if (curI === i) curI = -1; else if (curI > i) curI--; draw(); };
+        row.querySelector('[data-a="go"]').onclick = () => {
+          // Speichert das Fenster und zeigt dieses Preset sofort
+          const list = P.filter(Boolean).slice(0, 5).map(p => ({ ...p, name: String(p.name || '').trim().slice(0, 24) || 'Ansicht' }));
+          const p = list[i]; if (!p) return;
+          rotIdx = i; rotStart = Date.now(); rotPause = 0;
+          setSettings(rotate ? { presets: list, rotate: true } : { presets: list, rotate: false, layout: p.layout, election: !!p.election });
+          if (setL) setL(normLayout(p.layout));
+          scrim.remove(); applyLayout(); newsSig = ''; renderNews(); renderWahl(true); rotTick();
+        };
       });
       panel.querySelector('#preNo').onclick = () => scrim.remove();
       panel.querySelector('#preOk').onclick = () => {
@@ -2791,8 +2815,19 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   const WNAME = { D: 'Demokraten', R: 'Republikaner', I: 'Unabhängige', O: 'Andere' };
   const WVIEWS = ['senate', 'house', 'gov'];
   let wStep = 0, wTimer = 0, wPin = null, wSig = '';
-  $('#btnWahl').onclick = () => { const on = !wahlOn(); setSettings(curPreset() ? { election: on, rotate: false } : { election: on }); applyLayout(); newsSig = ''; renderNews(); renderWahl(true); };
-  $('#wOff').onclick = () => { setSettings(curPreset() ? { election: false, rotate: false } : { election: false }); applyLayout(); newsSig = ''; renderNews(); };
+  // Wahl aus: auch eine eingeblendete US-Wahl-Kachel wird ausgeblendet (im laufenden Preset bzw. in der normalen Anordnung)
+  function wahlOff() {
+    const L = layout(), patch = {};
+    if (wahlTile(L)) {
+      const nl = { ...L, hidden: [...L.hidden, 'wahl'] }, P = presetList(), cp = curPreset(), i = cp ? (settings().presets || []).filter(p => p && p.layout).indexOf(cp) : -1;
+      if (i >= 0) { P[i] = { ...P[i], layout: nl, election: false }; patch.presets = P; } else patch.layout = nl;
+    }
+    if (curPreset() && !patch.presets) patch.rotate = false;
+    patch.election = false;
+    setSettings(patch);
+  }
+  $('#btnWahl').onclick = () => { if (wahlShown()) wahlOff(); else setSettings(curPreset() ? { election: true, rotate: false } : { election: true }); applyLayout(); newsSig = ''; renderNews(); renderWahl(true); };
+  $('#wOff').onclick = () => { wahlOff(); applyLayout(); newsSig = ''; renderNews(); };
   $('#wTabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; wPin = b.dataset.v; wStep = WVIEWS.indexOf(wPin) * 2; renderWahl(true); clearTimeout(wPinT); wPinT = setTimeout(() => { wPin = null; }, 120000); };
   let wPinT = 0;
   const wPct = v => v == null ? '' : `${String(v).replace('.', ',')} %`;
@@ -2845,7 +2880,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
   let wOffset = 0, wShown = 1;
   function renderWahl(force) {
     const card = $('#wahlCard');
-    if (!wahlOn()) { clearInterval(wTimer); wTimer = 0; return; }
+    if (!wahlShown()) { clearInterval(wTimer); wTimer = 0; return; }
     const E = S.election || {};
     const view = wPin || WVIEWS[Math.floor(wStep / 2) % 3], sub = wStep % 2;
     const wide = (+card.dataset.w || 3) >= 5;
