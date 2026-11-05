@@ -1,8 +1,19 @@
 {
- "version": "1.8.0",
+ "version": "1.9.0",
  "datei": "Rueckscan.zip",
- "datum": "2026-11-03",
+ "datum": "2026-11-05",
  "aenderungen": [
+  {
+   "version": "1.9.0",
+   "datum": "2026-11-05",
+   "neu": [
+    "Wagenzettel: Wagen voll, „Abschnitt abschließen“, und Rückscan speichert eine A4-Datei mit allen Geräten dieses Wagens",
+    "Der Zettel kommt aus eurer eingelesenen Liste: Gerätename, Artikel-, Serien- und Inventarnummer, Zustand",
+    "Oben groß Wagen-Name und Anzahl, Kurzinhalt und Felder „Gepackt von“ und „Geprüft von“",
+    "Danach mit derselben Liste einfach weiterscannen, alles gehört zum nächsten Wagen",
+    "Auf Wunsch sofort drucken; im Reiter „Abschnitte“ jeden Zettel nachdrucken oder alle als ein PDF"
+   ]
+  },
   {
    "version": "1.8.0",
    "datum": "2026-11-03",
