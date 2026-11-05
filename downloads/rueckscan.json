@@ -1,8 +1,18 @@
 {
- "version": "1.10.0",
- "datei": "Rueckscan-1.10.0.zip",
+ "version": "1.10.1",
+ "datei": "Rueckscan-1.10.1.zip",
  "datum": "2026-11-05",
  "aenderungen": [
+  {
+   "version": "1.10.1",
+   "datum": "2026-11-05",
+   "neu": [
+    "Teil-Liste: beim Speichern wählt ihr jedes Mal, ob der Teil aus der Hauptliste genommen wird oder nur als Kopie entsteht",
+    "Neue Vorgänge landen automatisch im Ordner „Jahr / Monat“, wenn gerade kein Ordner geöffnet ist (abschaltbar)",
+    "Liste erfassen: vor dem Export prüft Rückscan die Pflichtfelder und zeigt, was fehlt",
+    "Haken „Datenträger enthalten“ gibt eine rote Warnung, beim Export entsteht zusätzlich eine Liste für die Datenlöschung"
+   ]
+  },
   {
    "version": "1.10.0",
    "datum": "2026-11-05",
