@@ -1,84 +1,95 @@
 {
- "version": "1.10.2",
- "datei": "Rueckscan-1.10.2.zip",
- "datum": "2026-11-06",
- "aenderungen": [
-  {
-   "version": "1.10.2",
-   "datum": "2026-11-06",
-   "neu": [
-    "Oben rechts steht immer eure Version, z. B. „Version 1.10.2“, mit Haken, wenn sie aktuell ist",
-    "Gibt es eine neuere Version, erscheint daneben ein grüner Knopf „Update … verfügbar“ zum Herunterladen, auch wenn ihr den gelben Hinweis mit „Später“ weggeklickt habt",
-    "Rückscan schaut jede Stunde und beim Zurückkehren ins Fenster nach neuen Versionen"
-   ]
-  },
-  {
-   "version": "1.10.1",
-   "datum": "2026-11-05",
-   "neu": [
-    "Teil-Liste: beim Speichern wählt ihr jedes Mal, ob der Teil aus der Hauptliste genommen wird oder nur als Kopie entsteht",
-    "Neue Vorgänge landen automatisch im Ordner „Jahr / Monat“, wenn gerade kein Ordner geöffnet ist (abschaltbar)",
-    "Liste erfassen: vor dem Export prüft Rückscan die Pflichtfelder und zeigt, was fehlt",
-    "Haken „Datenträger enthalten“ gibt eine rote Warnung, beim Export entsteht zusätzlich eine Liste für die Datenlöschung"
-   ]
-  },
-  {
-   "version": "1.10.0",
-   "datum": "2026-11-05",
-   "neu": [
-    "Teil-Listen: aus jeder Liste einzeln exportieren, was gescannt, doppelt, nicht in der Liste oder noch offen ist",
-    "Einen Teil als eigenen Wagen speichern: er wird aus der Hauptliste herausgenommen, die Hauptliste wird kleiner. Zurückholen geht jederzeit",
-    "Ordner und Unterordner für Vorgänge. Abgespaltene Teile landen automatisch im Unterordner der Hauptliste",
-    "Neue Liste erfassen: neue Geräte scannen, die Liste entsteht in eurer Excel-Vorlage (Warenkorb-Vorlage ist eingebaut)",
-    "Beim Scannen wählen, in welches Feld der Code gehört: Enter nimmt den Vorschlag, eine Zahl ein anderes Feld. IMEI wird erkannt",
-    "Gerätename und alle Angaben von Hand eintippen oder später bearbeiten. Hersteller und Co. bleiben fürs nächste Gerät stehen",
-    "Eigene Excel-Vorlagen hinzufügen und Felder einstellen (Einstellungen, Vorlagen)",
-    "„Was ist neu“ oben rechts zeigt alle Änderungen. Die Download-Datei trägt jetzt die Versionsnummer, z. B. Rueckscan-1.10.0.zip"
-   ]
-  },
-  {
-   "version": "1.9.0",
-   "datum": "2026-11-05",
-   "neu": [
-    "Wagenzettel: Wagen voll, „Abschnitt abschließen“, und Rückscan speichert eine A4-Datei mit allen Geräten dieses Wagens",
-    "Der Zettel kommt aus eurer eingelesenen Liste: Gerätename, Artikel-, Serien- und Inventarnummer, Zustand",
-    "Oben groß Wagen-Name und Anzahl, Kurzinhalt und Felder „Gepackt von“ und „Geprüft von“",
-    "Danach mit derselben Liste einfach weiterscannen, alles gehört zum nächsten Wagen",
-    "Auf Wunsch sofort drucken; im Reiter „Abschnitte“ jeden Zettel nachdrucken oder alle als ein PDF"
-   ]
-  },
-  {
-   "version": "1.8.0",
-   "datum": "2026-11-03",
-   "neu": [
-    "Neues Aussehen „Milchglas“: mattes Glas vor einem warmen Hintergrund, weiche Bewegungen",
-    "Ampel, Meldungen und Zahlen bleiben kräftig und gut lesbar",
-    "Unter Einstellungen → Design wählbar: Milchglas, Milchglas ohne Unschärfe (für langsame PCs) oder Klassisch"
-   ]
-  },
-  {
-   "version": "1.7.0",
-   "datum": "2026-11-03",
-   "neu": [
-    "Zweitprüfung: nach roter Seriennummer einfach die Inventarnummer scannen, Rückscan fragt kurz nach",
-    "Auch per Knopf in der roten Meldung, Taste F8 oder Steuer-Code „Zweitnummer prüfen“",
-    "Abweichende Seriennummer wird beim Gerät vermerkt und verschwindet aus „Nicht erwartet“",
-    "Neue Export-Liste „Seriennummer weicht ab“ in Excel, PDF und Word",
-    "Automatik und Nachfrage in den Einstellungen abschaltbar"
-   ]
-  },
-  {
-   "version": "1.6.0",
-   "datum": "2026-11-02",
-   "neu": [
-    "Abschluss per Barcode für Abschnitt und ganzen Vorgang, zweimal scannen, Codes groß auf dem Bildschirm",
-    "Abschluss-Fenster: weiter bearbeiten, speichern in festen Ordner, Speicherort neu wählen, nur archivieren",
-    "Liste im Programm bearbeiten: ändern, nachtragen, löschen, von Hand zurück/offen mit Grund, Notizen",
-    "Änderungsverlauf pro Vorgang",
-    "Archiv mit Suche und „Wo war Gerät X?“",
-    "Exportierte Excel-Dateien wieder einlesen",
-    "Kürzel der Erfasser beim Anlegen und Abschließen, in Liste, Archiv und Export"
-   ]
-  }
- ]
+  "version": "1.11.0",
+  "datei": "Rueckscan-1.11.0.zip",
+  "datum": "2026-11-10",
+  "aenderungen": [
+    {
+      "version": "1.11.0",
+      "datum": "2026-11-10",
+      "neu": [
+        "Liste erfassen: nach „Neues Gerät“ seht ihr groß und grün „NEU · Gerät 8“. Der Knopf ist dann ausgegraut, ihr seid schon im neuen Gerät",
+        "Feste Angaben wie Hersteller bleiben stehen und sind als „übernommen“ markiert. Ein Klick ins Feld markiert den ganzen Inhalt, einfach drüberschreiben. „Übernommenes leeren“ macht alles frei",
+        "Bearbeiten und Entfernen stehen jetzt links in der Liste, kein Hin- und Herschieben mehr",
+        "Jedes Gerät hat eine Nummer (Nr.), dieselbe wie „lfd.“ in der Excel-Datei",
+        "Die Liste läuft wie eure Vorlage von oben nach unten: das neueste Gerät steht unten"
+      ]
+    },
+    {
+      "version": "1.10.2",
+      "datum": "2026-11-06",
+      "neu": [
+        "Oben rechts steht immer eure Version, z. B. „Version 1.10.2“, mit Haken, wenn sie aktuell ist",
+        "Gibt es eine neuere Version, erscheint daneben ein grüner Knopf „Update … verfügbar“ zum Herunterladen, auch wenn ihr den gelben Hinweis mit „Später“ weggeklickt habt",
+        "Rückscan schaut jede Stunde und beim Zurückkehren ins Fenster nach neuen Versionen"
+      ]
+    },
+    {
+      "version": "1.10.1",
+      "datum": "2026-11-05",
+      "neu": [
+        "Teil-Liste: beim Speichern wählt ihr jedes Mal, ob der Teil aus der Hauptliste genommen wird oder nur als Kopie entsteht",
+        "Neue Vorgänge landen automatisch im Ordner „Jahr / Monat“, wenn gerade kein Ordner geöffnet ist (abschaltbar)",
+        "Liste erfassen: vor dem Export prüft Rückscan die Pflichtfelder und zeigt, was fehlt",
+        "Haken „Datenträger enthalten“ gibt eine rote Warnung, beim Export entsteht zusätzlich eine Liste für die Datenlöschung"
+      ]
+    },
+    {
+      "version": "1.10.0",
+      "datum": "2026-11-05",
+      "neu": [
+        "Teil-Listen: aus jeder Liste einzeln exportieren, was gescannt, doppelt, nicht in der Liste oder noch offen ist",
+        "Einen Teil als eigenen Wagen speichern: er wird aus der Hauptliste herausgenommen, die Hauptliste wird kleiner. Zurückholen geht jederzeit",
+        "Ordner und Unterordner für Vorgänge. Abgespaltene Teile landen automatisch im Unterordner der Hauptliste",
+        "Neue Liste erfassen: neue Geräte scannen, die Liste entsteht in eurer Excel-Vorlage (Warenkorb-Vorlage ist eingebaut)",
+        "Beim Scannen wählen, in welches Feld der Code gehört: Enter nimmt den Vorschlag, eine Zahl ein anderes Feld. IMEI wird erkannt",
+        "Gerätename und alle Angaben von Hand eintippen oder später bearbeiten. Hersteller und Co. bleiben fürs nächste Gerät stehen",
+        "Eigene Excel-Vorlagen hinzufügen und Felder einstellen (Einstellungen, Vorlagen)",
+        "„Was ist neu“ oben rechts zeigt alle Änderungen. Die Download-Datei trägt jetzt die Versionsnummer, z. B. Rueckscan-1.10.0.zip"
+      ]
+    },
+    {
+      "version": "1.9.0",
+      "datum": "2026-11-05",
+      "neu": [
+        "Wagenzettel: Wagen voll, „Abschnitt abschließen“, und Rückscan speichert eine A4-Datei mit allen Geräten dieses Wagens",
+        "Der Zettel kommt aus eurer eingelesenen Liste: Gerätename, Artikel-, Serien- und Inventarnummer, Zustand",
+        "Oben groß Wagen-Name und Anzahl, Kurzinhalt und Felder „Gepackt von“ und „Geprüft von“",
+        "Danach mit derselben Liste einfach weiterscannen, alles gehört zum nächsten Wagen",
+        "Auf Wunsch sofort drucken; im Reiter „Abschnitte“ jeden Zettel nachdrucken oder alle als ein PDF"
+      ]
+    },
+    {
+      "version": "1.8.0",
+      "datum": "2026-11-03",
+      "neu": [
+        "Neues Aussehen „Milchglas“: mattes Glas vor einem warmen Hintergrund, weiche Bewegungen",
+        "Ampel, Meldungen und Zahlen bleiben kräftig und gut lesbar",
+        "Unter Einstellungen → Design wählbar: Milchglas, Milchglas ohne Unschärfe (für langsame PCs) oder Klassisch"
+      ]
+    },
+    {
+      "version": "1.7.0",
+      "datum": "2026-11-03",
+      "neu": [
+        "Zweitprüfung: nach roter Seriennummer einfach die Inventarnummer scannen, Rückscan fragt kurz nach",
+        "Auch per Knopf in der roten Meldung, Taste F8 oder Steuer-Code „Zweitnummer prüfen“",
+        "Abweichende Seriennummer wird beim Gerät vermerkt und verschwindet aus „Nicht erwartet“",
+        "Neue Export-Liste „Seriennummer weicht ab“ in Excel, PDF und Word",
+        "Automatik und Nachfrage in den Einstellungen abschaltbar"
+      ]
+    },
+    {
+      "version": "1.6.0",
+      "datum": "2026-11-02",
+      "neu": [
+        "Abschluss per Barcode für Abschnitt und ganzen Vorgang, zweimal scannen, Codes groß auf dem Bildschirm",
+        "Abschluss-Fenster: weiter bearbeiten, speichern in festen Ordner, Speicherort neu wählen, nur archivieren",
+        "Liste im Programm bearbeiten: ändern, nachtragen, löschen, von Hand zurück/offen mit Grund, Notizen",
+        "Änderungsverlauf pro Vorgang",
+        "Archiv mit Suche und „Wo war Gerät X?“",
+        "Exportierte Excel-Dateien wieder einlesen",
+        "Kürzel der Erfasser beim Anlegen und Abschließen, in Liste, Archiv und Export"
+      ]
+    }
+  ]
 }
