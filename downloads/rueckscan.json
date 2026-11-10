@@ -11,7 +11,8 @@
         "Feste Angaben wie Hersteller bleiben stehen und sind als „übernommen“ markiert. Ein Klick ins Feld markiert den ganzen Inhalt, einfach drüberschreiben. „Übernommenes leeren“ macht alles frei",
         "Bearbeiten und Entfernen stehen jetzt links in der Liste, kein Hin- und Herschieben mehr",
         "Jedes Gerät hat eine Nummer (Nr.), dieselbe wie „lfd.“ in der Excel-Datei",
-        "Die Liste läuft wie eure Vorlage von oben nach unten: das neueste Gerät steht unten"
+        "Die Liste läuft wie eure Vorlage von oben nach unten: das neueste Gerät steht unten",
+        "Automatisch weiter: sind alle Pflichtfelder da, beginnt der nächste Scan von selbst das nächste Gerät (abschaltbar)"
       ]
     },
     {
