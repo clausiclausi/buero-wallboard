@@ -1,7 +1,7 @@
 // Büro-Wallboard: kleiner lokaler Server ohne externe Abhängigkeiten (Node.js >= 20).
 // - liefert das Board (/) und die Handy-Seite (/m)
 // - speichert alles in data/db.json, Fotos in data/photos
-// - holt Wetter und Unwetterwarnungen vom DWD (über Bright Sky), das Regenradar direkt vom DWD, und gibt nur Zahlen weiter
+// - holt Wetter und Unwetterwarnungen vom DWD (über Bright Sky, Ersatz Open-Meteo/DWD-ICON), das Regenradar direkt vom DWD, und gibt nur Zahlen weiter
 // - Geräte aus dem WLAN brauchen die PIN, das Board selbst (localhost) nicht
 'use strict';
 const http = require('http');
@@ -400,45 +400,102 @@ const wahlTile = L => !!(L && Array.isArray(L.wahl) && !(L.hidden || []).include
 const wahlNeeded = () => { const s = db.settings; return !!s.election || wahlTile(s.layout) || (!!s.rotate && (s.presets || []).some(p => p && (p.election || wahlTile(p.layout)))); };
 const election = require('./election')({ DATA, log, getSettings: () => db.settings, active: wahlNeeded, broadcast: () => broadcast() });
 
-/* ---------- Wetter vom DWD über Bright Sky ---------- */
+/* ---------- Wetter vom DWD: zuerst Bright Sky, bei Ausfall Open-Meteo (DWD-ICON-Modell) ----------
+   Fällt eine Quelle aus, springt die andere ein. Fallen beide aus, bleiben die letzten Werte
+   bis zu 3 Stunden stehen (mit „Stand …“), erst danach zeigt das Board „nicht erreichbar“. */
 let weather = { ok: false, updated: 0 };
-async function getJson(url) {
-  const r = await fetch(url, { headers: { 'User-Agent': 'Buero-Wallboard/1.0' }, signal: AbortSignal.timeout(20000) });
+let weatherGood = null;
+const WX_KEEP = 3 * 3600000;
+async function getJson(url, ms = 15000) {
+  const r = await fetch(url, { headers: { 'User-Agent': 'Buero-Wallboard/1.0' }, signal: AbortSignal.timeout(ms) });
   if (!r.ok) throw new Error(`${r.status} ${url}`);
   return r.json();
 }
-async function updateWeather() {
-  const { lat, lon } = config;
-  try {
-    const [cur, fc, al] = await Promise.all([
-      getJson(`https://api.brightsky.dev/current_weather?lat=${lat}&lon=${lon}`),
-      getJson(`https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}&date=${localDate(0)}&last_date=${localDate(1)}&tz=Europe/Berlin`),
-      getJson(`https://api.brightsky.dev/alerts?lat=${lat}&lon=${lon}`).catch(() => ({ alerts: [] })),
-    ]);
-    const c = cur.weather || {};
-    const hours = {};
-    for (const w of fc.weather || []) {
-      const d = new Date(w.timestamp);
-      if (localDateOf(d) !== localDate(0)) continue;
-      hours[d.getHours()] = {
-        prob: w.precipitation_probability ?? (w.precipitation > 0.1 ? 80 : w.precipitation > 0 ? 40 : 5),
-        mm: w.precipitation ?? 0, temp: w.temperature,
-      };
-    }
-    weather = {
-      ok: true, updated: Date.now(), source: 'DWD',
-      now: { temp: c.temperature, condition: c.condition, icon: c.icon, wind: c.wind_speed_10 ?? c.wind_speed_30, windDir: c.wind_direction_10 ?? c.wind_direction_30 },
-      hours,
-      alerts: (al.alerts || []).filter(a => !a.expires || new Date(a.expires) > new Date())
-        .map(a => ({ event: a.event_de || a.event_en, headline: a.headline_de || a.headline_en, severity: a.severity, until: a.expires })),
-    };
-  } catch (e) {
-    log('Wetter nicht erreichbar:', e.message);
-    weather.ok = false;
+const probFromMm = (mm) => (mm > 0.1 ? 80 : mm > 0 ? 40 : 5);
+async function weatherBrightSky(lat, lon) {
+  const [cur, fc] = await Promise.all([
+    getJson(`https://api.brightsky.dev/current_weather?lat=${lat}&lon=${lon}`),
+    getJson(`https://api.brightsky.dev/weather?lat=${lat}&lon=${lon}&date=${localDate(0)}&last_date=${localDate(1)}&tz=Europe/Berlin`),
+  ]);
+  const c = cur.weather || {};
+  const hours = {};
+  for (const w of fc.weather || []) {
+    const d = new Date(w.timestamp);
+    if (localDateOf(d) !== localDate(0)) continue;
+    hours[d.getHours()] = { prob: w.precipitation_probability ?? probFromMm(w.precipitation), mm: w.precipitation ?? 0, temp: w.temperature };
   }
+  const temp = c.temperature ?? hours[new Date().getHours()]?.temp;
+  if (typeof temp !== 'number') throw new Error('Bright Sky lieferte keine Temperatur');
+  return { source: 'DWD (Bright Sky)', now: { temp, condition: c.condition, icon: c.icon, wind: c.wind_speed_10 ?? c.wind_speed_30, windDir: c.wind_direction_10 ?? c.wind_direction_30 }, hours };
+}
+// WMO-Wettercode (Open-Meteo) → dieselben Symbol-Namen wie bei Bright Sky
+function wmoIcon(code, day) {
+  if (code <= 1) return day ? 'clear-day' : 'clear-night';
+  if (code === 2) return day ? 'partly-cloudy-day' : 'partly-cloudy-night';
+  if (code === 3) return 'cloudy';
+  if (code === 45 || code === 48) return 'fog';
+  if ([56, 57, 66, 67].includes(code)) return 'sleet';
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'snow';
+  if (code >= 95) return 'thunderstorm';
+  if (code >= 51) return 'rain';
+  return 'cloudy';
+}
+async function weatherOpenMeteo(lat, lon) {
+  const j = await getJson(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&models=icon_seamless` +
+    '&current=temperature_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m' +
+    '&hourly=temperature_2m,precipitation_probability,precipitation&timezone=Europe%2FBerlin&forecast_days=2');
+  const c = j.current || {}, H = j.hourly || {}, hours = {};
+  (H.time || []).forEach((t, i) => {
+    if (t.slice(0, 10) !== localDate(0)) return;
+    const mm = H.precipitation?.[i] ?? 0;
+    hours[+t.slice(11, 13)] = { prob: H.precipitation_probability?.[i] ?? probFromMm(mm), mm, temp: H.temperature_2m?.[i] };
+  });
+  if (typeof c.temperature_2m !== 'number') throw new Error('Open-Meteo lieferte keine Temperatur');
+  return { source: 'DWD-ICON (Open-Meteo)', now: { temp: c.temperature_2m, icon: wmoIcon(c.weather_code ?? 3, c.is_day !== 0), wind: c.wind_speed_10m, windDir: c.wind_direction_10m }, hours };
+}
+let wxBusy = false, wxRetry = null;
+async function updateWeather() {
+  if (wxBusy) return;
+  wxBusy = true;
+  try { await fetchWeather(); } finally { wxBusy = false; }
+}
+async function fetchWeather() {
+  const { lat, lon } = config;
+  const alertsP = getJson(`https://api.brightsky.dev/alerts?lat=${lat}&lon=${lon}`).then(al => (al.alerts || [])
+    .filter(a => !a.expires || new Date(a.expires) > new Date())
+    .map(a => ({ event: a.event_de || a.event_en, headline: a.headline_de || a.headline_en, severity: a.severity, until: a.expires })))
+    .catch(() => null);
+  let data = null;
+  for (const [name, fn] of [['Bright Sky', weatherBrightSky], ['Open-Meteo', weatherOpenMeteo]]) {
+    try { data = await fn(lat, lon); break; } catch (e) { log(`Wetter (${name}) nicht erreichbar:`, e.message); }
+  }
+  const alerts = await alertsP;
+  if (data) {
+    weatherGood = { ...data, updated: Date.now() };
+    weather = { ok: true, ...weatherGood, alerts: alerts || [], alertsOk: !!alerts };
+  } else if (weatherGood && Date.now() - weatherGood.updated < WX_KEEP) {
+    weather = { ok: true, stale: true, ...weatherGood, alerts: alerts || weather.alerts || [], alertsOk: !!alerts };
+  } else {
+    weather = { ok: false, updated: weatherGood?.updated || 0, alerts: alerts || [], alertsOk: !!alerts };
+  }
+  // Ohne frische Daten schon nach 2 Minuten erneut versuchen statt erst nach 10
+  clearTimeout(wxRetry);
+  if (!data) wxRetry = setTimeout(updateWeather, 120000);
   broadcast();
 }
 function localDateOf(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+
+// Verbindungstest: Wetterquellen zusätzlich zu den Quellen aus extras.js prüfen
+async function diagnoseAll() {
+  const base = await extras.diagnose();
+  const wx = [];
+  for (const [name, fn] of [['Wetter: Bright Sky (DWD)', weatherBrightSky], ['Wetter: Ersatzquelle Open-Meteo (DWD-ICON)', weatherOpenMeteo]]) {
+    const t0 = Date.now();
+    try { const d = await fn(config.lat, config.lon); wx.push({ name, ok: true, detail: `${Math.round(d.now.temp)}° jetzt, ${Object.keys(d.hours).length} Stunden Vorhersage`, ms: Date.now() - t0 }); }
+    catch (e) { wx.push({ name, ok: false, detail: String(e.cause?.code || e.message || e).slice(0, 200), ms: Date.now() - t0 }); }
+  }
+  return { ...base, results: [...wx, ...(base.results || [])] };
+}
 
 /* ---------- Updates aus dem GitHub-Repository ----------
    Im Repository liegt manifest.json mit Version und SHA-256 jeder Datei unter app/.
@@ -712,7 +769,7 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, db.settings);
     }
     // Haltestelle für die Abfahrten suchen (öffentliche Fahrplanauskunft)
-    if (req.method === 'GET' && p === '/api/diag') return send(res, 200, await extras.diagnose());
+    if (req.method === 'GET' && p === '/api/diag') return send(res, 200, await diagnoseAll());
     if (req.method === 'GET' && p === '/api/transit/stops') {
       const q = url.searchParams.get('q') || '';
       try { return send(res, 200, q.trim() ? await extras.search(q, url.searchParams.get('ziel') === '1') : await extras.nearby()); }

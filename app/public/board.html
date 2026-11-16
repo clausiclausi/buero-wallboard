@@ -3053,8 +3053,9 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       const t = Math.round(W.now.temp);
       $('#wxTemp').textContent = `${t}°`; $('#wxMini').textContent = `${t}°`;
       const desc = ICON_TXT[W.now.icon] || COND[W.now.condition] || '';
-      $('#wxDesc').innerHTML = `${esc(desc)}<br>Wind ${Math.round(W.now.wind ?? 0)} km/h ${compass(W.now.windDir)}`;
-      $('#wxDesc').title = $('#wxDesc').textContent;
+      const stand = W.stale && W.updated ? ` · Stand ${new Date(W.updated).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}` : '';
+      $('#wxDesc').innerHTML = `${esc(desc)}${stand}<br>Wind ${Math.round(W.now.wind ?? 0)} km/h ${compass(W.now.windDir)}`;
+      $('#wxDesc').title = `${$('#wxDesc').textContent}${W.source ? ' · Quelle: ' + W.source : ''}`;
     } else {
       $('#wxDesc').textContent = 'Wetterdaten gerade nicht erreichbar';
     }
@@ -3075,7 +3076,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     }
     const alerts = W.alerts || [];
     $('#storm').classList.toggle('warn', alerts.length > 0);
-    $('#stormText').textContent = !W.ok ? 'Unwetterwarnungen gerade nicht verfügbar'
+    $('#stormText').textContent = (!W.ok || W.alertsOk === false) ? 'Unwetterwarnungen gerade nicht verfügbar'
       : alerts.length ? alerts.map(x => x.event).filter((v, i, arr) => arr.indexOf(v) === i).slice(0, 2).join(' · ') : 'Keine amtliche Unwetterwarnung';
   }
 
