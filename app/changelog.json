@@ -1,5 +1,15 @@
 [
  {
+  "version": "1.46.0",
+  "date": "2026-11-16",
+  "changes": [
+   "Wetter zuverlässiger: Ist der DWD-Wetterdienst (Bright Sky) kurz nicht erreichbar, holt das Board die Werte automatisch aus einer zweiten Quelle (Open-Meteo mit dem DWD-Wettermodell ICON).",
+   "Fallen beide Quellen aus, bleiben die letzten Wetterwerte bis zu 3 Stunden stehen (mit „Stand …“) statt sofort „nicht verfügbar“. Neuer Versuch schon nach 2 Minuten statt nach 10.",
+   "Unwetterwarnungen werden getrennt abgefragt: Fallen nur sie aus, bleibt die Wetteranzeige trotzdem sichtbar.",
+   "Verbindungstest in den Einstellungen prüft jetzt auch beide Wetterquellen."
+  ]
+ },
+ {
   "version": "1.45.0",
   "date": "2026-11-04",
   "changes": [
