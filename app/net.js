@@ -21,8 +21,9 @@ module.exports = ({ DATA, config, log }) => {
 
   // Windows-Stammzertifikate (auch von Firmen-Firewalls, die verschlüsselte Verbindungen prüfen)
   async function loadWinCa() {
-    const ps = "Get-ChildItem Cert:\\LocalMachine\\Root, Cert:\\LocalMachine\\CA | ForEach-Object { '-----BEGIN CERTIFICATE-----'; [Convert]::ToBase64String($_.RawData, 'InsertLineBreaks'); '-----END CERTIFICATE-----' }";
-    const out = await run('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', ps]);
+    // Das Laufwerk Cert: gibt es erst nach Import-Module; als EncodedCommand, damit nichts an Anführungszeichen scheitert
+    const ps = "Import-Module Microsoft.PowerShell.Security; Get-ChildItem Cert:\\LocalMachine\\Root, Cert:\\LocalMachine\\CA | ForEach-Object { '-----BEGIN CERTIFICATE-----'; [Convert]::ToBase64String($_.RawData, 'InsertLineBreaks'); '-----END CERTIFICATE-----' }";
+    const out = await run('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(ps, 'utf16le').toString('base64')]);
     const pems = (out.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g) || []).filter(p => { try { new crypto.X509Certificate(p); return true; } catch { return false; } });
     if (pems.length) { ca = [...tls.rootCertificates, ...new Set(pems)]; state.winCa = pems.length; }
   }
