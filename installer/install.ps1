@@ -84,6 +84,17 @@ $cfgObj | Add-Member -NotePropertyName updateRepo -NotePropertyValue $UpdateRepo
 if (-not $cfgObj.PSObject.Properties['updateToken']) { $cfgObj | Add-Member -NotePropertyName updateToken -NotePropertyValue '' -Force }
 [IO.File]::WriteAllText($cfgFile, ($cfgObj | ConvertTo-Json), $Utf8NoBom)
 Info "Updates kommen aus github.com/$UpdateRepo"
+# Proxy im Büronetz: Der Browser findet ihn selbst, der Board-Server (läuft als SYSTEM) nicht.
+# Deshalb hier im Benutzer-Kontext ermitteln (auch PAC/automatische Erkennung) und in config.json eintragen.
+try {
+  $probe = [Uri]'https://raw.githubusercontent.com/'
+  $px = [System.Net.WebRequest]::GetSystemWebProxy().GetProxy($probe)
+  if ($px -and $px.Host -ne $probe.Host) {
+    $cfgObj | Add-Member -NotePropertyName proxy -NotePropertyValue ("http://{0}:{1}" -f $px.Host, $px.Port) -Force
+    [IO.File]::WriteAllText($cfgFile, ($cfgObj | ConvertTo-Json), $Utf8NoBom)
+    Info ("Proxy im Büronetz erkannt: {0}:{1}" -f $px.Host, $px.Port)
+  } else { Info 'kein Proxy nötig' }
+} catch { Info 'Proxy-Erkennung übersprungen' }
 [IO.File]::WriteAllText("$Target\PIN.txt", "PIN für den Handy-Zugang zum Wallboard: $($cfg.pin)`r`nÄndern: in config.json eintragen und das Notebook neu starten.`r`n", [Text.Encoding]::UTF8)
 # PIN-Datei und Konfiguration nur für Administratoren und SYSTEM lesbar
 foreach ($f in @($cfgFile, "$Target\PIN.txt")) { icacls $f /inheritance:r /grant:r 'SYSTEM:F' '*S-1-5-32-544:F' | Out-Null }

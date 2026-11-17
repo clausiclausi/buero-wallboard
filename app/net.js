@@ -21,32 +21,48 @@ module.exports = ({ DATA, config, log }) => {
 
   // Windows-Stammzertifikate (auch von Firmen-Firewalls, die verschlüsselte Verbindungen prüfen)
   async function loadWinCa() {
-    // Das Laufwerk Cert: gibt es erst nach Import-Module; als EncodedCommand, damit nichts an Anführungszeichen scheitert
-    const ps = "Import-Module Microsoft.PowerShell.Security; Get-ChildItem Cert:\\LocalMachine\\Root, Cert:\\LocalMachine\\CA | ForEach-Object { '-----BEGIN CERTIFICATE-----'; [Convert]::ToBase64String($_.RawData, 'InsertLineBreaks'); '-----END CERTIFICATE-----' }";
+    // Über .NET statt über das Laufwerk Cert: (das fehlt in manchen Windows-Umgebungen)
+    const ps = "$ProgressPreference='SilentlyContinue'; foreach ($n in 'Root','CA') { $st = New-Object System.Security.Cryptography.X509Certificates.X509Store($n, 'LocalMachine'); $st.Open('ReadOnly'); foreach ($c in $st.Certificates) { '-----BEGIN CERTIFICATE-----'; [Convert]::ToBase64String($c.RawData, 'InsertLineBreaks'); '-----END CERTIFICATE-----' }; $st.Close() }";
     const out = await run('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(ps, 'utf16le').toString('base64')]);
     const pems = (out.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g) || []).filter(p => { try { new crypto.X509Certificate(p); return true; } catch { return false; } });
     if (pems.length) { ca = [...tls.rootCertificates, ...new Set(pems)]; state.winCa = pems.length; }
   }
-  // Proxy aus Windows: WinHTTP (gilt für Dienste) oder Internetoptionen der angemeldeten Benutzer
+  // Proxy aus Windows: WinHTTP (gilt für Dienste), Richtlinien, Internetoptionen der angemeldeten Benutzer, PAC/WPAD
+  const pick = (v) => { v = (v || '').trim(); if (!v) return ''; const m = v.match(/https=([^;\s]+)/i) || v.match(/http=([^;\s]+)/i); return m ? m[1] : v.split(/[;\s]/)[0]; };
+  async function fromPac(url, source) {
+    try {
+      const txt = await (await altFetch(url, { noProxy: true, ms: 8000 })).text();
+      const m = txt.match(/PROXY\s+([\w.-]+:\d+)/i);
+      if (m) { state.proxy = m[1]; state.proxySource = source; return true; }
+    } catch {}
+    return false;
+  }
   async function detectProxy() {
-    const pick = (v) => { v = (v || '').trim(); if (!v) return ''; const m = v.match(/https=([^;\s]+)/i) || v.match(/http=([^;\s]+)/i); return m ? m[1] : v.split(/[;\s]/)[0]; };
+    state.lastDetect = Date.now();
     const wh = await run('netsh', ['winhttp', 'show', 'proxy']);
     const line = wh.split(/\r?\n/).find(l => /proxy.?server/i.test(l) && /:\d+/.test(l));
     if (line) { const p = pick(line.split(/:\s+/).slice(1).join(':')); if (p) { state.proxy = p; state.proxySource = 'Windows (WinHTTP)'; return; } }
-    const users = (await run('reg', ['query', 'HKU'])).split(/\r?\n/).map(s => s.trim()).filter(s => /S-1-5-21-[\d-]+$/.test(s));
-    for (const u of users) {
-      const q = await run('reg', ['query', `${u}\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings`]);
+    const keys = ['HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge', 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Internet Settings',
+      ...(await run('reg', ['query', 'HKU'])).split(/\r?\n/).map(s => s.trim()).filter(s => /S-1-5-21-[\d-]+$/.test(s))
+        .flatMap(u => [`${u}\\Software\\Policies\\Microsoft\\Edge`, `${u}\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings`])];
+    const pacs = [];
+    let autoDetect = false;
+    for (const k of keys) {
+      const q = await run('reg', ['query', k]);
+      if (!q) continue;
       const val = (n) => (q.match(new RegExp(`^\\s*${n}\\s+REG_\\w+\\s+(.*)$`, 'mi')) || [])[1]?.trim();
-      if (val('ProxyEnable') === '0x1' && pick(val('ProxyServer'))) { state.proxy = pick(val('ProxyServer')); state.proxySource = 'Windows (Internetoptionen)'; return; }
-      const pac = val('AutoConfigURL');
-      if (pac) {
-        try {
-          const txt = await (await altFetch(pac, { noProxy: true })).text();
-          const m = txt.match(/PROXY\s+([\w.-]+:\d+)/i);
-          if (m) { state.proxy = m[1]; state.proxySource = 'Windows (PAC-Datei)'; return; }
-        } catch {}
-      }
+      if (pick(val('ProxyServer')) && (val('ProxyEnable') === '0x1' || /Edge/.test(k))) { state.proxy = pick(val('ProxyServer')); state.proxySource = /Edge/.test(k) ? 'Windows (Edge-Richtlinie)' : 'Windows (Internetoptionen)'; return; }
+      if (val('AutoConfigURL')) pacs.push(val('AutoConfigURL'));
+      if (val('ProxyPacUrl')) pacs.push(val('ProxyPacUrl'));
+      const dc = q.match(/DefaultConnectionSettings\s+REG_BINARY\s+([0-9A-F]+)/i);
+      if (dc && (parseInt(dc[1].slice(16, 18), 16) & 8)) autoDetect = true;
     }
+    for (const u of pacs) if (await fromPac(u, 'Windows (PAC-Datei)')) return;
+    // WPAD: automatische Proxy-Erkennung im Firmennetz
+    const dom = (await run('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', '(Get-CimInstance Win32_ComputerSystem).Domain; (Get-DnsClientGlobalSetting).SuffixSearchList'])).split(/\r?\n/).map(s => s.trim()).filter(s => s && s.includes('.') && !/^workgroup$/i.test(s));
+    const hosts = ['wpad', ...new Set(dom.flatMap(d => { const p = d.split('.'); return p.slice(0, -1).map((_, i) => 'wpad.' + p.slice(i).join('.')); }))];
+    for (const h of hosts) if (await fromPac(`http://${h}/wpad.dat`, `automatische Erkennung (${h})`)) return;
+    void autoDetect;
   }
   const ready = process.platform === 'win32'
     ? Promise.all([loadWinCa(), state.proxy ? null : detectProxy()]).catch(() => {}).then(() => {
@@ -109,6 +125,7 @@ module.exports = ({ DATA, config, log }) => {
     try { return await nativeFetch(input, opts); }
     catch (e) {
       state.nativeError = why(e);
+      if (!state.proxy && process.platform === 'win32' && Date.now() - (state.lastDetect || 0) > 600000) await detectProxy().catch(() => {});
       try {
         const r = await alt();
         if (state.mode !== 'alt') log(`Netz: normaler Abruf scheitert (${state.nativeError}), zweiter Weg klappt, nutze ihn ab jetzt`);
