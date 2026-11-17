@@ -1,5 +1,15 @@
 [
  {
+  "version": "1.47.0",
+  "date": "2026-11-17",
+  "changes": [
+   "Wetter direkt vom Deutschen Wetterdienst: Kommt das Board an Bright Sky oder Open-Meteo nicht heran (z. B. weil das Büronetz diese Seiten sperrt), holt es Messwerte und Stundenvorhersage jetzt direkt von opendata.dwd.de, Station Hannover.",
+   "Unwetterwarnungen kommen notfalls direkt aus der amtlichen DWD-Warnliste für die Region Hannover.",
+   "Alle Wetterquellen werden gleichzeitig gefragt, das Board zeigt sofort die erste, die antwortet.",
+   "Verbindungstest zeigt jede Wetterquelle einzeln mit Grund, falls eine nicht erreichbar ist."
+  ]
+ },
+ {
   "version": "1.46.0",
   "date": "2026-11-16",
   "changes": [

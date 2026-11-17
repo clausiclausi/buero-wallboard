@@ -1,18 +1,19 @@
 {
-  "version": "1.46.0",
-  "notes": "Wetter zuverlässiger: Ist der DWD-Wetterdienst (Bright Sky) kurz nicht erreichbar, holt das Board die Werte automatisch aus einer zweiten Quelle (Open-Meteo mit dem DWD-Wettermodell ICON).",
+  "version": "1.47.0",
+  "notes": "Wetter direkt vom Deutschen Wetterdienst: Kommt das Board an Bright Sky oder Open-Meteo nicht heran (z. B. weil das Büronetz diese Seiten sperrt), holt es Messwerte und Stundenvorhersage jetzt direkt von opendata.dwd.de, Station Hannover.",
   "changes": [
-    "Wetter zuverlässiger: Ist der DWD-Wetterdienst (Bright Sky) kurz nicht erreichbar, holt das Board die Werte automatisch aus einer zweiten Quelle (Open-Meteo mit dem DWD-Wettermodell ICON).",
-    "Fallen beide Quellen aus, bleiben die letzten Wetterwerte bis zu 3 Stunden stehen (mit „Stand …“) statt sofort „nicht verfügbar“. Neuer Versuch schon nach 2 Minuten statt nach 10.",
-    "Unwetterwarnungen werden getrennt abgefragt: Fallen nur sie aus, bleibt die Wetteranzeige trotzdem sichtbar.",
-    "Verbindungstest in den Einstellungen prüft jetzt auch beide Wetterquellen."
+    "Wetter direkt vom Deutschen Wetterdienst: Kommt das Board an Bright Sky oder Open-Meteo nicht heran (z. B. weil das Büronetz diese Seiten sperrt), holt es Messwerte und Stundenvorhersage jetzt direkt von opendata.dwd.de, Station Hannover.",
+    "Unwetterwarnungen kommen notfalls direkt aus der amtlichen DWD-Warnliste für die Region Hannover.",
+    "Alle Wetterquellen werden gleichzeitig gefragt, das Board zeigt sofort die erste, die antwortet.",
+    "Verbindungstest zeigt jede Wetterquelle einzeln mit Grund, falls eine nicht erreichbar ist."
   ],
   "files": {
-    "changelog.json": "4ae6145dab7464215e3943516ffcc0f93dba1bfd039182fd7e10402deb9b1c66",
+    "changelog.json": "871708e23ff12ecc6c090c3f22797abaaffa3f5ccd9d1a2a40161c100b1695ea",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
+    "dwd.js": "6456ac4e1b64f1598e4e5b2756af06c0c33b119e9b9a70705afc4c3a6b683d47",
     "election.js": "b3432ff6400a9c93b7ae215a2f7c53bab88c32229e2a12886493c9975a575d09",
     "extras.js": "b0a86a05ff18ace4e0d31985b3545fbc2e09114651bb408dd2dbd935f9f719eb",
-    "public/board.html": "e4bef161b22d82cf4e7bacd84d841e35d774f8c0f3fda43e9532e5cf28683b76",
+    "public/board.html": "3c9f049269d1dab6f6a93253494b42abfdd8f804a3529831434e7a247ad4e4a3",
     "public/icon-192.png": "c6b866b885e711fdb607de892d36300c9da80127f2d833cd672ce40af65f5637",
     "public/icon-512.png": "0330db0ae5d581a2bd979a907dbdcb1f3d626ebe2df8c3e4a9469771a2e2dec6",
     "public/knock.js": "422d5ca78ea4873c002673f42c0e7db747b70f86c8ec489a95638bb18ae9e667",
@@ -20,8 +21,8 @@
     "public/mascot.js": "a414057fb572b03b3321873c8d436b99567876adc288dc72d1a7bf48b5c97b5d",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
-    "server.js": "4c77396949a58e636d9c9d37b4cb8c5fe7b02c00fffb8ea35a43b11ee0eb0a3c",
+    "server.js": "46a052bc47dd2f5ef1db2d00c0b8f8c85f0c1dc04a3d78ab155f7b98b9958d01",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "1c55e396f3a306345d3ac4d1478ffa82cef32e086c6e986eac6fc4659676880c"
+    "version.json": "ae71c63f6615fe0658ccdc597e638f0a601cdb2e78b19dd6fca7ff382552a64b"
   }
 }
