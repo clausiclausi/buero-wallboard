@@ -3058,6 +3058,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       $('#wxDesc').title = `${$('#wxDesc').textContent}${W.source ? ' · Quelle: ' + W.source : ''}`;
     } else {
       $('#wxDesc').textContent = 'Wetterdaten gerade nicht erreichbar';
+      $('#wxDesc').title = Object.entries(W.errors || {}).map(([k, v]) => `${k}: ${v}`).join(' · ') || 'Verbindungstest unter Einstellungen zeigt den Grund';
     }
     renderHealth();
     const el = $('#hours'); el.innerHTML = '';

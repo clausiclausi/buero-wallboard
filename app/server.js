@@ -394,13 +394,14 @@ function broadcast() {
 const display = require('./display')({ ROOT, DATA, config, log, broadcast: () => broadcast(), officeStart: () => db.settings.officeStart });
 const tunnel = require('./tunnel')({ ROOT, config, log, broadcast: () => broadcast() });
 const radar = require('./radar')({ DATA, config, log });
+const dwd = require('./dwd')({ localDate, localDateOf: (d) => localDateOf(d), station: config.dwdStation || '10338' });
 const extras = require('./extras')({ DATA, config, log, getSettings: () => db.settings, broadcast: () => broadcast(), localDate });
 // Wahl-Daten werden gebraucht, wenn der Wahl-Modus an ist oder eine Anordnung (auch ein wechselndes Preset) die US-Wahl-Kachel zeigt
 const wahlTile = L => !!(L && Array.isArray(L.wahl) && !(L.hidden || []).includes('wahl'));
 const wahlNeeded = () => { const s = db.settings; return !!s.election || wahlTile(s.layout) || (!!s.rotate && (s.presets || []).some(p => p && (p.election || wahlTile(p.layout)))); };
 const election = require('./election')({ DATA, log, getSettings: () => db.settings, active: wahlNeeded, broadcast: () => broadcast() });
 
-/* ---------- Wetter vom DWD: zuerst Bright Sky, bei Ausfall Open-Meteo (DWD-ICON-Modell) ----------
+/* ---------- Wetter vom DWD: Bright Sky, sonst direkt opendata.dwd.de, sonst Open-Meteo (DWD-ICON-Modell) ----------
    Fällt eine Quelle aus, springt die andere ein. Fallen beide aus, bleiben die letzten Werte
    bis zu 3 Stunden stehen (mit „Stand …“), erst danach zeigt das Board „nicht erreichbar“. */
 let weather = { ok: false, updated: 0 };
@@ -459,24 +460,33 @@ async function updateWeather() {
   wxBusy = true;
   try { await fetchWeather(); } finally { wxBusy = false; }
 }
+const WX_SOURCES = [['Bright Sky', weatherBrightSky], ['DWD direkt', () => dwd.weather()], ['Open-Meteo', weatherOpenMeteo]];
+const why = (e) => String(e?.cause?.code || e?.name === 'TimeoutError' && 'Zeitüberschreitung' || e?.message || e).slice(0, 120);
 async function fetchWeather() {
   const { lat, lon } = config;
+  // Warnungen: Bright Sky, sonst direkt die amtliche DWD-Warnliste
   const alertsP = getJson(`https://api.brightsky.dev/alerts?lat=${lat}&lon=${lon}`).then(al => (al.alerts || [])
     .filter(a => !a.expires || new Date(a.expires) > new Date())
     .map(a => ({ event: a.event_de || a.event_en, headline: a.headline_de || a.headline_en, severity: a.severity, until: a.expires })))
+    .catch(() => dwd.alerts(config.dwdWarncell || '103241000'))
     .catch(() => null);
-  let data = null;
-  for (const [name, fn] of [['Bright Sky', weatherBrightSky], ['Open-Meteo', weatherOpenMeteo]]) {
-    try { data = await fn(lat, lon); break; } catch (e) { log(`Wetter (${name}) nicht erreichbar:`, e.message); }
+  // Alle Quellen gleichzeitig fragen, die erste in der Reihenfolge, die klappt, gewinnt
+  const tries = WX_SOURCES.map(([, fn]) => fn(lat, lon).then(d => ({ d }), e => ({ e })));
+  let data = null; const errors = {};
+  for (let i = 0; i < tries.length; i++) {
+    const r = await tries[i];
+    if (r.d) { data = r.d; break; }
+    errors[WX_SOURCES[i][0]] = why(r.e);
+    log(`Wetter (${WX_SOURCES[i][0]}) nicht erreichbar:`, why(r.e));
   }
   const alerts = await alertsP;
   if (data) {
     weatherGood = { ...data, updated: Date.now() };
-    weather = { ok: true, ...weatherGood, alerts: alerts || [], alertsOk: !!alerts };
+    weather = { ok: true, ...weatherGood, alerts: alerts || [], alertsOk: !!alerts, errors };
   } else if (weatherGood && Date.now() - weatherGood.updated < WX_KEEP) {
-    weather = { ok: true, stale: true, ...weatherGood, alerts: alerts || weather.alerts || [], alertsOk: !!alerts };
+    weather = { ok: true, stale: true, ...weatherGood, alerts: alerts || weather.alerts || [], alertsOk: !!alerts, errors };
   } else {
-    weather = { ok: false, updated: weatherGood?.updated || 0, alerts: alerts || [], alertsOk: !!alerts };
+    weather = { ok: false, updated: weatherGood?.updated || 0, alerts: alerts || [], alertsOk: !!alerts, errors };
   }
   // Ohne frische Daten schon nach 2 Minuten erneut versuchen statt erst nach 10
   clearTimeout(wxRetry);
@@ -489,10 +499,10 @@ function localDateOf(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).
 async function diagnoseAll() {
   const base = await extras.diagnose();
   const wx = [];
-  for (const [name, fn] of [['Wetter: Bright Sky (DWD)', weatherBrightSky], ['Wetter: Ersatzquelle Open-Meteo (DWD-ICON)', weatherOpenMeteo]]) {
+  for (const [name, fn] of [['Wetter: Bright Sky (DWD)', weatherBrightSky], ['Wetter: DWD direkt (opendata.dwd.de)', () => dwd.weather()], ['Wetter: Open-Meteo (DWD-ICON)', weatherOpenMeteo], ['Unwetter: DWD-Warnliste', async () => { const l = await dwd.alerts(config.dwdWarncell || '103241000'); return { now: { temp: NaN }, hours: {}, n: l.length }; }]]) {
     const t0 = Date.now();
-    try { const d = await fn(config.lat, config.lon); wx.push({ name, ok: true, detail: `${Math.round(d.now.temp)}° jetzt, ${Object.keys(d.hours).length} Stunden Vorhersage`, ms: Date.now() - t0 }); }
-    catch (e) { wx.push({ name, ok: false, detail: String(e.cause?.code || e.message || e).slice(0, 200), ms: Date.now() - t0 }); }
+    try { const d = await fn(config.lat, config.lon); wx.push({ name, ok: true, detail: d.n != null ? `${d.n} aktuelle Warnungen` : `${Math.round(d.now.temp)}° jetzt, ${Object.keys(d.hours).length} Stunden Vorhersage`, ms: Date.now() - t0 }); }
+    catch (e) { wx.push({ name, ok: false, detail: why(e), ms: Date.now() - t0 }); }
   }
   return { ...base, results: [...wx, ...(base.results || [])] };
 }
