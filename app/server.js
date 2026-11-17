@@ -1,7 +1,7 @@
 // Büro-Wallboard: kleiner lokaler Server ohne externe Abhängigkeiten (Node.js >= 20).
 // - liefert das Board (/) und die Handy-Seite (/m)
 // - speichert alles in data/db.json, Fotos in data/photos
-// - holt Wetter und Unwetterwarnungen vom DWD (über Bright Sky, Ersatz Open-Meteo/DWD-ICON), das Regenradar direkt vom DWD, und gibt nur Zahlen weiter
+// - holt Wetter und Unwetterwarnungen vom DWD (Bright Sky, direkt opendata.dwd.de, Ersatz Open-Meteo), das Regenradar direkt vom DWD, und gibt nur Zahlen weiter
 // - Geräte aus dem WLAN brauchen die PIN, das Board selbst (localhost) nicht
 'use strict';
 const http = require('http');
@@ -32,6 +32,8 @@ function readJson(file, fallback) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return fallback; }
 }
 function log(...a) { console.log(new Date().toISOString(), ...a); }
+// Netz-Absicherung (Proxy, Windows-Zertifikate, IPv4) für alle Abrufe nach draußen, siehe net.js
+const netx = require('./net')({ DATA, config, log });
 
 /* ---------- Datenhaltung ---------- */
 const DEFAULT_SETTINGS = {
@@ -497,14 +499,14 @@ function localDateOf(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).
 
 // Verbindungstest: Wetterquellen zusätzlich zu den Quellen aus extras.js prüfen
 async function diagnoseAll() {
-  const base = await extras.diagnose();
+  const [base, netr] = await Promise.all([extras.diagnose(), netx.diagnose()]);
   const wx = [];
   for (const [name, fn] of [['Wetter: Bright Sky (DWD)', weatherBrightSky], ['Wetter: DWD direkt (opendata.dwd.de)', () => dwd.weather()], ['Wetter: Open-Meteo (DWD-ICON)', weatherOpenMeteo], ['Unwetter: DWD-Warnliste', async () => { const l = await dwd.alerts(config.dwdWarncell || '103241000'); return { now: { temp: NaN }, hours: {}, n: l.length }; }]]) {
     const t0 = Date.now();
     try { const d = await fn(config.lat, config.lon); wx.push({ name, ok: true, detail: d.n != null ? `${d.n} aktuelle Warnungen` : `${Math.round(d.now.temp)}° jetzt, ${Object.keys(d.hours).length} Stunden Vorhersage`, ms: Date.now() - t0 }); }
     catch (e) { wx.push({ name, ok: false, detail: why(e), ms: Date.now() - t0 }); }
   }
-  return { ...base, results: [...wx, ...(base.results || [])] };
+  return { ...base, results: [...netr, ...wx, ...(base.results || [])] };
 }
 
 /* ---------- Updates aus dem GitHub-Repository ----------

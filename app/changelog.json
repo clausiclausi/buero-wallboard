@@ -1,5 +1,14 @@
 [
  {
+  "version": "1.48.0",
+  "date": "2026-11-17",
+  "changes": [
+   "Internet-Abrufe robuster: Klappt ein Abruf nicht („fetch failed“), versucht das Board es automatisch über einen zweiten Weg. Der nutzt einen im Büro eingestellten Proxy (wird aus Windows übernommen), vertraut den Zertifikaten von Windows und bevorzugt IPv4. Das hilft Wetter, Updates, Nachrichten und Fahrplan.",
+   "Verbindungstest zeigt oben, ob der normale und der zweite Weg ins Internet funktionieren, welcher Proxy erkannt wurde und die Uhrzeit des Notebooks.",
+   "Bei Bedarf lässt sich ein Proxy auch fest in C:\\Wallboard\\config.json eintragen („proxy“)."
+  ]
+ },
+ {
   "version": "1.47.0",
   "date": "2026-11-17",
   "changes": [
