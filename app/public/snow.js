@@ -20,7 +20,7 @@
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 
     let flakes = [], want = 0, light = false, low = false, tops = true;
-    let MAX_BOTTOM = 22, MAX_TOP = 10, size = 1.4;
+    let MAX_BOTTOM = 22, MAX_TOP = 10, size = 1.4, skip = '';
     let bottom = new Float32Array(NB);
     let caps = [];                 // { el, x, y, w, bins: Float32Array }
     let plow = null, falling = [], spray = [];
@@ -40,6 +40,7 @@
       caps = [];
       if (!tops) return;
       for (const el of stage.querySelectorAll('main > .card')) {
+        if (skip && skip.split(',').includes(el.dataset.k)) continue;
         if (el.offsetParent === null) continue;
         const r = el.getBoundingClientRect();
         if (r.width < 40) continue;
@@ -220,7 +221,8 @@
 
     return {
       // amount: 0 = kein Schneefall, sonst Zahl der Flocken
-      set({ amount = 0, lightBg = false, lowFx = false, onTops = true, flake: flakeSize = 'mittel', height = 'mittel' } = {}) {
+      set({ amount = 0, lightBg = false, lowFx = false, onTops = true, flake: flakeSize = 'mittel', height = 'mittel', skipCards = [] } = {}) {
+        const sk = skipCards.join(','); if (sk !== skip) { skip = sk; measure(); }
         light = lightBg; low = lowFx;
         [MAX_BOTTOM, MAX_TOP] = HEIGHTS[height] || HEIGHTS.mittel;
         const ns = SIZES[flakeSize] || SIZES.mittel;

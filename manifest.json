@@ -1,29 +1,30 @@
 {
-  "version": "1.51.0",
-  "notes": "Größere Schneeflocken: neue Größen „groß“ und „sehr groß“, große Flocken fallen als echte Schneesterne und drehen sich langsam. Standard ist jetzt „groß“. Verschneite Tannen: Auf den Deko-Tannenbäumen bleibt Schnee liegen, je mehr es schneit. Räumt der Schneeräumer, werden sie wieder grün.",
+  "version": "1.52.0",
+  "notes": "Schnee pro Kachel wählbar: Einstellungen → Schnee, dort antippen, auf welchen Kacheln Schnee liegen bleiben darf.",
   "changes": [
-    "Größere Schneeflocken: neue Größen „groß“ und „sehr groß“, große Flocken fallen als echte Schneesterne und drehen sich langsam. Standard ist jetzt „groß“.",
-    "Verschneite Tannen: Auf den Deko-Tannenbäumen bleibt Schnee liegen, je mehr es schneit. Räumt der Schneeräumer, werden sie wieder grün.",
-    "Overlay „Winterwald“ jetzt mit grünen Tannen, die bei Schnee weiß werden."
+    "Schnee pro Kachel wählbar: Einstellungen → Schnee, dort antippen, auf welchen Kacheln Schnee liegen bleiben darf.",
+    "Neuer Tannenwald im Hintergrund: natürlich aussehende Tannen, jede etwas anders (schlanke Fichten, breite Tannen, junge Bäumchen), in drei Tiefen. Steht hinter den Kacheln, verdeckt also nichts, und wird bei Schnee weiß.",
+    "Waldhöhe einstellbar unter Einstellungen → Weihnachten: niedrig, mittel, hoch, sehr hoch (oder automatisch mit dem Winterwald-Overlay).",
+    "Die Fußzeile bekommt vor dem Wald einen hellen Hintergrund und bleibt lesbar."
   ],
   "files": {
-    "changelog.json": "61702484d3970d3a1b247e199331a729f948133e837a41cbc27cd02035bd3c8f",
+    "changelog.json": "86d2895af33886f8a95810967679ff4a34026fbe772d3ddd502b56e223f93bf6",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
     "dwd.js": "6456ac4e1b64f1598e4e5b2756af06c0c33b119e9b9a70705afc4c3a6b683d47",
     "election.js": "b3432ff6400a9c93b7ae215a2f7c53bab88c32229e2a12886493c9975a575d09",
     "extras.js": "b0a86a05ff18ace4e0d31985b3545fbc2e09114651bb408dd2dbd935f9f719eb",
-    "public/board.html": "7b84824881ca2c4736da8935aaaebacbf19052a8b87512ac413e02f16fa50304",
+    "public/board.html": "5760448ad65385db627c2c573a92872b147d4dadf8441b2443856703f7a25a03",
     "public/icon-192.png": "c6b866b885e711fdb607de892d36300c9da80127f2d833cd672ce40af65f5637",
     "public/icon-512.png": "0330db0ae5d581a2bd979a907dbdcb1f3d626ebe2df8c3e4a9469771a2e2dec6",
     "public/knock.js": "422d5ca78ea4873c002673f42c0e7db747b70f86c8ec489a95638bb18ae9e667",
     "public/m.html": "1b76b3a368ab321f108309936fe58a2e687ee9298199bdf21f78957a878da7c8",
     "public/mascot.js": "a414057fb572b03b3321873c8d436b99567876adc288dc72d1a7bf48b5c97b5d",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
-    "public/snow.js": "fd452cbb5489e7ca8f60f468f3ffda5a9b4cfdd56f343fcef85b885d4136747d",
-    "public/xmas.js": "60f2b4fc8c448cf837af9b7907cc81f4d758ed03e0482e3ce17fe8eb770009e3",
+    "public/snow.js": "d4c9015ce729ea155055292ab0c6acb2c17ffd3f10ada62d6f80112078ab0c9a",
+    "public/xmas.js": "b7817c0f4b6af8daf68be2527d5a3cdcdd5de4ca1283c66f301c1bf2a5f83ec9",
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
-    "server.js": "36522dec7a20ca9f40cdd441dd89e5ff3ae48a3749618c4dd63cadfe6d2c6910",
+    "server.js": "e70ca7da7f554ac95c42ceee30afda57e82d106f62cee7dd838395667ec525a4",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "3bb0f4bd15390a9a046abce7f0aac55653231964b2bbecb459b27e103b6cfd47"
+    "version.json": "487907831da65f1d3f28673fd1208db065534c7387822a1fb1aac4b3a4d7c8e2"
   }
 }

@@ -301,6 +301,7 @@ function sanitizeSettings(b) {
     s.xmas = {
       when: oneOf(x.when ?? prev.when, ['saison', 'an', 'aus'], 'saison'),
       overlay: oneOf(x.overlay ?? prev.overlay, ['aus', 'klassisch', 'winterwald', 'gemuetlich'], 'klassisch'),
+      forest: oneOf(x.forest ?? prev.forest, ['auto', 'aus', 'niedrig', 'mittel', 'hoch', 'sehrhoch'], 'auto'),
       items: (Array.isArray(x.items) ? x.items : prev.items || []).slice(0, 40).filter(i => i && TYPES.includes(i.t)).map(i => ({
         id: String(i.id || '').replace(/[^a-z0-9]/gi, '').slice(0, 12) || Math.random().toString(36).slice(2, 9),
         t: i.t, v: String(i.v || '').replace(/[^a-z]/g, '').slice(0, 12),
@@ -319,6 +320,7 @@ function sanitizeSettings(b) {
       height: oneOf(n.height, ['flach', 'mittel', 'hoch'], 'mittel'),
       plow: oneOf(+n.plow, [15, 30, 60], 30),
       tops: n.tops !== false,
+      noCards: Array.isArray(n.noCards) ? [...new Set(n.noCards.map(String).filter(k => /^[a-z]{1,12}$/.test(k)))].slice(0, 20) : [],
     };
   }
   if (b.radar && typeof b.radar === 'object') s.radar = { zoom: oneOf(+b.radar.zoom, [1, 1.5, 2, 3, 4, 6, 8, 12, 16], 1), play: b.radar.play !== false };
