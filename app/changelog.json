@@ -1,5 +1,15 @@
 [
  {
+  "version": "1.52.0",
+  "date": "2026-11-18",
+  "changes": [
+   "Schnee pro Kachel wählbar: Einstellungen → Schnee, dort antippen, auf welchen Kacheln Schnee liegen bleiben darf.",
+   "Neuer Tannenwald im Hintergrund: natürlich aussehende Tannen, jede etwas anders (schlanke Fichten, breite Tannen, junge Bäumchen), in drei Tiefen. Steht hinter den Kacheln, verdeckt also nichts, und wird bei Schnee weiß.",
+   "Waldhöhe einstellbar unter Einstellungen → Weihnachten: niedrig, mittel, hoch, sehr hoch (oder automatisch mit dem Winterwald-Overlay).",
+   "Die Fußzeile bekommt vor dem Wald einen hellen Hintergrund und bleibt lesbar."
+  ]
+ },
+ {
   "version": "1.51.0",
   "date": "2026-11-18",
   "changes": [

@@ -741,6 +741,11 @@ html[data-skin="milchglas"] .pw .keypad button.busy .pw-spin { display: inline-b
 .snow-fx { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 5; }
 #stage.arranging .snow-fx, html.sleeping .snow-fx { visibility: hidden; }
 /* Weihnachten (1.50): Overlay am Rand (unter den Kacheln-Inhalten nicht im Weg), Deko-Teile frei platziert */
+.xmas-bg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: -1; overflow: hidden; border-radius: inherit; }
+.xmas-bg svg { position: absolute; left: 0; top: 0; }
+html.mg-dark .xmas-bg { filter: brightness(1.45) saturate(1.1); }
+/* Fußzeile bleibt vor dem Wald lesbar */
+#stage.xm-forest footer { background: color-mix(in srgb, var(--bg) 82%, transparent); border-radius: 14px; margin: 0 -12px; padding: 0 12px; backdrop-filter: blur(6px); }
 .xmas-ov { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 3; border-radius: inherit; }
 .xmas-ov svg { position: absolute; left: 0; top: 0; overflow: visible; }
 .xmas-layer { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 4; }
@@ -1469,7 +1474,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     const c = snowCfg(), why = snowWanted();
     const n = !why ? 0 : Math.max(SNOW_N[c.amount] || 120, why === 'echt' ? 120 : 0);
     stage.style.setProperty('--xm-snow', snowFx.level.toFixed(2));
-    snowFx.set({ amount: n, lightBg: document.documentElement.style.colorScheme === 'light', lowFx: document.documentElement.classList.contains('lowfx'), onTops: c.tops !== false, flake: c.flake, height: c.height });
+    snowFx.set({ amount: n, lightBg: document.documentElement.style.colorScheme === 'light', lowFx: document.documentElement.classList.contains('lowfx'), onTops: c.tops !== false, flake: c.flake, height: c.height, skipCards: c.noCards || [] });
     if (why && !snowWas && why !== 'test') {
       const key = new Date().toDateString() + '-schnee';
       if (mascot && settings().mascot?.fig !== 'aus' && !mascotDone.has(key)) { mascotDone.add(key); local.set('mascotDone', [...mascotDone].slice(-100)); try { mascot.announce('Es schneit!', 'freuen'); } catch {} }
@@ -3664,6 +3669,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <label class="field">Liegender Schnee <select id="sSnowHeight">${[['flach', 'flach'], ['mittel', 'mittel'], ['hoch', 'hoch']].map(([v, l]) => `<option value="${v}" ${snowCfg().height === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <label class="field">Schneeräumer fährt <select id="sSnowPlow">${[[15, 'alle 15 Minuten'], [30, 'jede halbe Stunde'], [60, 'jede Stunde']].map(([v, l]) => `<option value="${v}" ${snowCfg().plow === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <div class="field">Schnee auch auf den Kacheln liegen lassen <button class="switch" id="sSnowTops" role="switch" aria-checked="${snowCfg().tops !== false}"></button></div>
+        <p class="hint" style="margin:6px 0 8px">Auf diesen Kacheln darf Schnee liegen (antippen zum An- oder Abwählen):</p>
+        <div class="chips" id="sSnowCards">${[...stage.querySelectorAll('main > .card[data-k]')].filter(c => !c.classList.contains('off')).map(c => `<button type="button" data-c="${esc(c.dataset.k)}" aria-pressed="${!(snowCfg().noCards || []).includes(c.dataset.k)}">${esc(c.dataset.name || c.dataset.k)}</button>`).join('')}</div>
         <div class="row" style="margin-top:10px"><button class="btn" id="sSnowTest">Jetzt schneien lassen (3 Min.)</button><button class="btn" id="sSnowPlowNow">Schneeräumer jetzt</button></div>
         <p class="hint" style="margin-top:8px">Der Schnee bleibt nur am unteren Rand und auf den Kachelkanten liegen, nie auf Text. Der Räumer kommt nur, wenn etwas liegt. Nachts und am Wochenende ruht alles.</p>
       </div>
@@ -3671,6 +3678,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <label class="field">Deko zeigen <select id="sXmWhen">${[['saison', 'vom 15. November bis 6. Januar'], ['an', 'immer'], ['aus', 'aus']].map(([v, l]) => `<option value="${v}" ${(settings().xmas?.when || 'saison') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <p class="hint" style="margin:6px 0 10px">Weihnachts-Overlay fürs ganze Board (nur am Rand, nie über Text):</p>
         <div class="xm-ovs" id="sXmOv"></div>
+        <label class="field" style="margin-top:12px">Tannenwald im Hintergrund <select id="sXmForest">${[['auto', 'mit Winterwald-Overlay'], ['aus', 'aus'], ['niedrig', 'niedrig'], ['mittel', 'mittel'], ['hoch', 'hoch'], ['sehrhoch', 'sehr hoch']].map(([v, l]) => `<option value="${v}" ${(settings().xmas?.forest || 'auto') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        <p class="hint" style="margin-top:6px">Der Wald steht hinter den Kacheln, verdeckt also nichts. Jede Tanne sieht anders aus, hinten kleiner und heller, vorne groß und dunkel. Bei Schnee werden sie weiß.</p>
         <div class="row" style="margin-top:12px"><button class="btn" id="sXmEdit">Deko anordnen …</button></div>
         <p class="hint" style="margin-top:8px">Tannenbäume in 4 Schmuck-Designs, Stern, Geschenke, Adventskranz (zündet jeden Adventssonntag eine Kerze mehr an), Schneemann, Kugeln und mehr: hinzufügen, mit dem Finger verschieben, größer oder kleiner machen.</p>
       </div>
@@ -3832,6 +3841,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     lf.onclick = () => { setSettings({ lowFx: settings().lowFx !== true }); lf.setAttribute('aria-checked', settings().lowFx === true); };
     const putXm = (patch) => setSettings({ xmas: Object.assign({}, settings().xmas || {}, patch) });
     scrim.querySelector('#sXmWhen').onchange = (e) => putXm({ when: e.target.value });
+    scrim.querySelector('#sXmForest').onchange = (e) => putXm({ forest: e.target.value });
     const renderXmOv = () => {
       const el = scrim.querySelector('#sXmOv'); if (!el) return; el.innerHTML = '';
       const cur = settings().xmas?.overlay || 'klassisch';
@@ -3854,6 +3864,11 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     scrim.querySelector('#sSnowPlow').onchange = (e) => putSnow({ plow: +e.target.value });
     const stp = scrim.querySelector('#sSnowTops');
     stp.onclick = () => { putSnow({ tops: snowCfg().tops === false }); stp.setAttribute('aria-checked', snowCfg().tops !== false); };
+    scrim.querySelectorAll('#sSnowCards button').forEach(b => b.onclick = () => {
+      const k = b.dataset.c, list = snowCfg().noCards || [], off = list.includes(k);
+      putSnow({ noCards: off ? list.filter(x => x !== k) : [...list, k] });
+      b.setAttribute('aria-pressed', off);
+    });
     scrim.querySelectorAll('#sSnowTimes button').forEach(b => b.onclick = () => {
       const v = +b.dataset.h, list = snowCfg().times, on = list.includes(v);
       putSnow({ times: on ? list.filter(x => x !== v) : [...list, v].sort((a, c) => a - c) });

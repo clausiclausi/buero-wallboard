@@ -99,11 +99,9 @@
        ${bulbs(6, 11, 7, ['#FF5A5F', '#FFD23F', '#3DDC97', '#4CC9F0', '#C77DFF'])}
        ${[0, 1, 2, 3, 4, 5, 6].map(i => `<g transform="translate(${i * W / 6} 4)"><path d="M0 0 C-14 -8 -16 10 0 2 C16 10 14 -8 0 0Z" fill="#C8102E"/><circle r="3" fill="#A30D25"/></g>`).join('')}`,
       frame: 'inset 0 0 0 5px rgba(200,16,46,.35), inset 0 0 0 7px rgba(232,185,35,.35), inset 0 0 60px rgba(200,16,46,.12)' },
-    winterwald: { name: 'Winterwald', desc: 'Grüne Tannen am unteren Rand (werden bei Schnee weiß), funkelnde Sterne oben, kühler Rahmen', svg: () => {
-      let trees = '', x = -10, i = 0;
-      while (x < W + 20) { const h = 18 + ((i * 37) % 19), w = h * .7; trees += `<path d="M${x} ${H} L${x + w / 2} ${H - h} L${x + w} ${H} Z"/><path class="xm-snowcap wald" d="M${x + w * .22} ${H - h * .5} L${x + w / 2} ${H - h - 1} L${x + w * .78} ${H - h * .5} Q${x + w / 2} ${H - h * .38} ${x + w * .22} ${H - h * .5} Z" fill="#fff"/>`; x += w * .62; i++; }
+    winterwald: { name: 'Winterwald', desc: 'Tannenwald im Hintergrund, funkelnde Sterne oben, kühler Rahmen', svg: () => {
       let stars = ''; for (let k = 0; k < 26; k++) { const sx = (k * 157 + 40) % W, sy = 4 + (k * 7) % 14; stars += `<circle class="xm-blink" style="animation-delay:${(k * .53) % 3}s" cx="${sx}" cy="${sy}" r="${1.4 + (k % 3) * .6}" fill="#EAF4FF"/>`; }
-      return `<g fill="#1F6B3A" opacity=".9">${trees}</g>${stars}`; },
+      return stars; },
       frame: 'inset 0 0 0 4px rgba(140,190,235,.35), inset 0 0 70px rgba(140,190,235,.18)' },
     gemuetlich: { name: 'Gemütlich', desc: 'Warmweiße Lichterkette mit Strohsternen, warmer Schimmer am Rand', svg: () => {
       const star = (x, y, r) => `<g transform="translate(${x} ${y})" stroke="#D9B26A" stroke-width="1.6" stroke-linecap="round">${[0, 45, 90, 135].map(a => `<line x1="${-r}" y1="0" x2="${r}" y2="0" transform="rotate(${a})"/>`).join('')}<circle r="2" fill="#C8102E" stroke="none"/></g>`;
@@ -113,10 +111,63 @@
       frame: 'inset 0 0 0 4px rgba(217,178,106,.35), inset 0 0 80px rgba(255,190,110,.18)' },
   };
 
+  // ---------- Tannenwald im Hintergrund (1.52): natürlich, jede Tanne anders, 3 Tiefen ----------
+  const FOREST_H = { niedrig: 70, mittel: 150, hoch: 270, sehrhoch: 420 };
+  function rng(seed) { let x = seed >>> 0 || 1; return () => { x ^= x << 13; x ^= x >>> 17; x ^= x << 5; return ((x >>> 0) % 10000) / 10000; }; }
+  // eine Tanne: Etagen mit hängenden, ungleichmäßigen Zweigspitzen; kind 0 = schlanke Fichte, 1 = breite Tanne, 2 = junge Tanne
+  function conifer(cx, base, h, col, dark, R, kind) {
+    const tiers = kind === 2 ? 3 + Math.floor(R() * 2) : 5 + Math.floor(R() * 4);
+    const wr = (kind === 0 ? .32 : kind === 1 ? .5 : .42) * (0.85 + R() * .3);
+    const lean = (R() - .5) * h * .04, trunkH = h * (.05 + R() * .05);
+    const top = base - h, cH = h - trunkH;
+    let d = '', sh = '', snow = '';
+    for (let t = 0; t < tiers; t++) {
+      const f0 = t / tiers, f1 = (t + 1) / tiers;
+      const yTop = top + cH * f0 * .92, yBot = top + cH * (f1 * .92 + .08);
+      const wBot = h * wr * (.25 + .75 * f1) * (0.9 + R() * .2), wTop = h * wr * .25 * f0;
+      const xc = cx + lean * (1 - f1), droop = (yBot - yTop) * (.15 + R() * .15);
+      const n = 3 + Math.floor(R() * 3), pts = [];
+      // rechte Kante mit Zacken, dann linke
+      for (let k = 0; k <= n; k++) { const q = k / n; pts.push([xc + wTop + (wBot - wTop) * q + (k % 2 ? -wBot * .12 * R() : 0), yTop + (yBot - yTop) * q + (k === n ? droop : (k % 2 ? -droop * .4 : 0))]); }
+      const left = pts.map(([x, y]) => [2 * xc - x + (R() - .5) * wBot * .08, y + (R() - .5) * droop * .6]).reverse();
+      const all = [[xc, yTop - (t === 0 ? 2 : 0)], ...pts, [xc, yBot - droop * .2], ...left];
+      d += 'M' + all.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L') + 'Z';
+      sh += `M${xc.toFixed(1)} ${yTop.toFixed(1)} ` + pts.map(([x, y]) => `L${x.toFixed(1)} ${y.toFixed(1)}`).join(' ') + ` L${xc.toFixed(1)} ${(yBot - droop * .2).toFixed(1)}Z`;
+      const sw = wBot * (.55 + R() * .2), sy = yTop + (yBot - yTop) * .55;
+      snow += `M${(xc - sw).toFixed(1)} ${(sy + droop * .5).toFixed(1)} Q${xc.toFixed(1)} ${(sy - (yBot - yTop) * .25).toFixed(1)} ${(xc + sw).toFixed(1)} ${(sy + droop * .5).toFixed(1)} Q${xc.toFixed(1)} ${(sy + droop * .1).toFixed(1)} ${(xc - sw).toFixed(1)} ${(sy + droop * .5).toFixed(1)}Z`;
+    }
+    const tw = Math.max(2, h * .035);
+    return `<rect x="${(cx - tw / 2).toFixed(1)}" y="${(base - trunkH - 2).toFixed(1)}" width="${tw.toFixed(1)}" height="${(trunkH + 2).toFixed(1)}" fill="#4A3527"/>`
+      + `<path d="${d}" fill="${col}"/><path d="${sh}" fill="${dark}" opacity=".35"/><path class="xm-snowcap" d="${snow}" fill="#fff"/>`;
+  }
+  function forest(size) {
+    const maxH = FOREST_H[size]; if (!maxH) return '';
+    const R = rng(4711 + maxH);
+    const layers = [
+      { k: .55, cols: ['#5E8C76', '#6B9681', '#57836E'], op: .55, gap: .45 },   // hinten: kleiner, heller (Dunst)
+      { k: .78, cols: ['#2F6B47', '#386F4C', '#2A5F40', '#3D7A52'], op: .8, gap: .55 },
+      { k: 1, cols: ['#1E5034', '#24593A', '#1A472E', '#2B6141'], op: 1, gap: .7 },  // vorn: groß, dunkel
+    ];
+    let out = '';
+    for (const L of layers) {
+      let x = -40 + R() * 30;
+      out += `<g opacity="${L.op}">`;
+      while (x < W + 40) {
+        const h = maxH * L.k * (.45 + R() * .55), kind = R() < .45 ? 0 : R() < .75 ? 1 : 2;
+        const hh = kind === 2 ? h * .6 : h, col = L.cols[Math.floor(R() * L.cols.length)];
+        out += conifer(x, H + 2, hh, col, '#0B2416', R, kind);
+        x += hh * (kind === 0 ? .32 : .45) * L.gap * (1.4 + R() * 1.2);
+      }
+      out += '</g>';
+    }
+    return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${out}</svg>`;
+  }
+
   function create(stage, { onSave, scale }) {
     const ov = document.createElement('div'); ov.className = 'xmas-ov'; ov.setAttribute('aria-hidden', 'true');
     const layer = document.createElement('div'); layer.className = 'xmas-layer';
-    stage.append(ov, layer);
+    const bg = document.createElement('div'); bg.className = 'xmas-bg'; bg.setAttribute('aria-hidden', 'true');
+    stage.append(bg, ov, layer);
     let cfg = { items: [], overlay: 'aus', when: 'saison' }, editing = null, sel = null;
 
     const inSeason = (d = new Date()) => { const m = d.getMonth() + 1, day = d.getDate(); return (m === 11 && day >= 15) || m === 12 || (m === 1 && day <= 6); };
@@ -135,6 +186,9 @@
       const o = OVERLAYS[cfg.overlay];
       ov.innerHTML = on && o ? `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${o.svg()}</svg>` : '';
       ov.style.boxShadow = on && o ? o.frame : '';
+      const fs = !cfg.forest || cfg.forest === 'auto' ? (cfg.overlay === 'winterwald' ? 'mittel' : '') : cfg.forest;
+      const fk = on ? fs : '';
+      if (bg.dataset.k !== fk) { bg.dataset.k = fk; bg.innerHTML = fk ? forest(fk) : ''; stage.classList.toggle('xm-forest', !!fk); }
       layer.innerHTML = '';
       if (!on) return;
       for (const it of cfg.items) { const el = itemEl(it); if (el) { if (sel === it.id) el.classList.add('sel'); layer.append(el); } }
@@ -196,5 +250,5 @@
     setInterval(() => { if (!editing) { lastKey = ''; render(); } }, 3600000);
     return { apply, edit, render, get editing() { return !!editing; } };
   }
-  window.WBXmas = { create, PARTS, OVERLAYS, adventLit };
+  window.WBXmas = { create, PARTS, OVERLAYS, adventLit, FOREST_H };
 })();
