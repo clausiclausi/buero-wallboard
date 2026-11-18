@@ -1,5 +1,16 @@
 [
  {
+  "version": "1.50.0",
+  "date": "2026-11-18",
+  "changes": [
+   "Weihnachtsdeko zum selbst Anordnen: Einstellungen → Weihnachten → „Deko anordnen“. Tannenbäume in 4 Schmuck-Designs (Rot-Gold, Silber-Blau, bunte Lichter, verschneit), Sterne, Geschenke, Adventskranz, Schneemann, Kugeln, Zuckerstange, Glocke und Lichterketten.",
+   "Teile antippen zum Hinzufügen, mit dem Finger verschieben, größer/kleiner machen oder löschen. Die Leiste lässt sich nach oben oder unten schieben.",
+   "Drei Weihnachts-Overlays fürs ganze Board: Klassisch (Tannengirlande mit bunten Lichtern), Winterwald (Tannen unten, Sterne oben), Gemütlich (warmweiße Lichter, Strohsterne). Nur am Rand, nie über Text.",
+   "Der Adventskranz zündet an jedem Adventssonntag eine Kerze mehr an.",
+   "Deko erscheint automatisch vom 15. November bis 6. Januar (oder immer bzw. aus)."
+  ]
+ },
+ {
   "version": "1.49.0",
   "date": "2026-11-18",
   "changes": [

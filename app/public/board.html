@@ -740,6 +740,39 @@ html[data-skin="milchglas"] .pw .keypad button.busy .pw-spin { display: inline-b
 /* Schnee (1.48): ein Canvas über der ganzen Bühne, fängt keine Klicks ab */
 .snow-fx { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 5; }
 #stage.arranging .snow-fx, html.sleeping .snow-fx { visibility: hidden; }
+/* Weihnachten (1.50): Overlay am Rand (unter den Kacheln-Inhalten nicht im Weg), Deko-Teile frei platziert */
+.xmas-ov { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 3; border-radius: inherit; }
+.xmas-ov svg { position: absolute; left: 0; top: 0; overflow: visible; }
+.xmas-layer { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 4; }
+.xm-item { position: absolute; filter: drop-shadow(0 3px 4px rgba(0,0,0,.25)); }
+.xm-item svg { display: block; overflow: visible; }
+#stage.xm-editing .xmas-layer { pointer-events: auto; z-index: 8; touch-action: none; }
+#stage.xm-editing .xm-item { cursor: grab; outline: 2px dashed color-mix(in srgb, var(--text) 35%, transparent); outline-offset: 2px; border-radius: 10px; }
+#stage.xm-editing .xm-item.sel { outline: 3px solid var(--highlight); }
+#stage.xm-editing .snow-fx, #stage.arranging .xmas-layer { visibility: hidden; }
+@keyframes xm-blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@keyframes xm-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
+@keyframes xm-flame { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.85) translateY(1px); } }
+.xm-blink { animation: xm-blink 2.4s ease-in-out infinite; }
+.xm-twinkle { animation: xm-twinkle 3s ease-in-out infinite; }
+.xm-flame { animation: xm-flame 1.1s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+html.sleeping :is(.xmas-ov, .xmas-layer) * { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) { :is(.xmas-ov, .xmas-layer) * { animation: none !important; } }
+.xm-bar { position: absolute; left: 24px; right: 24px; bottom: 22px; z-index: 9; box-sizing: border-box; max-height: calc(100% - 44px); overflow: auto; display: flex; flex-direction: column; gap: 12px; padding: 14px 16px;
+  border-radius: 20px; background: var(--surface); border: 2px solid var(--highlight); box-shadow: 0 16px 50px rgba(0,0,0,.45); font-size: 20px; }
+.xm-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.xm-head .xm-hint { color: var(--muted); flex: 1 1 360px; min-width: 0; }
+.xm-selbtns { display: flex; flex-wrap: wrap; gap: 10px; } .xm-selbtns[hidden] { display: none; }
+.xm-pal { display: flex; flex-wrap: wrap; gap: 8px; }
+.xm-add { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 104px; padding: 6px 4px; border-radius: 14px; border: 1px solid var(--line); background: var(--bg); font-size: 14px; }
+.xm-add svg { width: 52px; height: 52px; overflow: visible; }
+.xm-add span { display: flex; flex-direction: column; align-items: center; line-height: 1.15; max-width: 100%; }
+.xm-add span, .xm-add b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.xm-bar.top { bottom: auto; top: 22px; }
+.xm-ovs { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+.xm-ovs button { text-align: left; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--bg); font-size: 18px; }
+.xm-ovs button[aria-pressed="true"] { border: 2px solid var(--highlight); }
+.xm-ovs small { display: block; color: var(--muted); font-size: 14px; margin-top: 2px; }
 .mas-sw { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .mas-sw button { width: 46px; height: 46px; border-radius: 12px; border: 2px solid var(--line); padding: 0; font-size: 15px; font-weight: 600; }
 .mas-sw button[aria-pressed="true"] { outline: 3px solid var(--text); outline-offset: 2px; }
@@ -1344,6 +1377,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 
 <script src="/static/mascot.js"></script>
 <script src="/static/snow.js"></script>
+<script src="/static/xmas.js"></script>
 <script src="/static/knock.js"></script>
 <script src="/static/qrcode.js"></script>
 <script>
@@ -1444,6 +1478,11 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     if (c.mode === 'aus' && !why && snowFx.lying > 0) snowFx.clear();
   }
   setInterval(snowTick, 5000);
+
+  /* ---------- Weihnachtsdeko (1.50) ---------- */
+  const xmas = window.WBXmas ? WBXmas.create(stage, { scale: () => stage.getBoundingClientRect().width / 1920 || 1,
+    onSave: (patch) => { S.settings.xmas = Object.assign({}, settings().xmas || {}, patch); api('PUT', '/api/settings', { xmas: S.settings.xmas }).catch(() => {}); } }) : null;
+  const applyXmas = () => xmas?.apply(settings().xmas);
   document.addEventListener('visibilitychange', snowTick);
   function scale() {
     const s = Math.min(fit.clientWidth / 1920, fit.clientHeight / 1080);
@@ -1488,6 +1527,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     st.setProperty('--crit', light ? '#C8372B' : '#FF6F61');
     st.setProperty('--rain', light ? '#2F7FD1' : '#6FB7FF');
     mascot?.apply(settings().mascot, light);
+    applyXmas();
     applyLayout();
   }
 
@@ -3624,6 +3664,13 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <div class="row" style="margin-top:10px"><button class="btn" id="sSnowTest">Jetzt schneien lassen (3 Min.)</button><button class="btn" id="sSnowPlowNow">Schneeräumer jetzt</button></div>
         <p class="hint" style="margin-top:8px">Der Schnee bleibt nur am unteren Rand und auf den Kachelkanten liegen, nie auf Text. Der Räumer kommt nur, wenn etwas liegt. Nachts und am Wochenende ruht alles.</p>
       </div>
+      <div><h4>Weihnachten</h4>
+        <label class="field">Deko zeigen <select id="sXmWhen">${[['saison', 'vom 15. November bis 6. Januar'], ['an', 'immer'], ['aus', 'aus']].map(([v, l]) => `<option value="${v}" ${(settings().xmas?.when || 'saison') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        <p class="hint" style="margin:6px 0 10px">Weihnachts-Overlay fürs ganze Board (nur am Rand, nie über Text):</p>
+        <div class="xm-ovs" id="sXmOv"></div>
+        <div class="row" style="margin-top:12px"><button class="btn" id="sXmEdit">Deko anordnen …</button></div>
+        <p class="hint" style="margin-top:8px">Tannenbäume in 4 Schmuck-Designs, Stern, Geschenke, Adventskranz (zündet jeden Adventssonntag eine Kerze mehr an), Schneemann, Kugeln und mehr: hinzufügen, mit dem Finger verschieben, größer oder kleiner machen.</p>
+      </div>
       <div><h4>Abfahrten</h4>
         <p class="hint" style="margin-bottom:10px">Haltestelle: <b id="sStopNow">${esc(st.transit?.name || S.extras?.transit?.stop?.name || 'Clausewitzstraße (Standard)')}</b></p>
         <div class="row"><input type="text" id="sStopQ" placeholder="Haltestelle suchen, z. B. Clausewitzstraße" style="flex:1;font:inherit;font-size:20px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px"><button class="btn" id="sStopGo">Suchen</button></div>
@@ -3780,6 +3827,19 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     me.onclick = () => { setSettings({ mgEvening: settings().mgEvening === false }); me.setAttribute('aria-checked', settings().mgEvening !== false); };
     const lf = scrim.querySelector('#sLowFx');
     lf.onclick = () => { setSettings({ lowFx: settings().lowFx !== true }); lf.setAttribute('aria-checked', settings().lowFx === true); };
+    const putXm = (patch) => setSettings({ xmas: Object.assign({}, settings().xmas || {}, patch) });
+    scrim.querySelector('#sXmWhen').onchange = (e) => putXm({ when: e.target.value });
+    const renderXmOv = () => {
+      const el = scrim.querySelector('#sXmOv'); if (!el) return; el.innerHTML = '';
+      const cur = settings().xmas?.overlay || 'klassisch';
+      for (const [k, o] of [['aus', { name: 'Kein Overlay', desc: 'nur einzelne Deko-Teile' }], ...Object.entries(window.WBXmas?.OVERLAYS || {})]) {
+        const b = h(`<button type="button" aria-pressed="${cur === k}"><b>${esc(o.name)}</b><small>${esc(o.desc)}</small></button>`);
+        b.onclick = () => { putXm({ overlay: k }); renderXmOv(); };
+        el.append(b);
+      }
+    };
+    renderXmOv();
+    scrim.querySelector('#sXmEdit').onclick = () => { close(); if (settings().xmas?.when === 'aus') putXm({ when: 'saison' }); setTimeout(() => xmas?.edit(stage), 200); };
     const putSnow = (patch) => { setSettings({ snow: Object.assign(snowCfg(), patch) }); snowTick(); };
     scrim.querySelector('#sSnowMode').onchange = (e) => putSnow({ mode: e.target.value });
     scrim.querySelector('#sSnowMins').onchange = (e) => putSnow({ mins: +e.target.value });

@@ -39,6 +39,7 @@ const DEFAULT_SETTINGS = {
   muted: false, lead: 15, volume: 0.6, rainHours: [10, 12, 17],
   visitor: false, officeStart: '06:00', officeEnd: '20:00', autoUpdate: 'sofort', updateEvery: 30, skin: 'milchglas',
   mascot: { fig: 'strich', color: '#7FE0AE', text: '', font: 'strich', every: 'zufall', size: 'mittel', mood: 'lieb', alerts: true, walk: '09:55', deco: true },
+  xmas: { when: 'saison', overlay: 'klassisch', items: [{ id: 'baum1', t: 'baum', v: 'rotgold', x: 780, y: 62, s: 0.7 }] },
   snow: { mode: 'winter', times: [8, 10, 12, 14, 16], mins: 15, amount: 'mittel', flake: 'mittel', height: 'mittel', plow: 30, tops: true },
 };
 const DEFAULT_LOANS = [
@@ -287,6 +288,20 @@ function sanitizeSettings(b) {
   }
   // Richtung der Abfahrten: Steig (z. B. SB1) oder einzelnes Fahrtziel, null = alle
   if ('transitDir' in b) s.transitDir = typeof b.transitDir === 'string' && b.transitDir.trim() ? clean(b.transitDir, 60) : null;
+  // 1.50: Weihnachtsdeko (Teile frei platziert + Overlay)
+  if (b.xmas && typeof b.xmas === 'object') {
+    const x = b.xmas, prev = db.settings.xmas || {};
+    const TYPES = ['baum', 'stern', 'geschenk', 'kranz', 'schneemann', 'kugel', 'zuckerstange', 'glocke', 'lichter'];
+    const num = (v, lo, hi, d) => Number.isFinite(+v) ? Math.min(hi, Math.max(lo, +v)) : d;
+    s.xmas = {
+      when: oneOf(x.when ?? prev.when, ['saison', 'an', 'aus'], 'saison'),
+      overlay: oneOf(x.overlay ?? prev.overlay, ['aus', 'klassisch', 'winterwald', 'gemuetlich'], 'klassisch'),
+      items: (Array.isArray(x.items) ? x.items : prev.items || []).slice(0, 40).filter(i => i && TYPES.includes(i.t)).map(i => ({
+        id: String(i.id || '').replace(/[^a-z0-9]/gi, '').slice(0, 12) || Math.random().toString(36).slice(2, 9),
+        t: i.t, v: String(i.v || '').replace(/[^a-z]/g, '').slice(0, 12),
+        x: Math.round(num(i.x, 0, 1920, 960)), y: Math.round(num(i.y, 0, 1080, 540)), s: +num(i.s, 0.4, 3, 1).toFixed(2) })),
+    };
+  }
   // 1.48: Schnee-Effekt (Schneefall, liegender Schnee, Schneeräumer)
   if (b.snow && typeof b.snow === 'object') {
     const n = b.snow;
