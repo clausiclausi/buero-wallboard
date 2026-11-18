@@ -1,31 +1,29 @@
 {
-  "version": "1.50.0",
-  "notes": "Weihnachtsdeko zum selbst Anordnen: Einstellungen → Weihnachten → „Deko anordnen“. Tannenbäume in 4 Schmuck-Designs (Rot-Gold, Silber-Blau, bunte Lichter, verschneit), Sterne, Geschenke, Adventskranz, Schneemann, Kugeln, Zuckerstange, Glocke und Lichterketten.",
+  "version": "1.51.0",
+  "notes": "Größere Schneeflocken: neue Größen „groß“ und „sehr groß“, große Flocken fallen als echte Schneesterne und drehen sich langsam. Standard ist jetzt „groß“. Verschneite Tannen: Auf den Deko-Tannenbäumen bleibt Schnee liegen, je mehr es schneit. Räumt der Schneeräumer, werden sie wieder grün.",
   "changes": [
-    "Weihnachtsdeko zum selbst Anordnen: Einstellungen → Weihnachten → „Deko anordnen“. Tannenbäume in 4 Schmuck-Designs (Rot-Gold, Silber-Blau, bunte Lichter, verschneit), Sterne, Geschenke, Adventskranz, Schneemann, Kugeln, Zuckerstange, Glocke und Lichterketten.",
-    "Teile antippen zum Hinzufügen, mit dem Finger verschieben, größer/kleiner machen oder löschen. Die Leiste lässt sich nach oben oder unten schieben.",
-    "Drei Weihnachts-Overlays fürs ganze Board: Klassisch (Tannengirlande mit bunten Lichtern), Winterwald (Tannen unten, Sterne oben), Gemütlich (warmweiße Lichter, Strohsterne). Nur am Rand, nie über Text.",
-    "Der Adventskranz zündet an jedem Adventssonntag eine Kerze mehr an.",
-    "Deko erscheint automatisch vom 15. November bis 6. Januar (oder immer bzw. aus)."
+    "Größere Schneeflocken: neue Größen „groß“ und „sehr groß“, große Flocken fallen als echte Schneesterne und drehen sich langsam. Standard ist jetzt „groß“.",
+    "Verschneite Tannen: Auf den Deko-Tannenbäumen bleibt Schnee liegen, je mehr es schneit. Räumt der Schneeräumer, werden sie wieder grün.",
+    "Overlay „Winterwald“ jetzt mit grünen Tannen, die bei Schnee weiß werden."
   ],
   "files": {
-    "changelog.json": "fd2800b4f8dc0823710786554c073f0f4376df8c0fb3777f4ca704b6317b607c",
+    "changelog.json": "61702484d3970d3a1b247e199331a729f948133e837a41cbc27cd02035bd3c8f",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
     "dwd.js": "6456ac4e1b64f1598e4e5b2756af06c0c33b119e9b9a70705afc4c3a6b683d47",
     "election.js": "b3432ff6400a9c93b7ae215a2f7c53bab88c32229e2a12886493c9975a575d09",
     "extras.js": "b0a86a05ff18ace4e0d31985b3545fbc2e09114651bb408dd2dbd935f9f719eb",
-    "public/board.html": "76f7efcd6b3f8948f1932300f24a115ae68ab344c5ed4cde2211236ee8d3b27e",
+    "public/board.html": "7b84824881ca2c4736da8935aaaebacbf19052a8b87512ac413e02f16fa50304",
     "public/icon-192.png": "c6b866b885e711fdb607de892d36300c9da80127f2d833cd672ce40af65f5637",
     "public/icon-512.png": "0330db0ae5d581a2bd979a907dbdcb1f3d626ebe2df8c3e4a9469771a2e2dec6",
     "public/knock.js": "422d5ca78ea4873c002673f42c0e7db747b70f86c8ec489a95638bb18ae9e667",
     "public/m.html": "1b76b3a368ab321f108309936fe58a2e687ee9298199bdf21f78957a878da7c8",
     "public/mascot.js": "a414057fb572b03b3321873c8d436b99567876adc288dc72d1a7bf48b5c97b5d",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
-    "public/snow.js": "38896bcb1cb73a04cf05c8326df1ea8745f6108ef1d2a036187def96791371a7",
-    "public/xmas.js": "3f5e08934cac17a7cfb853b3d7f87cef046d6035bdd55dfb5b7b5ba1190444a6",
+    "public/snow.js": "fd452cbb5489e7ca8f60f468f3ffda5a9b4cfdd56f343fcef85b885d4136747d",
+    "public/xmas.js": "60f2b4fc8c448cf837af9b7907cc81f4d758ed03e0482e3ce17fe8eb770009e3",
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
-    "server.js": "c0e90c4c3eff051be0a80f849c8c77daad5d732979ed12ba1d3f5781abe007da",
+    "server.js": "36522dec7a20ca9f40cdd441dd89e5ff3ae48a3749618c4dd63cadfe6d2c6910",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "22f3340df43a90e9f37b6a1fd6669263e593d51ef924b7109d3ae9f91af035cd"
+    "version.json": "3bb0f4bd15390a9a046abce7f0aac55653231964b2bbecb459b27e103b6cfd47"
   }
 }

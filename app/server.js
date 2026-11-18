@@ -40,7 +40,7 @@ const DEFAULT_SETTINGS = {
   visitor: false, officeStart: '06:00', officeEnd: '20:00', autoUpdate: 'sofort', updateEvery: 30, skin: 'milchglas',
   mascot: { fig: 'strich', color: '#7FE0AE', text: '', font: 'strich', every: 'zufall', size: 'mittel', mood: 'lieb', alerts: true, walk: '09:55', deco: true },
   xmas: { when: 'saison', overlay: 'klassisch', items: [{ id: 'baum1', t: 'baum', v: 'rotgold', x: 780, y: 62, s: 0.7 }] },
-  snow: { mode: 'winter', times: [8, 10, 12, 14, 16], mins: 15, amount: 'mittel', flake: 'mittel', height: 'mittel', plow: 30, tops: true },
+  snow: { mode: 'winter', times: [8, 10, 12, 14, 16], mins: 15, amount: 'mittel', flake: 'gross', height: 'mittel', plow: 30, tops: true },
 };
 const DEFAULT_LOANS = [
   { id: 'l1', type: 'Notebooks', icon: 'laptop', avail: 0, total: 0 },
@@ -58,6 +58,11 @@ if ((db.transitDefault || 0) < 2) { db.settings.transit = null; db.settings.rout
 if ((db.snowV2 || 0) < 1) {
   if (db.settings.snow && db.settings.snow.amount === 'dezent') db.settings.snow = Object.assign({}, db.settings.snow, { amount: 'mittel', flake: 'mittel', height: 'mittel' });
   db.snowV2 = 1;
+}
+// 1.51: Flocken waren zu klein – einmalig auf „groß“ (Schneesterne)
+if ((db.snowV3 || 0) < 1) {
+  if (db.settings.snow && ['klein', 'mittel'].includes(db.settings.snow.flake || 'mittel')) db.settings.snow = Object.assign({}, db.settings.snow, { flake: 'gross' });
+  db.snowV3 = 1;
 }
 if ((db.lookV2 || 0) < 1) {
   if (!db.settings.prevLook) db.settings.prevLook = { skin: db.settings.skin, theme: db.settings.theme };
@@ -310,7 +315,7 @@ function sanitizeSettings(b) {
       times: Array.isArray(n.times) ? [...new Set(n.times.map(Number).filter(v => Number.isInteger(v) && v >= 0 && v <= 23))].sort((a, c) => a - c).slice(0, 12) : [8, 10, 12, 14, 16],
       mins: oneOf(+n.mins, [5, 10, 15, 20, 30, 45, 60], 15),
       amount: oneOf(n.amount, ['dezent', 'mittel', 'kraeftig', 'viel'], 'mittel'),
-      flake: oneOf(n.flake, ['klein', 'mittel', 'gross'], 'mittel'),
+      flake: oneOf(n.flake, ['klein', 'mittel', 'gross', 'riesig'], 'gross'),
       height: oneOf(n.height, ['flach', 'mittel', 'hoch'], 'mittel'),
       plow: oneOf(+n.plow, [15, 30, 60], 30),
       tops: n.tops !== false,

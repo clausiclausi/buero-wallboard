@@ -753,6 +753,8 @@ html[data-skin="milchglas"] .pw .keypad button.busy .pw-spin { display: inline-b
 @keyframes xm-blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
 @keyframes xm-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
 @keyframes xm-flame { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.85) translateY(1px); } }
+.xm-snowcap { opacity: var(--xm-snow, 0); transition: opacity 4s ease; }
+.xm-snowcap.wald { opacity: calc(.25 + .75 * var(--xm-snow, 0)); }
 .xm-blink { animation: xm-blink 2.4s ease-in-out infinite; }
 .xm-twinkle { animation: xm-twinkle 3s ease-in-out infinite; }
 .xm-flame { animation: xm-flame 1.1s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
@@ -1444,7 +1446,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 
   /* ---------- Schnee (1.48): dezenter Schneefall, liegender Schnee, Schneeräumer ---------- */
   const snowFx = window.WBSnow ? WBSnow.create(stage) : null;
-  const SNOW_DEF = { mode: 'winter', times: [8, 10, 12, 14, 16], mins: 15, amount: 'mittel', flake: 'mittel', height: 'mittel', plow: 30, tops: true };
+  const SNOW_DEF = { mode: 'winter', times: [8, 10, 12, 14, 16], mins: 15, amount: 'mittel', flake: 'gross', height: 'mittel', plow: 30, tops: true };
   const SNOW_N = { dezent: 60, mittel: 120, kraeftig: 200, viel: 320 };
   const snowCfg = () => Object.assign({}, SNOW_DEF, settings().snow || {});
   let snowTestUntil = 0, snowPlowSlot = '', snowWas = false;
@@ -1466,6 +1468,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     if (sleeping) return;
     const c = snowCfg(), why = snowWanted();
     const n = !why ? 0 : Math.max(SNOW_N[c.amount] || 120, why === 'echt' ? 120 : 0);
+    stage.style.setProperty('--xm-snow', snowFx.level.toFixed(2));
     snowFx.set({ amount: n, lightBg: document.documentElement.style.colorScheme === 'light', lowFx: document.documentElement.classList.contains('lowfx'), onTops: c.tops !== false, flake: c.flake, height: c.height });
     if (why && !snowWas && why !== 'test') {
       const key = new Date().toDateString() + '-schnee';
@@ -3657,7 +3660,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <div class="chips" id="sSnowTimes">${[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(v => `<button type="button" data-h="${v}" aria-pressed="${snowCfg().times.includes(v)}">${v} Uhr</button>`).join('')}</div>
         <label class="field" style="margin-top:10px">Dauer je Schauer <select id="sSnowMins">${[5, 10, 15, 20, 30, 45, 60].map(v => `<option value="${v}" ${snowCfg().mins === v ? 'selected' : ''}>${v === 60 ? 'ganze Stunde' : v + ' Minuten'}</option>`).join('')}</select></label>
         <label class="field">Menge (Flocken) <select id="sSnowAmt">${[['dezent', 'wenig'], ['mittel', 'mittel'], ['kraeftig', 'kräftig'], ['viel', 'Schneegestöber']].map(([v, l]) => `<option value="${v}" ${snowCfg().amount === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
-        <label class="field">Flockengröße <select id="sSnowSize">${[['klein', 'klein'], ['mittel', 'mittel'], ['gross', 'groß']].map(([v, l]) => `<option value="${v}" ${snowCfg().flake === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        <label class="field">Flockengröße <select id="sSnowSize">${[['klein', 'klein'], ['mittel', 'mittel'], ['gross', 'groß (Schneesterne)'], ['riesig', 'sehr groß']].map(([v, l]) => `<option value="${v}" ${snowCfg().flake === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <label class="field">Liegender Schnee <select id="sSnowHeight">${[['flach', 'flach'], ['mittel', 'mittel'], ['hoch', 'hoch']].map(([v, l]) => `<option value="${v}" ${snowCfg().height === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <label class="field">Schneeräumer fährt <select id="sSnowPlow">${[[15, 'alle 15 Minuten'], [30, 'jede halbe Stunde'], [60, 'jede Stunde']].map(([v, l]) => `<option value="${v}" ${snowCfg().plow === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <div class="field">Schnee auch auf den Kacheln liegen lassen <button class="switch" id="sSnowTops" role="switch" aria-checked="${snowCfg().tops !== false}"></button></div>

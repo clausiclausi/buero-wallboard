@@ -26,7 +26,7 @@
   const SPOTS = [[50, 30], [40, 46], [60, 50], [33, 64], [52, 66], [68, 70], [44, 80]];
   function tree(v) {
     const b = BALLS[v] || BALLS.rotgold, glow = v === 'bunt';
-    const snow = v === 'schnee' ? `<g fill="#FFFFFF" opacity=".95"><path d="M38 33 Q50 27 62 33 Q56 36 50 34 Q44 36 38 33Z"/><path d="M30 52 Q50 44 70 52 Q62 56 50 53 Q38 56 30 52Z"/><path d="M22 73 Q50 64 78 73 Q66 77 50 74 Q34 77 22 73Z"/></g>` : '';
+    const snow = `<g fill="#FFFFFF" ${v === 'schnee' ? 'opacity=".95"' : 'class="xm-snowcap"'}><path d="M38 33 Q50 27 62 33 Q56 36 50 34 Q44 36 38 33Z"/><path d="M30 52 Q50 44 70 52 Q62 56 50 53 Q38 56 30 52Z"/><path d="M22 73 Q50 64 78 73 Q66 77 50 74 Q34 77 22 73Z"/></g>`;
     return `<rect x="45" y="84" width="10" height="12" rx="2" fill="#7A4A2A"/>
       <path d="M50 12 L66 36 L58 36 L74 56 L64 56 L82 80 L18 80 L36 56 L26 56 L42 36 L34 36 Z" fill="${v === 'schnee' ? '#2E6B4E' : '#1F7A3D'}" stroke="#145C2C" stroke-width="1.5" stroke-linejoin="round"/>
       <path d="M50 12 L66 36 L58 36 L74 56 L64 56 L82 80 L50 80 Z" fill="#000" opacity=".12"/>
@@ -99,11 +99,11 @@
        ${bulbs(6, 11, 7, ['#FF5A5F', '#FFD23F', '#3DDC97', '#4CC9F0', '#C77DFF'])}
        ${[0, 1, 2, 3, 4, 5, 6].map(i => `<g transform="translate(${i * W / 6} 4)"><path d="M0 0 C-14 -8 -16 10 0 2 C16 10 14 -8 0 0Z" fill="#C8102E"/><circle r="3" fill="#A30D25"/></g>`).join('')}`,
       frame: 'inset 0 0 0 5px rgba(200,16,46,.35), inset 0 0 0 7px rgba(232,185,35,.35), inset 0 0 60px rgba(200,16,46,.12)' },
-    winterwald: { name: 'Winterwald', desc: 'Tannenwald am unteren Rand, funkelnde Sterne oben, kühler Rahmen', svg: () => {
+    winterwald: { name: 'Winterwald', desc: 'Grüne Tannen am unteren Rand (werden bei Schnee weiß), funkelnde Sterne oben, kühler Rahmen', svg: () => {
       let trees = '', x = -10, i = 0;
-      while (x < W + 20) { const h = 18 + ((i * 37) % 19), w = h * .7; trees += `<path d="M${x} ${H} L${x + w / 2} ${H - h} L${x + w} ${H} Z"/><path d="M${x + w * .2} ${H - h * .45} L${x + w / 2} ${H - h - 2} L${x + w * .8} ${H - h * .45} Z" fill="#fff" opacity=".55"/>`; x += w * .62; i++; }
+      while (x < W + 20) { const h = 18 + ((i * 37) % 19), w = h * .7; trees += `<path d="M${x} ${H} L${x + w / 2} ${H - h} L${x + w} ${H} Z"/><path class="xm-snowcap wald" d="M${x + w * .22} ${H - h * .5} L${x + w / 2} ${H - h - 1} L${x + w * .78} ${H - h * .5} Q${x + w / 2} ${H - h * .38} ${x + w * .22} ${H - h * .5} Z" fill="#fff"/>`; x += w * .62; i++; }
       let stars = ''; for (let k = 0; k < 26; k++) { const sx = (k * 157 + 40) % W, sy = 4 + (k * 7) % 14; stars += `<circle class="xm-blink" style="animation-delay:${(k * .53) % 3}s" cx="${sx}" cy="${sy}" r="${1.4 + (k % 3) * .6}" fill="#EAF4FF"/>`; }
-      return `<g fill="#1E4D5C" opacity=".75">${trees}</g>${stars}`; },
+      return `<g fill="#1F6B3A" opacity=".9">${trees}</g>${stars}`; },
       frame: 'inset 0 0 0 4px rgba(140,190,235,.35), inset 0 0 70px rgba(140,190,235,.18)' },
     gemuetlich: { name: 'Gemütlich', desc: 'Warmweiße Lichterkette mit Strohsternen, warmer Schimmer am Rand', svg: () => {
       const star = (x, y, r) => `<g transform="translate(${x} ${y})" stroke="#D9B26A" stroke-width="1.6" stroke-linecap="round">${[0, 45, 90, 135].map(a => `<line x1="${-r}" y1="0" x2="${r}" y2="0" transform="rotate(${a})"/>`).join('')}<circle r="2" fill="#C8102E" stroke="none"/></g>`;

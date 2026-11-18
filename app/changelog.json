@@ -1,5 +1,14 @@
 [
  {
+  "version": "1.51.0",
+  "date": "2026-11-18",
+  "changes": [
+   "Größere Schneeflocken: neue Größen „groß“ und „sehr groß“, große Flocken fallen als echte Schneesterne und drehen sich langsam. Standard ist jetzt „groß“.",
+   "Verschneite Tannen: Auf den Deko-Tannenbäumen bleibt Schnee liegen, je mehr es schneit. Räumt der Schneeräumer, werden sie wieder grün.",
+   "Overlay „Winterwald“ jetzt mit grünen Tannen, die bei Schnee weiß werden."
+  ]
+ },
+ {
   "version": "1.50.0",
   "date": "2026-11-18",
   "changes": [
