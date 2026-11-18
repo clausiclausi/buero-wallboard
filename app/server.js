@@ -39,6 +39,7 @@ const DEFAULT_SETTINGS = {
   muted: false, lead: 15, volume: 0.6, rainHours: [10, 12, 17],
   visitor: false, officeStart: '06:00', officeEnd: '20:00', autoUpdate: 'sofort', updateEvery: 30, skin: 'milchglas',
   mascot: { fig: 'strich', color: '#7FE0AE', text: '', font: 'strich', every: 'zufall', size: 'mittel', mood: 'lieb', alerts: true, walk: '09:55', deco: true },
+  snow: { mode: 'winter', times: [8, 10, 12, 14, 16], mins: 15, amount: 'dezent', plow: 30, tops: true },
 };
 const DEFAULT_LOANS = [
   { id: 'l1', type: 'Notebooks', icon: 'laptop', avail: 0, total: 0 },
@@ -281,6 +282,18 @@ function sanitizeSettings(b) {
   }
   // Richtung der Abfahrten: Steig (z. B. SB1) oder einzelnes Fahrtziel, null = alle
   if ('transitDir' in b) s.transitDir = typeof b.transitDir === 'string' && b.transitDir.trim() ? clean(b.transitDir, 60) : null;
+  // 1.48: Schnee-Effekt (Schneefall, liegender Schnee, Schneeräumer)
+  if (b.snow && typeof b.snow === 'object') {
+    const n = b.snow;
+    s.snow = {
+      mode: oneOf(n.mode, ['aus', 'winter', 'wetter', 'immer'], 'winter'),
+      times: Array.isArray(n.times) ? [...new Set(n.times.map(Number).filter(v => Number.isInteger(v) && v >= 0 && v <= 23))].sort((a, c) => a - c).slice(0, 12) : [8, 10, 12, 14, 16],
+      mins: oneOf(+n.mins, [5, 10, 15, 20, 30], 15),
+      amount: oneOf(n.amount, ['dezent', 'mittel'], 'dezent'),
+      plow: oneOf(+n.plow, [15, 30, 60], 30),
+      tops: n.tops !== false,
+    };
+  }
   if (b.radar && typeof b.radar === 'object') s.radar = { zoom: oneOf(+b.radar.zoom, [1, 1.5, 2, 3, 4, 6, 8, 12, 16], 1), play: b.radar.play !== false };
   if ('route' in b) {
     const r = b.route;

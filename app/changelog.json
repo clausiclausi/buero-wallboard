@@ -1,5 +1,16 @@
 [
  {
+  "version": "1.48.0",
+  "date": "2026-11-18",
+  "changes": [
+   "Schnee fürs Board: Im Winter (November bis Februar) rieselt zu einstellbaren Uhrzeiten ein paar Minuten lang dezenter Schnee über das ganze Board, und immer dann, wenn es in Hannover wirklich schneit.",
+   "Ein Teil des Schnees bleibt liegen: als schmaler Streifen am unteren Rand und als dünne Haube auf den Kachelkanten, nie auf Text.",
+   "Jede halbe Stunde fährt ein kleiner Schneeräumer mit Rundumleuchte unten durchs Bild und räumt alles ab (nur wenn etwas liegt).",
+   "Einstellungen → Schnee: an/aus, Uhrzeiten, Dauer, Stärke, wie oft der Räumer fährt, Schnee auf Kacheln ja/nein, dazu „Jetzt schneien lassen“ und „Schneeräumer jetzt“ zum Ausprobieren.",
+   "Sparsam: läuft nur, solange sich etwas bewegt, nachts und am Wochenende ruht alles. Das AOK-Männchen freut sich beim ersten Schnee des Tages."
+  ]
+ },
+ {
   "version": "1.47.0",
   "date": "2026-11-17",
   "changes": [

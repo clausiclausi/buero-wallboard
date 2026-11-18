@@ -1,28 +1,30 @@
 {
-  "version": "1.47.0",
-  "notes": "Wetter direkt vom Deutschen Wetterdienst: Kommt das Board an Bright Sky oder Open-Meteo nicht heran (z. B. weil das Büronetz diese Seiten sperrt), holt es Messwerte und Stundenvorhersage jetzt direkt von opendata.dwd.de, Station Hannover.",
+  "version": "1.48.0",
+  "notes": "Schnee fürs Board: Im Winter (November bis Februar) rieselt zu einstellbaren Uhrzeiten ein paar Minuten lang dezenter Schnee über das ganze Board, und immer dann, wenn es in Hannover wirklich schneit.",
   "changes": [
-    "Wetter direkt vom Deutschen Wetterdienst: Kommt das Board an Bright Sky oder Open-Meteo nicht heran (z. B. weil das Büronetz diese Seiten sperrt), holt es Messwerte und Stundenvorhersage jetzt direkt von opendata.dwd.de, Station Hannover.",
-    "Unwetterwarnungen kommen notfalls direkt aus der amtlichen DWD-Warnliste für die Region Hannover.",
-    "Alle Wetterquellen werden gleichzeitig gefragt, das Board zeigt sofort die erste, die antwortet.",
-    "Verbindungstest zeigt jede Wetterquelle einzeln mit Grund, falls eine nicht erreichbar ist."
+    "Schnee fürs Board: Im Winter (November bis Februar) rieselt zu einstellbaren Uhrzeiten ein paar Minuten lang dezenter Schnee über das ganze Board, und immer dann, wenn es in Hannover wirklich schneit.",
+    "Ein Teil des Schnees bleibt liegen: als schmaler Streifen am unteren Rand und als dünne Haube auf den Kachelkanten, nie auf Text.",
+    "Jede halbe Stunde fährt ein kleiner Schneeräumer mit Rundumleuchte unten durchs Bild und räumt alles ab (nur wenn etwas liegt).",
+    "Einstellungen → Schnee: an/aus, Uhrzeiten, Dauer, Stärke, wie oft der Räumer fährt, Schnee auf Kacheln ja/nein, dazu „Jetzt schneien lassen“ und „Schneeräumer jetzt“ zum Ausprobieren.",
+    "Sparsam: läuft nur, solange sich etwas bewegt, nachts und am Wochenende ruht alles. Das AOK-Männchen freut sich beim ersten Schnee des Tages."
   ],
   "files": {
-    "changelog.json": "871708e23ff12ecc6c090c3f22797abaaffa3f5ccd9d1a2a40161c100b1695ea",
+    "changelog.json": "6f603982a0b04b43e115140cc88726f943f2d6a128f328a255fa6dcf84672172",
     "display.js": "8c1d2525ced556d8482c769a68fb9bd48b8cbc6adf67010c062387732adb02fa",
     "dwd.js": "6456ac4e1b64f1598e4e5b2756af06c0c33b119e9b9a70705afc4c3a6b683d47",
     "election.js": "b3432ff6400a9c93b7ae215a2f7c53bab88c32229e2a12886493c9975a575d09",
     "extras.js": "b0a86a05ff18ace4e0d31985b3545fbc2e09114651bb408dd2dbd935f9f719eb",
-    "public/board.html": "3c9f049269d1dab6f6a93253494b42abfdd8f804a3529831434e7a247ad4e4a3",
+    "public/board.html": "341d354954c1eacfd60da70c5207d883976fec0fb4d513e5188eb5bd240b97b2",
     "public/icon-192.png": "c6b866b885e711fdb607de892d36300c9da80127f2d833cd672ce40af65f5637",
     "public/icon-512.png": "0330db0ae5d581a2bd979a907dbdcb1f3d626ebe2df8c3e4a9469771a2e2dec6",
     "public/knock.js": "422d5ca78ea4873c002673f42c0e7db747b70f86c8ec489a95638bb18ae9e667",
     "public/m.html": "1b76b3a368ab321f108309936fe58a2e687ee9298199bdf21f78957a878da7c8",
     "public/mascot.js": "a414057fb572b03b3321873c8d436b99567876adc288dc72d1a7bf48b5c97b5d",
     "public/qrcode.js": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780",
+    "public/snow.js": "f6ffe684cf9f4bca244e7cd0f765afd1b635f4e5a81314a5a7f32100cd529180",
     "radar.js": "dab89d26d4029b72825200d34fede2b02e3f4acbd576d27420c6ee4514416ec2",
-    "server.js": "46a052bc47dd2f5ef1db2d00c0b8f8c85f0c1dc04a3d78ab155f7b98b9958d01",
+    "server.js": "4f26871c72d2ce07ad896a96e5c408c6bdf80155e767c911f1161e47d36380b7",
     "tunnel.js": "35dea1af9f6c63799555ff6c5caeda7c8509fcbfaf0e24a613d0548d54c7c5be",
-    "version.json": "ae71c63f6615fe0658ccdc597e638f0a601cdb2e78b19dd6fca7ff382552a64b"
+    "version.json": "38e605ada162893b04532325fa9018167326275714f8e01cc80a7885b60e0e85"
   }
 }
