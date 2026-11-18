@@ -39,7 +39,7 @@ const DEFAULT_SETTINGS = {
   muted: false, lead: 15, volume: 0.6, rainHours: [10, 12, 17],
   visitor: false, officeStart: '06:00', officeEnd: '20:00', autoUpdate: 'sofort', updateEvery: 30, skin: 'milchglas',
   mascot: { fig: 'strich', color: '#7FE0AE', text: '', font: 'strich', every: 'zufall', size: 'mittel', mood: 'lieb', alerts: true, walk: '09:55', deco: true },
-  snow: { mode: 'winter', times: [8, 10, 12, 14, 16], mins: 15, amount: 'dezent', plow: 30, tops: true },
+  snow: { mode: 'winter', times: [8, 10, 12, 14, 16], mins: 15, amount: 'mittel', flake: 'mittel', height: 'mittel', plow: 30, tops: true },
 };
 const DEFAULT_LOANS = [
   { id: 'l1', type: 'Notebooks', icon: 'laptop', avail: 0, total: 0 },
@@ -53,6 +53,11 @@ db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings);
 if ((db.transitDefault || 0) < 2) { db.settings.transit = null; db.settings.route = null; db.transitDefault = 2; }
 // 1.43: Neues Grunddesign Milchglas. Einmalig umstellen, das bisherige Aussehen merken (prevLook),
 // alle alten Designs und Farben bleiben unter Einstellungen → Design wählbar.
+// 1.49: Schnee war zu dezent (kaum zu sehen) – gespeicherte Einstellung einmalig auf die neue Standard-Menge heben
+if ((db.snowV2 || 0) < 1) {
+  if (db.settings.snow && db.settings.snow.amount === 'dezent') db.settings.snow = Object.assign({}, db.settings.snow, { amount: 'mittel', flake: 'mittel', height: 'mittel' });
+  db.snowV2 = 1;
+}
 if ((db.lookV2 || 0) < 1) {
   if (!db.settings.prevLook) db.settings.prevLook = { skin: db.settings.skin, theme: db.settings.theme };
   db.settings.skin = 'milchglas'; db.settings.theme = { preset: 'sand', colors: null };
@@ -288,8 +293,10 @@ function sanitizeSettings(b) {
     s.snow = {
       mode: oneOf(n.mode, ['aus', 'winter', 'wetter', 'immer'], 'winter'),
       times: Array.isArray(n.times) ? [...new Set(n.times.map(Number).filter(v => Number.isInteger(v) && v >= 0 && v <= 23))].sort((a, c) => a - c).slice(0, 12) : [8, 10, 12, 14, 16],
-      mins: oneOf(+n.mins, [5, 10, 15, 20, 30], 15),
-      amount: oneOf(n.amount, ['dezent', 'mittel'], 'dezent'),
+      mins: oneOf(+n.mins, [5, 10, 15, 20, 30, 45, 60], 15),
+      amount: oneOf(n.amount, ['dezent', 'mittel', 'kraeftig', 'viel'], 'mittel'),
+      flake: oneOf(n.flake, ['klein', 'mittel', 'gross'], 'mittel'),
+      height: oneOf(n.height, ['flach', 'mittel', 'hoch'], 'mittel'),
       plow: oneOf(+n.plow, [15, 30, 60], 30),
       tops: n.tops !== false,
     };

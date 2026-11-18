@@ -7,8 +7,9 @@
 (function () {
   const W = 1920, H = 1080;
   const BIN = 6, NB = Math.ceil(W / BIN);      // unterer Rand: Säulen à 6 px
-  const MAX_BOTTOM = 12;                        // passt in den unteren Rand der Bühne (14 px)
-  const MAX_TOP = 7;                            // Haube auf den Kacheln (Spalt ist 18 px)
+  // Schneehöhe (1.49 einstellbar): unten bis 12/22/34 px, auf den Kacheln bis 7/10/14 px (Spalt ist 18 px)
+  const HEIGHTS = { flach: [12, 7], mittel: [22, 10], hoch: [34, 14] };
+  const SIZES = { klein: 1, mittel: 1.4, gross: 1.9 };
   const PLOW_SPEED = 130;                       // px pro Sekunde
 
   function create(stage) {
@@ -19,6 +20,7 @@
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 
     let flakes = [], want = 0, light = false, low = false, tops = true;
+    let MAX_BOTTOM = 22, MAX_TOP = 10, size = 1.4;
     let bottom = new Float32Array(NB);
     let caps = [];                 // { el, x, y, w, bins: Float32Array }
     let plow = null, falling = [], spray = [];
@@ -26,7 +28,7 @@
 
     const rnd = (a, b) => a + Math.random() * (b - a);
     function flake(top) {
-      const r = rnd(1.3, 3.1);
+      const r = rnd(1.3, 3.1) * size;
       return { x: rnd(0, W), y: top ? rnd(-H, 0) : -10, r, vy: 22 + r * 14 + rnd(0, 10), a: rnd(.45, .85), ph: rnd(0, 6.3), sw: rnd(8, 22) };
     }
 
@@ -68,12 +70,12 @@
         let gone = false;
         if (tops) for (const c of caps) {
           if (py < c.y - 1 && f.y >= c.y - 1 && f.x > c.x && f.x < c.x + c.w) {
-            if (Math.random() < .45) { addTo(c.bins, Math.floor((f.x - c.x) / BIN), 1.1 * f.r / 2, MAX_TOP); gone = true; }
+            if (Math.random() < .45) { addTo(c.bins, Math.floor((f.x - c.x) / BIN), 1.1 * f.r / size / 2 * MAX_TOP / 7, MAX_TOP); gone = true; }
             break;
           }
         }
         const bi = Math.min(NB - 1, Math.max(0, Math.floor(f.x / BIN)));
-        if (!gone && f.y >= H - bottom[bi] - 1) { addTo(bottom, bi, 1.6 * f.r / 2, MAX_BOTTOM); gone = true; }
+        if (!gone && f.y >= H - bottom[bi] - 1) { addTo(bottom, bi, 1.6 * f.r / size / 2 * MAX_BOTTOM / 12, MAX_BOTTOM); gone = true; }
         if (gone) { if (flakes.length > want) flakes.splice(i, 1); else Object.assign(f, flake(false)); }
       }
       while (flakes.length < want && Math.random() < .25) flakes.push(flake(false));
@@ -201,11 +203,14 @@
 
     return {
       // amount: 0 = kein Schneefall, sonst Zahl der Flocken
-      set({ amount = 0, lightBg = false, lowFx = false, onTops = true } = {}) {
+      set({ amount = 0, lightBg = false, lowFx = false, onTops = true, flake: flakeSize = 'mittel', height = 'mittel' } = {}) {
         light = lightBg; low = lowFx;
+        [MAX_BOTTOM, MAX_TOP] = HEIGHTS[height] || HEIGHTS.mittel;
+        const ns = SIZES[flakeSize] || SIZES.mittel;
+        if (ns !== size) { flakes.forEach(f => { f.r *= ns / size; }); size = ns; }
         if (tops !== onTops) { tops = onTops; measure(); }
         want = reduced.matches ? 0 : Math.round(amount * (low ? .5 : 1));
-        if (want && !flakes.length) for (let i = 0; i < want; i++) flakes.push(flake(true));
+        if (want > flakes.length) { const top = !flakes.length; while (flakes.length < want) flakes.push(top ? flake(true) : Object.assign(flake(true), { y: rnd(-H * .5, H) })); }
         if (want) kick();
       },
       plow(force) {
