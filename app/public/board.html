@@ -1410,7 +1410,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 
   /* ---------- Schnee (1.48): dezenter Schneefall, liegender Schnee, Schneeräumer ---------- */
   const snowFx = window.WBSnow ? WBSnow.create(stage) : null;
-  const SNOW_DEF = { mode: 'winter', times: [8, 10, 12, 14, 16], mins: 15, amount: 'dezent', plow: 30, tops: true };
+  const SNOW_DEF = { mode: 'winter', times: [8, 10, 12, 14, 16], mins: 15, amount: 'mittel', flake: 'mittel', height: 'mittel', plow: 30, tops: true };
+  const SNOW_N = { dezent: 60, mittel: 120, kraeftig: 200, viel: 320 };
   const snowCfg = () => Object.assign({}, SNOW_DEF, settings().snow || {});
   let snowTestUntil = 0, snowPlowSlot = '', snowWas = false;
   const realSnow = () => W.ok && ['snow', 'sleet'].includes(W.now?.icon);
@@ -1430,8 +1431,8 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     snowFx.pause(sleeping);
     if (sleeping) return;
     const c = snowCfg(), why = snowWanted();
-    const n = !why ? 0 : (why === 'echt' || c.amount === 'mittel') ? 120 : 60;
-    snowFx.set({ amount: n, lightBg: document.documentElement.style.colorScheme === 'light', lowFx: document.documentElement.classList.contains('lowfx'), onTops: c.tops !== false });
+    const n = !why ? 0 : Math.max(SNOW_N[c.amount] || 120, why === 'echt' ? 120 : 0);
+    snowFx.set({ amount: n, lightBg: document.documentElement.style.colorScheme === 'light', lowFx: document.documentElement.classList.contains('lowfx'), onTops: c.tops !== false, flake: c.flake, height: c.height });
     if (why && !snowWas && why !== 'test') {
       const key = new Date().toDateString() + '-schnee';
       if (mascot && settings().mascot?.fig !== 'aus' && !mascotDone.has(key)) { mascotDone.add(key); local.set('mascotDone', [...mascotDone].slice(-100)); try { mascot.announce('Es schneit!', 'freuen'); } catch {} }
@@ -3612,10 +3613,12 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
       </div>
       <div><h4>Schnee</h4>
         <label class="field">Schneefall <select id="sSnowMode">${[['winter', 'im Winter (Nov. bis Feb.) und bei echtem Schnee'], ['wetter', 'nur bei echtem Schneefall draußen'], ['immer', 'ganzjährig zu den Zeiten unten'], ['aus', 'aus']].map(([v, l]) => `<option value="${v}" ${snowCfg().mode === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
-        <p class="hint" style="margin:6px 0 10px">Kurze Schneeschauer zu diesen Uhrzeiten (plus immer, wenn es in Hannover wirklich schneit):</p>
+        <p class="hint" style="margin:6px 0 10px">Schneeschauer zu diesen Uhrzeiten (plus immer, wenn es in Hannover wirklich schneit). Alle Uhrzeiten + „ganze Stunde“ = Schnee den ganzen Tag:</p>
         <div class="chips" id="sSnowTimes">${[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(v => `<button type="button" data-h="${v}" aria-pressed="${snowCfg().times.includes(v)}">${v} Uhr</button>`).join('')}</div>
-        <label class="field" style="margin-top:10px">Dauer je Schauer <select id="sSnowMins">${[5, 10, 15, 20, 30].map(v => `<option value="${v}" ${snowCfg().mins === v ? 'selected' : ''}>${v} Minuten</option>`).join('')}</select></label>
-        <label class="field">Stärke <select id="sSnowAmt">${[['dezent', 'dezent'], ['mittel', 'etwas mehr']].map(([v, l]) => `<option value="${v}" ${snowCfg().amount === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        <label class="field" style="margin-top:10px">Dauer je Schauer <select id="sSnowMins">${[5, 10, 15, 20, 30, 45, 60].map(v => `<option value="${v}" ${snowCfg().mins === v ? 'selected' : ''}>${v === 60 ? 'ganze Stunde' : v + ' Minuten'}</option>`).join('')}</select></label>
+        <label class="field">Menge (Flocken) <select id="sSnowAmt">${[['dezent', 'wenig'], ['mittel', 'mittel'], ['kraeftig', 'kräftig'], ['viel', 'Schneegestöber']].map(([v, l]) => `<option value="${v}" ${snowCfg().amount === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        <label class="field">Flockengröße <select id="sSnowSize">${[['klein', 'klein'], ['mittel', 'mittel'], ['gross', 'groß']].map(([v, l]) => `<option value="${v}" ${snowCfg().flake === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        <label class="field">Liegender Schnee <select id="sSnowHeight">${[['flach', 'flach'], ['mittel', 'mittel'], ['hoch', 'hoch']].map(([v, l]) => `<option value="${v}" ${snowCfg().height === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <label class="field">Schneeräumer fährt <select id="sSnowPlow">${[[15, 'alle 15 Minuten'], [30, 'jede halbe Stunde'], [60, 'jede Stunde']].map(([v, l]) => `<option value="${v}" ${snowCfg().plow === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <div class="field">Schnee auch auf den Kacheln liegen lassen <button class="switch" id="sSnowTops" role="switch" aria-checked="${snowCfg().tops !== false}"></button></div>
         <div class="row" style="margin-top:10px"><button class="btn" id="sSnowTest">Jetzt schneien lassen (3 Min.)</button><button class="btn" id="sSnowPlowNow">Schneeräumer jetzt</button></div>
@@ -3780,7 +3783,11 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     const putSnow = (patch) => { setSettings({ snow: Object.assign(snowCfg(), patch) }); snowTick(); };
     scrim.querySelector('#sSnowMode').onchange = (e) => putSnow({ mode: e.target.value });
     scrim.querySelector('#sSnowMins').onchange = (e) => putSnow({ mins: +e.target.value });
-    scrim.querySelector('#sSnowAmt').onchange = (e) => putSnow({ amount: e.target.value });
+    // Menge/Größe ändern: 1 Minute Vorschau, damit man es sofort sieht
+    const preview = () => { snowTestUntil = Math.max(snowTestUntil, Date.now() + 60000); snowTick(); };
+    scrim.querySelector('#sSnowAmt').onchange = (e) => { putSnow({ amount: e.target.value }); preview(); };
+    scrim.querySelector('#sSnowSize').onchange = (e) => { putSnow({ flake: e.target.value }); preview(); };
+    scrim.querySelector('#sSnowHeight').onchange = (e) => { putSnow({ height: e.target.value }); preview(); };
     scrim.querySelector('#sSnowPlow').onchange = (e) => putSnow({ plow: +e.target.value });
     const stp = scrim.querySelector('#sSnowTops');
     stp.onclick = () => { putSnow({ tops: snowCfg().tops === false }); stp.setAttribute('aria-checked', snowCfg().tops !== false); };

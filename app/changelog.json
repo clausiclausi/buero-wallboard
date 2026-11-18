@@ -1,5 +1,14 @@
 [
  {
+  "version": "1.49.0",
+  "date": "2026-11-18",
+  "changes": [
+   "Schnee deutlich besser sichtbar: mehr und größere Flocken, der liegende Schnee wird höher.",
+   "Einstellungen → Schnee: neu „Menge“ (wenig bis Schneegestöber), „Flockengröße“ und „Liegender Schnee“ (flach/mittel/hoch). Beim Ändern schneit es 1 Minute zur Vorschau.",
+   "Dauer je Schauer jetzt bis „ganze Stunde“: alle Uhrzeiten anwählen = Schnee den ganzen Tag."
+  ]
+ },
+ {
   "version": "1.48.0",
   "date": "2026-11-18",
   "changes": [
