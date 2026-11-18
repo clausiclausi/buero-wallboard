@@ -9,7 +9,7 @@
   const BIN = 6, NB = Math.ceil(W / BIN);      // unterer Rand: Säulen à 6 px
   // Schneehöhe (1.49 einstellbar): unten bis 12/22/34 px, auf den Kacheln bis 7/10/14 px (Spalt ist 18 px)
   const HEIGHTS = { flach: [12, 7], mittel: [22, 10], hoch: [34, 14] };
-  const SIZES = { klein: 1, mittel: 1.4, gross: 1.9 };
+  const SIZES = { klein: 1, mittel: 1.4, gross: 2.4, riesig: 3.4 };
   const PLOW_SPEED = 130;                       // px pro Sekunde
 
   function create(stage) {
@@ -29,7 +29,7 @@
     const rnd = (a, b) => a + Math.random() * (b - a);
     function flake(top) {
       const r = rnd(1.3, 3.1) * size;
-      return { x: rnd(0, W), y: top ? rnd(-H, 0) : -10, r, vy: 22 + r * 14 + rnd(0, 10), a: rnd(.45, .85), ph: rnd(0, 6.3), sw: rnd(8, 22) };
+      return { x: rnd(0, W), y: top ? rnd(-H, 0) : -10, r, rot: rnd(0, 1.05), spin: rnd(-.6, .6), vy: 22 + r * 14 + rnd(0, 10), a: rnd(.45, .85), ph: rnd(0, 6.3), sw: rnd(8, 22) };
     }
 
     // Kacheln vermessen (Bühnen-Koordinaten, Skalierung herausrechnen)
@@ -139,9 +139,26 @@
       // Flocken (Schatten nur auf hellem Hintergrund, damit Weiß sichtbar bleibt)
       ctx.fillStyle = snow;
       if (light) { ctx.shadowColor = 'rgba(35,55,85,.7)'; ctx.shadowBlur = 3; }
+      const tt = performance.now() / 1000;
+      ctx.strokeStyle = snow; ctx.lineCap = 'round';
       for (const f of [...flakes, ...falling, ...spray]) {
         ctx.globalAlpha = f.a ?? .9;
-        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 6.283); ctx.fill();
+        if (f.r > 4.2 && f.rot != null) {
+          // große Flocken als Schneestern: 3 Striche mit kleinen Ästen, dreht sich langsam
+          const r = f.r * 1.5, a0 = f.rot + tt * f.spin;
+          ctx.lineWidth = Math.max(1.3, f.r * .26);
+          ctx.beginPath();
+          for (let k = 0; k < 3; k++) {
+            const a = a0 + k * 1.0472, c = Math.cos(a) * r, s = Math.sin(a) * r;
+            ctx.moveTo(f.x - c, f.y - s); ctx.lineTo(f.x + c, f.y + s);
+            for (const sg of [1, -1]) {
+              const bx = f.x + sg * c * .55, by = f.y + sg * s * .55, b = r * .32;
+              ctx.moveTo(bx, by); ctx.lineTo(bx + Math.cos(a + sg * 2.4) * b * sg, by + Math.sin(a + sg * 2.4) * b * sg);
+              ctx.moveTo(bx, by); ctx.lineTo(bx + Math.cos(a - sg * 2.4) * b * sg, by + Math.sin(a - sg * 2.4) * b * sg);
+            }
+          }
+          ctx.stroke();
+        } else { ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 6.283); ctx.fill(); }
       }
       ctx.globalAlpha = 1; ctx.shadowBlur = 0;
       if (plow) drawPlow(plow.x, H - 3, plow.dir);
@@ -226,6 +243,8 @@
       clear() { bottom.fill(0); caps.forEach(c => c.bins.fill(0)); flakes = []; falling = []; spray = []; plow = null; want = 0; draw(); },
       get snowing() { return want > 0; },
       get lying() { return total(); },
+      // wie viel Schnee unten liegt (0 bis 1), für verschneite Deko-Tannen
+      get level() { let s = 0; for (const v of bottom) s += v; return Math.min(1, s / NB / (MAX_BOTTOM * .55)); },
     };
   }
   window.WBSnow = { create };
