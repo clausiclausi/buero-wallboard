@@ -737,6 +737,9 @@ html[data-skin="milchglas"] .pw .keypad button.busy .pw-spin { display: inline-b
 .panel h4 { margin: 0 0 12px; font-size: 20px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); }
 .presets { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .mascot { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 6; overflow: visible; }
+/* Schnee (1.48): ein Canvas über der ganzen Bühne, fängt keine Klicks ab */
+.snow-fx { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 5; }
+#stage.arranging .snow-fx, html.sleeping .snow-fx { visibility: hidden; }
 .mas-sw { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .mas-sw button { width: 46px; height: 46px; border-radius: 12px; border: 2px solid var(--line); padding: 0; font-size: 15px; font-weight: 600; }
 .mas-sw button[aria-pressed="true"] { outline: 3px solid var(--text); outline-offset: 2px; }
@@ -1340,6 +1343,7 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
 </div>
 
 <script src="/static/mascot.js"></script>
+<script src="/static/snow.js"></script>
 <script src="/static/knock.js"></script>
 <script src="/static/qrcode.js"></script>
 <script>
@@ -1403,6 +1407,43 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     if (W.ok && Math.max(...wet) >= 60 && now >= toMin(settings().officeStart || '07:00') + 30 && !busy()) once(today + '-schirm', () => mascot.announce('Gleich Regen: Schirm nicht vergessen!', 'schirm'));
   }
   setInterval(mascotTimers, 10000);
+
+  /* ---------- Schnee (1.48): dezenter Schneefall, liegender Schnee, Schneeräumer ---------- */
+  const snowFx = window.WBSnow ? WBSnow.create(stage) : null;
+  const SNOW_DEF = { mode: 'winter', times: [8, 10, 12, 14, 16], mins: 15, amount: 'dezent', plow: 30, tops: true };
+  const snowCfg = () => Object.assign({}, SNOW_DEF, settings().snow || {});
+  let snowTestUntil = 0, snowPlowSlot = '', snowWas = false;
+  const realSnow = () => W.ok && ['snow', 'sleet'].includes(W.now?.icon);
+  function snowWanted() {
+    const c = snowCfg(), d = new Date(), m = d.getHours() * 60 + d.getMinutes();
+    if (Date.now() < snowTestUntil) return 'test';
+    if (c.mode === 'aus') return '';
+    if (realSnow()) return 'echt';
+    if (c.mode === 'wetter') return '';
+    const winter = [11, 12, 1, 2].includes(d.getMonth() + 1);
+    if (c.mode === 'winter' && !winter) return '';
+    return c.times.some(hh => m >= hh * 60 && m < hh * 60 + c.mins) ? 'schauer' : '';
+  }
+  function snowTick() {
+    if (!snowFx) return;
+    const sleeping = document.documentElement.classList.contains('sleeping') || document.hidden;
+    snowFx.pause(sleeping);
+    if (sleeping) return;
+    const c = snowCfg(), why = snowWanted();
+    const n = !why ? 0 : (why === 'echt' || c.amount === 'mittel') ? 120 : 60;
+    snowFx.set({ amount: n, lightBg: document.documentElement.style.colorScheme === 'light', lowFx: document.documentElement.classList.contains('lowfx'), onTops: c.tops !== false });
+    if (why && !snowWas && why !== 'test') {
+      const key = new Date().toDateString() + '-schnee';
+      if (mascot && settings().mascot?.fig !== 'aus' && !mascotDone.has(key)) { mascotDone.add(key); local.set('mascotDone', [...mascotDone].slice(-100)); try { mascot.announce('Es schneit!', 'freuen'); } catch {} }
+    }
+    snowWas = !!why;
+    // Räumer zur vollen und halben Stunde (bzw. alle 15/60 Min.), nur wenn etwas liegt
+    const d = new Date(), m = d.getHours() * 60 + d.getMinutes(), slot = `${d.toDateString()}-${Math.floor(m / c.plow)}`;
+    if (c.mode !== 'aus' && m % c.plow === 0 && slot !== snowPlowSlot) { snowPlowSlot = slot; snowFx.plow(false); }
+    if (c.mode === 'aus' && !why && snowFx.lying > 0) snowFx.clear();
+  }
+  setInterval(snowTick, 5000);
+  document.addEventListener('visibilitychange', snowTick);
   function scale() {
     const s = Math.min(fit.clientWidth / 1920, fit.clientHeight / 1080);
     stage.style.transform = `scale(${s}) translate(-50%, -50%)`;
@@ -3569,6 +3610,17 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
         <div class="field" style="margin-top:10px">Regenradar automatisch abspielen <button class="switch" id="sRadarPlay" role="switch" aria-checked="${st.radar?.play !== false}"></button></div>
         <p class="hint" style="margin-top:10px">Amtliche Unwetterwarnungen des DWD werden immer angezeigt.</p>
       </div>
+      <div><h4>Schnee</h4>
+        <label class="field">Schneefall <select id="sSnowMode">${[['winter', 'im Winter (Nov. bis Feb.) und bei echtem Schnee'], ['wetter', 'nur bei echtem Schneefall draußen'], ['immer', 'ganzjährig zu den Zeiten unten'], ['aus', 'aus']].map(([v, l]) => `<option value="${v}" ${snowCfg().mode === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        <p class="hint" style="margin:6px 0 10px">Kurze Schneeschauer zu diesen Uhrzeiten (plus immer, wenn es in Hannover wirklich schneit):</p>
+        <div class="chips" id="sSnowTimes">${[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(v => `<button type="button" data-h="${v}" aria-pressed="${snowCfg().times.includes(v)}">${v} Uhr</button>`).join('')}</div>
+        <label class="field" style="margin-top:10px">Dauer je Schauer <select id="sSnowMins">${[5, 10, 15, 20, 30].map(v => `<option value="${v}" ${snowCfg().mins === v ? 'selected' : ''}>${v} Minuten</option>`).join('')}</select></label>
+        <label class="field">Stärke <select id="sSnowAmt">${[['dezent', 'dezent'], ['mittel', 'etwas mehr']].map(([v, l]) => `<option value="${v}" ${snowCfg().amount === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        <label class="field">Schneeräumer fährt <select id="sSnowPlow">${[[15, 'alle 15 Minuten'], [30, 'jede halbe Stunde'], [60, 'jede Stunde']].map(([v, l]) => `<option value="${v}" ${snowCfg().plow === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        <div class="field">Schnee auch auf den Kacheln liegen lassen <button class="switch" id="sSnowTops" role="switch" aria-checked="${snowCfg().tops !== false}"></button></div>
+        <div class="row" style="margin-top:10px"><button class="btn" id="sSnowTest">Jetzt schneien lassen (3 Min.)</button><button class="btn" id="sSnowPlowNow">Schneeräumer jetzt</button></div>
+        <p class="hint" style="margin-top:8px">Der Schnee bleibt nur am unteren Rand und auf den Kachelkanten liegen, nie auf Text. Der Räumer kommt nur, wenn etwas liegt. Nachts und am Wochenende ruht alles.</p>
+      </div>
       <div><h4>Abfahrten</h4>
         <p class="hint" style="margin-bottom:10px">Haltestelle: <b id="sStopNow">${esc(st.transit?.name || S.extras?.transit?.stop?.name || 'Clausewitzstraße (Standard)')}</b></p>
         <div class="row"><input type="text" id="sStopQ" placeholder="Haltestelle suchen, z. B. Clausewitzstraße" style="flex:1;font:inherit;font-size:20px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px"><button class="btn" id="sStopGo">Suchen</button></div>
@@ -3725,6 +3777,20 @@ html[data-skin="fluid"] .clock.tick { animation: fluid-tick .8s var(--ease); }
     me.onclick = () => { setSettings({ mgEvening: settings().mgEvening === false }); me.setAttribute('aria-checked', settings().mgEvening !== false); };
     const lf = scrim.querySelector('#sLowFx');
     lf.onclick = () => { setSettings({ lowFx: settings().lowFx !== true }); lf.setAttribute('aria-checked', settings().lowFx === true); };
+    const putSnow = (patch) => { setSettings({ snow: Object.assign(snowCfg(), patch) }); snowTick(); };
+    scrim.querySelector('#sSnowMode').onchange = (e) => putSnow({ mode: e.target.value });
+    scrim.querySelector('#sSnowMins').onchange = (e) => putSnow({ mins: +e.target.value });
+    scrim.querySelector('#sSnowAmt').onchange = (e) => putSnow({ amount: e.target.value });
+    scrim.querySelector('#sSnowPlow').onchange = (e) => putSnow({ plow: +e.target.value });
+    const stp = scrim.querySelector('#sSnowTops');
+    stp.onclick = () => { putSnow({ tops: snowCfg().tops === false }); stp.setAttribute('aria-checked', snowCfg().tops !== false); };
+    scrim.querySelectorAll('#sSnowTimes button').forEach(b => b.onclick = () => {
+      const v = +b.dataset.h, list = snowCfg().times, on = list.includes(v);
+      putSnow({ times: on ? list.filter(x => x !== v) : [...list, v].sort((a, c) => a - c) });
+      b.setAttribute('aria-pressed', !on);
+    });
+    scrim.querySelector('#sSnowTest').onclick = () => { close(); snowTestUntil = Date.now() + 3 * 60000; setTimeout(snowTick, 300); };
+    scrim.querySelector('#sSnowPlowNow').onclick = () => { close(); setTimeout(() => snowFx?.plow(true), 300); };
     const rp = scrim.querySelector('#sRadarPlay');
     rp.onclick = () => { setRadar({ play: !radarCfg().play }); rp.setAttribute('aria-checked', radarCfg().play); };
     const vs = scrim.querySelector('#sVisitor');
